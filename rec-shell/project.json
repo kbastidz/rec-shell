@@ -1,0 +1,9 @@
+{
+  "name": "rec-shell",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "rec-shell/src",
+  "projectType": "application",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project rec-shell --web",
+  "targets": {}
+}
