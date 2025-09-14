@@ -22,7 +22,7 @@ export default defineConfig({
   plugins: [react(), nxViteTsPaths()],
 
   build: {
-    outDir: '../../dist/apps/rec-shell',
+    outDir: '../../dist/rec-shell',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
