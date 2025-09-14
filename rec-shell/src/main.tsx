@@ -10,7 +10,6 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
 
-const basename = import.meta.env.PROD ? '/rec-shell' : '';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -21,7 +20,7 @@ root.render(
     <MantineProvider>
       <ModalsProvider> 
         <Notifications /> 
-        <BrowserRouter basename={basename}>
+        <BrowserRouter>
           <App />
         </BrowserRouter>
       </ModalsProvider> 
