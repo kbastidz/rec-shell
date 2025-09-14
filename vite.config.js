@@ -6,8 +6,8 @@ export default defineConfig({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/rec-shell',
   
-  // IMPORTANTE: Configura la base URL para GitHub Pages
-  base: '/rec-shell/', // Reemplaza con el nombre real de tu repo
+  // Forzar base URL estática para GitHub Pages
+  base: '/rec-shell/',
   
   server: {
     port: 4200,
@@ -22,7 +22,7 @@ export default defineConfig({
   plugins: [react(), nxViteTsPaths()],
 
   build: {
-    outDir: '../../dist/rec-shell',
+    outDir: '../../dist/apps/rec-shell',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
