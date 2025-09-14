@@ -28,6 +28,7 @@ export default defineConfig({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    assetsDir: 'assets',
   },
 
   test: {
