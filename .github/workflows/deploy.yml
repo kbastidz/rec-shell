@@ -48,8 +48,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist/rec-shell'
-
+          #path: './dist/rec-shell'
+           path: 'dist/apps/rec-shell'
   # Job de Deployment
   deploy:
     environment:
