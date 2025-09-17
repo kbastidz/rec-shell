@@ -26,6 +26,4 @@ export { RoleList } from './lib/components/role/GET/RoleList';
 export { CreateRoleModal } from './lib/components/role/POST/CreateRoleModal';
 export { RoleManagement } from './lib/components/role/POST/RoleManagement';
 
-
-// Default export - Main component
-//export { RoleManagement as default } from './components/RoleManagement/RoleManagement';
+export * from './lib/types/auth.types';
