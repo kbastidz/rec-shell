@@ -54,23 +54,22 @@ export interface AnalisisImagen {
 
 export interface Cultivo {
   id: string;
-  usuario: User;
+  usuarioId: string;
   nombreCultivo: string;
   variedadCacao?: string;
-  fechaSiembra?: string; 
+  fechaSiembra?: string;
   areaHectareas?: number;
   ubicacionNombre?: string;
-  latitud?: number;
-  longitud?: number;
+  latitud: number;
+  longitud: number;
   altitud?: number;
   tipoSuelo?: string;
   sistemaRiego?: string;
   estadoCultivo: EstadoCultivo;
   notas?: string;
-  fechaCreacion?: string; 
-  fechaActualizacion?: string; 
-  
-  // Relaciones
+  fechaCreacion?: string;
+  fechaActualizacion?: string;
+
   analisisImagenes?: AnalisisImagen[];
   parametrosMonitoreo?: ParametroMonitoreo[];
   alertasMonitoreo?: AlertaMonitoreo[];
@@ -201,4 +200,10 @@ export interface Tratamiento {
   
   // Relaciones
   planesTratamiento?: PlanTratamiento[];
+}
+
+export interface CultivoFilters extends Partial<Cultivo> {
+  usuarioId?: string;
+  estadoCultivo?: EstadoCultivo;
+  variedadCacao?: string;
 }
