@@ -41,6 +41,8 @@ interface AdminTemplateProps {
   // Props opcionales para inyectar componentes desde fuera
   UserComponent?: NavigableComponent;
   RoleComponent?: NavigableComponent;
+  CultivoComponent?: NavigableComponent;
+  CategoriaComponent?: NavigableComponent;
   ProductsComponent?: NavigableComponent;
   CalendarComponent?: NavigableComponent;
   FilesComponent?: NavigableComponent;
@@ -56,6 +58,9 @@ interface AdminTemplateProps {
 export function AdminTemplate({
   UserComponent,
   RoleComponent,
+  CultivoComponent,
+  CategoriaComponent,
+
   ProductsComponent,
   CalendarComponent,
   FilesComponent,
@@ -76,6 +81,10 @@ export function AdminTemplate({
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: 'users', label: 'Usuarios', icon: Users, component: UserComponent },
     { key: 'roles', label: 'Roles', icon: Shield, component: RoleComponent },
+    { key: 'cultivo', label: 'Cultivo', icon: Shield, component: CultivoComponent },
+    { key: 'categoria', label: 'Categoria', icon: Shield, component: CategoriaComponent },
+
+
     { key: 'products', label: 'Productos', icon: ShoppingCart, component: ProductsComponent },
     { key: 'calendar', label: 'Calendario', icon: Calendar, component: CalendarComponent },
     { key: 'files', label: 'Archivos', icon: FileText, component: FilesComponent },
@@ -91,7 +100,7 @@ export function AdminTemplate({
       // Solo mostrar elementos que tienen componente asociado
       return item.component !== undefined;
     });
-  }, [UserComponent, RoleComponent, ProductsComponent, CalendarComponent, FilesComponent, SettingsComponent]);
+  }, [UserComponent, RoleComponent, CultivoComponent, CategoriaComponent, ProductsComponent, CalendarComponent, FilesComponent, SettingsComponent]);
 
   // Verificar si la pestaña activa está disponible, si no, cambiar a dashboard
   React.useEffect(() => {

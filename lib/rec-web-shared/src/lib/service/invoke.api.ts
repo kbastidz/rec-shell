@@ -192,6 +192,19 @@ export class InvokeApi {
   getBaseUrl(): string {
     return this.baseUrl;
   }
+
+  getUserId(): number | null {
+    const userStr = window.sessionStorage.getItem('user');
+    if (!userStr) return null; 
+    try {
+      const userObj = JSON.parse(userStr);
+      return userObj.id ?? null; 
+    } catch (e) {
+      console.error('Error al parsear el usuario:', e);
+      return null;
+    }
+  }
+
 }
 
 export const apiClient = new InvokeApi();

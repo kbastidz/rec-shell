@@ -1,8 +1,10 @@
 import { AdminTemplate } from '@rec-shell/rec-web-layout';
-import { RoleManagement, UserManagement, UsersPage } from '@rec-shell/rec-web-usuario';
+import { RoleManagement, UserManagement } from '@rec-shell/rec-web-usuario';
 import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
+import { CultivosManager  } from '@rec-shell/rec-web-agricultura';
+import { CategoriasList  } from '@rec-shell/rec-web-gamificacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',
@@ -13,11 +15,15 @@ type UserRole = typeof ROLES[keyof typeof ROLES];
 const rolePermissions = {
   [ROLES.ADMIN]: {
     UserComponent: UserManagement,
-    RoleComponent: RoleManagement
+    RoleComponent: RoleManagement,
+    CultivoComponent: CultivosManager ,
+    CategoriaComponent: CategoriasList
   },
   [ROLES.MODERATOR]: {
     UserComponent: UserManagement,
     RoleComponent: undefined,     // Sin acceso a gestión de roles
+    CultivoComponent: undefined,
+    CategoriaComponent: undefined
   }
 };
 
@@ -70,6 +76,8 @@ export function App() {
       <AdminTemplate 
         UserComponent={listMenu.UserComponent}
         RoleComponent={listMenu.RoleComponent}
+        CultivoComponent={listMenu.CultivoComponent}
+        CategoriaComponent={listMenu.CategoriaComponent}
         onSignOut={signOut}
         userInfo={userInfo}
       />
