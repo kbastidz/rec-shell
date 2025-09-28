@@ -6,3 +6,5 @@ export * from './lib/components/PUT/EditarCultivo';
 
 export { CultivosManager } from './lib/CultivosManager';
 export { useCultivosNavigation } from './lib/CultivosManager';
+export { MonitoreoCRUD } from './lib/UI_MONITOREO/components/MonitoreoCRUD.js';
+export { SeguimientoCRUD } from './lib/UI_SEGUIMIENTO/components/SeguimientoCRUD.js';

@@ -135,6 +135,10 @@ export interface ParametroMonitoreo {
   velocidadVientoKmh?: number;
   fuenteDatos: string;
   coordenadasGps?: string;
+
+  nombreCultivo?: string; //crear un dto
+  ubicacionNombre?: string;
+  cultivoId?: string;
 }
 
 

@@ -2,7 +2,7 @@ import { Cultivo, CultivoFilters } from '../types/model';
 import { EstadoCultivo } from '../enums/Enums';
 import { InvokeApi } from '@rec-shell/rec-web-shared';
 
-const API_URL = `/cultivos`;
+const API_URL = `/agricultura/cultivos`;
 
 export class ConexionService extends InvokeApi {
 
