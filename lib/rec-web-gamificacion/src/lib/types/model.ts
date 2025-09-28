@@ -315,3 +315,34 @@ export interface FiltroLogros {
   estaActivo?: boolean;
   esSecreto?: boolean;
 }
+
+export interface EstadisticasLogrosDTO {
+  totalLogrosActivos: number | null;
+  totalLogrosVisibles: number | null;
+  logrosObtenidos: number | null;
+  logrosExhibidos: number | null;
+  porcentajeCompletado: number | null;
+}
+
+export const getLogrosPendientes = (dto: EstadisticasLogrosDTO): number | null => {
+  if (dto.totalLogrosActivos != null && dto.logrosObtenidos != null) {
+    return dto.totalLogrosActivos - dto.logrosObtenidos;
+  }
+  return null;
+};
+
+export const getPorcentajeFormateado = (dto: EstadisticasLogrosDTO): string => {
+  if (dto.porcentajeCompletado != null) {
+    return `${dto.porcentajeCompletado.toFixed(1)}%`;
+  }
+  return "0.0%";
+};
+
+export interface UnirseDesafioRequest {
+  usuarioId: string;
+}
+
+export interface ActualizarProgresoRequest {
+  datosProgreso: Record<string, any>;
+  porcentajeCompletado: number;      
+}

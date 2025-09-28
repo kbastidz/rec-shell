@@ -158,31 +158,6 @@ export const CategoriasList: React.FC = () => {
   return (
     <Container size="xl" py="xl">
       <LoadingOverlay visible={loading && categorias.length === 0} />
-      
-      {/* Encabezado */}
-      <Paper p="xl" radius="lg" mb="xl" style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-      }}>
-        <Group justify="space-between" align="center">
-          <div>
-            <Group align="center" mb="xs">
-              <IconSchool size="2rem" />
-              <Title order={1}>
-                Categorías de Logros
-              </Title>
-              <IconSparkles size="1.5rem" style={{ color: '#ffd700' }} />
-            </Group>
-            <Text size="lg" style={{ opacity: 0.9 }}>
-              ¡Administra las categorías que ayudarán a los niños a brillar! ✨
-            </Text>
-          </div>
-          
-          <Badge size="xl" variant="white" color="dark">
-            {busqueda.trim() ? categoriasBuscadas.length : categorias.length} categorías
-          </Badge>
-        </Group>
-      </Paper>
 
       {/* Barra de herramientas */}
       <Group justify="space-between" mb="xl">
