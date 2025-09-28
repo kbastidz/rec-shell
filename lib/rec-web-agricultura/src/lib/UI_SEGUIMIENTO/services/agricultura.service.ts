@@ -4,7 +4,7 @@ import { EstadoActividad } from '../../enums/Enums';
 
 const API_URL = `/agricultura/actividades-seguimiento`;
 
-export class Service extends InvokeApi {
+export class ConexionService extends InvokeApi {
   async crearActividad(actividadSeguimiento: ActividadSeguimiento): Promise<ActividadSeguimiento> {
     const response = await this.post<ActividadSeguimiento>(API_URL, actividadSeguimiento);
     return response;
@@ -67,4 +67,4 @@ export class Service extends InvokeApi {
   }
 }
 
-export const service = new Service();
+export const service = new ConexionService();

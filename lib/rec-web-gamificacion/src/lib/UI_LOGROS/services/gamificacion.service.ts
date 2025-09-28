@@ -4,7 +4,7 @@ import { Rareza } from '../../enums/Enums';
 
 const API_URL = `/gamificacion/logros`;
 
-export class LogroService extends InvokeApi {
+export class ConexionService extends InvokeApi {
   
   async crearLogro(logro: Logro): Promise<Logro> {
     const response = await this.post<Logro>(API_URL, logro);
@@ -147,4 +147,4 @@ export class LogroService extends InvokeApi {
   }
 }
 
-export const service = new LogroService();
+export const service = new ConexionService();
