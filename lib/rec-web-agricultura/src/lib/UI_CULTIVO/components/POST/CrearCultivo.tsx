@@ -16,12 +16,13 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconArrowLeft, IconDeviceFloppy } from '@tabler/icons-react';
-import { useCultivos } from '../../hooks/useCultivos';
-import { EstadoCultivo } from '../../enums/Enums';
-import { Cultivo } from '../../types/model';
+
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { DateInput } from '@mantine/dates';
+import { EstadoCultivo } from '../../../enums/Enums';
+import { Cultivo } from '../../../types/model';
 import { useCultivosNavigation } from '../../CultivosManager';
+import { useCultivos } from '../../hooks/useCultivos';
 
 const VARIEDADES_CACAO = [
   'Trinitario',

@@ -34,8 +34,8 @@ import {
   IconAlertCircle
 } from '@tabler/icons-react';
 import { useCultivos } from '../../hooks/useCultivos';
-import { Cultivo, CultivoFilters } from '../../types/model';
-import { EstadoCultivo } from '../../enums/Enums';
+import { Cultivo, CultivoFilters } from '../../../types/model';
+import { EstadoCultivo } from '../../../enums/Enums';
 import { useCultivosNavigation } from '../../CultivosManager';
 
 

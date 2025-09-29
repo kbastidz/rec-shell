@@ -1,6 +1,7 @@
-import { Cultivo, CultivoFilters } from '../types/model';
-import { EstadoCultivo } from '../enums/Enums';
+
 import { InvokeApi } from '@rec-shell/rec-web-shared';
+import { EstadoCultivo } from '../../enums/Enums';
+import { Cultivo, CultivoFilters } from '../../types/model';
 
 const API_URL = `/agricultura/cultivos`;
 

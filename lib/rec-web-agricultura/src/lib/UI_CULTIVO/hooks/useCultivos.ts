@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
-import { EstadoCultivo } from '../enums/Enums';
+import { EstadoCultivo } from '../../enums/Enums';
+import { Cultivo, CultivoFilters } from '../../types/model';
 import { service } from '../services/agricultura.service';
-import { Cultivo, CultivoFilters } from '../types/model';
 
 interface UseCultivosState {
   cultivos: Cultivo[];
