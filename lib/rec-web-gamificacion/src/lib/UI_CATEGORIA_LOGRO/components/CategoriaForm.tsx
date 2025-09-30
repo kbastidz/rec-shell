@@ -16,8 +16,9 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconInfoCircle, IconPhoto, IconStar } from '@tabler/icons-react';
-import { CategoriaLogro } from '../../../types/model';
-import { CategoriaInput } from '../../services/gamificacion.service';
+import { CategoriaLogro } from '../../types/model';
+import { CategoriaInput } from '../services/gamificacion.service';
+
 
 interface CategoriaFormProps {
   opened: boolean;

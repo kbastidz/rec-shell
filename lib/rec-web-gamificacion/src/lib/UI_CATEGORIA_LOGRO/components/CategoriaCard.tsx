@@ -1,7 +1,7 @@
 // components/categorias/CategoriaCard.jsx
 import { Card, Group, Text, ActionIcon, Badge, Avatar, Tooltip } from '@mantine/core';
 import { IconEdit, IconTrash, IconStar } from '@tabler/icons-react';
-import { CategoriaLogro } from '../../../types/model';
+import { CategoriaLogro } from '../../types/model';
 
 interface CategoriaCardProps {
   categoria: CategoriaLogro;

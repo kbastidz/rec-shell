@@ -27,12 +27,13 @@ import {
 } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { useDebouncedValue } from '@mantine/hooks';
-
-import { useCategorias } from '../../hooks/useCategorias';
-import { CategoriaForm } from './CategoriaForm';
+import { CategoriaLogro } from '../../types/model';
+import { useCategorias } from '../hooks/useCategorias';
+import { CategoriaInput } from '../services/gamificacion.service';
 import { CategoriaCard } from './CategoriaCard';
-import { CategoriaLogro } from '../../../types/model';
-import { CategoriaInput } from '../../services/gamificacion.service';
+import { CategoriaForm } from './CategoriaForm';
+
+
 
 export const CategoriasList: React.FC = () => {
   const {
