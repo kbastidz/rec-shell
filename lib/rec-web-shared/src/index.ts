@@ -18,3 +18,4 @@ export { InvokeApi, apiClient } from './lib/service/invoke.api';
 export { SimpleSessionExpiryModal } from './lib/session/compoment/SimpleSessionExpiryModal';
 export { useSessionExpiry } from './lib/session/hook/useSessionExpiry';
 export { ErrorHandler, handleError } from './lib/util/error.handler.util';
+export { DeleteConfirmModal } from './lib/common/DeleteConfirmModal';

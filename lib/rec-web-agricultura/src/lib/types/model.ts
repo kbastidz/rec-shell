@@ -57,7 +57,7 @@ export interface Cultivo {
   usuarioId: string;
   nombreCultivo: string;
   variedadCacao?: string;
-  fechaSiembra?: string;
+  fechaSiembra: string;
   areaHectareas?: number;
   ubicacionNombre?: string;
   latitud: number;

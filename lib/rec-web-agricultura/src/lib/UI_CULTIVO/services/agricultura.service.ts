@@ -7,104 +7,88 @@ const API_URL = `/agricultura/cultivos`;
 
 export class ConexionService extends InvokeApi {
 
-  // POST - Crear cultivo
-  async crearCultivo(model: Cultivo): Promise<Cultivo> {
+  async POST(model: Cultivo): Promise<Cultivo> {
+    
     const response = await this.post<Cultivo>(API_URL, model, {});
     return response;
   }
 
-  // GET - Obtener cultivo por ID
-  async obtenerCultivoPorId(id: string): Promise<Cultivo> {
+  async GET_BY_ID(id: string): Promise<Cultivo> {
     const response = await this.get<Cultivo>(`${API_URL}/${id}`);
     return response;
   }
 
-  // GET - Obtener todos los cultivos
-  async obtenerTodosLosCultivos(): Promise<Cultivo[]> {
+  async GET(): Promise<Cultivo[]> {
     const response = await this.get<Cultivo[]>(`${API_URL}`);
     return response;
   }
 
-  // GET - Obtener cultivos por usuario
-  async obtenerCultivosPorUsuario(usuarioId: string): Promise<Cultivo[]> {
+  async GET_USER(usuarioId: string): Promise<Cultivo[]> {
     const response = await this.get<Cultivo[]>(`${API_URL}/usuario/${usuarioId}`);
     return response;
   }
 
-  // GET - Obtener cultivos por estado
-  async obtenerCultivosPorEstado(estadoCultivo: EstadoCultivo): Promise<Cultivo[]> {
+  async GET_STATE(estadoCultivo: EstadoCultivo): Promise<Cultivo[]> {
     const response = await this.get<Cultivo[]>(`${API_URL}/estado/${estadoCultivo}`);
     return response;
   }
 
-  // GET - Obtener cultivos por usuario y estado
-  async obtenerCultivosPorUsuarioYEstado(
-    usuarioId: string, 
-    estadoCultivo: EstadoCultivo
-  ): Promise<Cultivo[]> {
+  async GET_USER_AND_STATE(usuarioId: string, estadoCultivo: EstadoCultivo): Promise<Cultivo[]> {
     const response = await this.get<Cultivo[]>(`${API_URL}/usuario/${usuarioId}/estado/${estadoCultivo}`);
     return response;
   }
 
-  // GET - Obtener cultivos por variedad
-  async obtenerCultivosPorVariedad(variedadCacao: string): Promise<Cultivo[]> {
+  async GET_VARIETY(variedadCacao: string): Promise<Cultivo[]> {
     const response = await this.get<Cultivo[]>(`${API_URL}/variedad/${variedadCacao}`);
     return response;
   }
 
-  // GET - Obtener área total activa por usuario
-  async obtenerAreaTotalActivaPorUsuario(): Promise<number> {
+  async GET_AREA_TOTAL_ACTIVA_BY_USER(): Promise<number> {
     const response = await this.get<number>(`${API_URL}/usuario/${this.getUserId()}/area-total-activa`);
     return response;
   }
 
-  // GET - Verificar existencia de cultivo
-  async verificarExistenciaCultivo(id: string): Promise<boolean> {
+  async IS_EXIST(id: string): Promise<boolean> {
     const response = await this.get<boolean>(`${API_URL}/${id}/exists`);
     return response;
   }
 
-  // PUT - Actualizar cultivo
-  async actualizarCultivo(id: string, cultivo: Cultivo): Promise<Cultivo> {
+  async PUT(id: string, cultivo: Cultivo): Promise<Cultivo> {
     const response = await this.put<Cultivo>(`${API_URL}/${id}`, cultivo);
     return response;
   }
 
-  // DELETE - Eliminar cultivo
-  async eliminarCultivo(id: string): Promise<void> {
+  async DELETE(id: string): Promise<void> {
     await this.delete(`${API_URL}/${id}`);
   }
 
-  // PATCH - Cambiar estado del cultivo
-  async cambiarEstadoCultivo(id: string, nuevoEstado: EstadoCultivo): Promise<Cultivo> {
-    const response = await this.put<Cultivo>(`${API_URL}/${id}/estado`, nuevoEstado, {
+  async PUT_STATE(id: string, nuevoEstado: EstadoCultivo): Promise<Cultivo> {
+    const response = await this.put<Cultivo>(`${API_URL}/${id}/estado`, nuevoEstado); /*, {
       headers: {
         'Content-Type': 'application/json'
       }
-    });
+    });*/
     return response;
   }
 
-  // Método helper para filtros combinados
-  async obtenerCultivosConFiltros(filtros: CultivoFilters): Promise<Cultivo[]> {
+  async GET_FILTER(filtros: CultivoFilters): Promise<Cultivo[]> {
     if (filtros.usuarioId && filtros.estadoCultivo) {
-      return this.obtenerCultivosPorUsuarioYEstado(filtros.usuarioId, filtros.estadoCultivo);
+      return this.GET_USER_AND_STATE(filtros.usuarioId, filtros.estadoCultivo);
     }
     
     if (filtros.usuarioId) {
-      return this.obtenerCultivosPorUsuario(filtros.usuarioId);
+      return this.GET_USER(filtros.usuarioId);
     }
     
     if (filtros.estadoCultivo) {
-      return this.obtenerCultivosPorEstado(filtros.estadoCultivo);
+      return this.GET_STATE(filtros.estadoCultivo);
     }
     
     if (filtros.variedadCacao) {
-      return this.obtenerCultivosPorVariedad(filtros.variedadCacao);
+      return this.GET_VARIETY(filtros.variedadCacao);
     }
     
-    return this.obtenerTodosLosCultivos();
+    return this.GET();
   }
 }
-
 export const service = new ConexionService();

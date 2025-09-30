@@ -3,6 +3,7 @@ export * from './lib/UI_CULTIVO/CultivosManager.js';
 export * from './lib/UI_CULTIVO/components/GET/ListarCultivos.js';
 export * from './lib/UI_CULTIVO/components/POST/CrearCultivo';
 export * from './lib/UI_CULTIVO/components/PUT/EditarCultivo'; 
+export * from './lib/UI_CULTIVO/components/CultivosAdmin.js'; 
 
 export { CultivosManager } from './lib/UI_CULTIVO/CultivosManager.js';
 export { useCultivosNavigation } from './lib/UI_CULTIVO/CultivosManager.js';

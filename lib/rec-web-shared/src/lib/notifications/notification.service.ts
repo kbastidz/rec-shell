@@ -1,5 +1,6 @@
 import { notifications } from '@mantine/notifications';
 import { NotificationConfig, NotificationService } from './types';
+import { NOTIFICATION_MESSAGES } from './constants';
 
 class NotificationServiceImpl implements NotificationService {
   show(config: NotificationConfig): void {
@@ -13,8 +14,8 @@ class NotificationServiceImpl implements NotificationService {
     });
   }
 
-  success(title: string, message: string, icon?: React.ReactNode): void {
-    this.show({
+  success(title: string, message: string, icon: React.ReactNode ): void {
+   this.show({
       title,
       message,
       color: 'green',

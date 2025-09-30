@@ -9,10 +9,10 @@ import {
   ActionIcon,
 } from '@mantine/core';
 import { IconPlus, IconRefresh, IconAlertCircle } from '@tabler/icons-react';
-import { CreateRoleModal } from '@rec-shell/rec-web-usuario';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { useRoles } from '../../../hooks/useRoles';
 import { RoleList } from '../GET/RoleList';
+import { CreateRoleModal } from './CreateRoleModal';
 
 export const RoleManagement = () => {
   const { roles, loading, error, fetchRoles, createRole } = useRoles();

@@ -44,5 +44,8 @@ export const NOTIFICATION_MESSAGES = {
       title: 'Cargando',
       message: 'Procesando solicitud...',
     },
+    DELETE: {
+      message: 'Registro eliminado correctamente',
+    }
   },
 } as const;

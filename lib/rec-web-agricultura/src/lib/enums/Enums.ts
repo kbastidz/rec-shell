@@ -1,7 +1,8 @@
 export enum EstadoCultivo {
   ACTIVO = 'ACTIVO',
   INACTIVO = 'INACTIVO',
-  COSECHADO = 'COSECHADO'
+  COSECHADO = 'COSECHADO',
+  SUSPENDIDO = 'SUSPENDIDO'
 }
 
 export enum EstadoProcesamiento {
@@ -68,3 +69,34 @@ export enum Operacion {
   UPDATE = 'UPDATE',
   DELETE = 'DELETE'
 }
+
+
+export const VARIEDADES_CACAO = [
+  'Trinitario',
+  'Criollo',
+  'Forastero',
+  'Nacional',
+  'CCN-51',
+  'ICS-1',
+  'ICS-6',
+  'TSH-565'
+];
+
+export const TIPOS_SUELO = [
+  'Arcilloso',
+  'Limoso',
+  'Arenoso',
+  'Franco',
+  'Franco-arcilloso',
+  'Franco-limoso',
+  'Franco-arenoso'
+];
+
+export const SISTEMAS_RIEGO = [
+  'Por goteo',
+  'Por aspersión',
+  'Por surcos',
+  'Por inundación',
+  'Manual',
+  'Sin sistema de riego'
+];

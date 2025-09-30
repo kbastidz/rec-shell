@@ -42,3 +42,16 @@ export type AnalisisImagenWithResults = AnalisisImagen & {
     planesTratamiento?: PlanTratamiento[];
   })[];
 };
+
+export const toLocalDateString = (date: Date | null): string | undefined => {
+  return date ? date.toISOString().split('T')[0] : undefined;
+};
+
+export const fromLocalDateString = (dateString: string | undefined): Date | null => {
+  return dateString ? new Date(dateString) : null;
+};
+
+export function ST_GET_USER_ID(): string {
+  const userStr = window.sessionStorage.getItem('user');
+  return userStr ? JSON.parse(userStr).id : ''; 
+}
