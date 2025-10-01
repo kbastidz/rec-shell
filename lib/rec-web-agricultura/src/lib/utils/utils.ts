@@ -55,3 +55,7 @@ export function ST_GET_USER_ID(): string {
   const userStr = window.sessionStorage.getItem('user');
   return userStr ? JSON.parse(userStr).id : ''; 
 }
+
+export function GET_ERROR(error: unknown, defaultMessage = "Error al cargar los registros"): string {
+  return error instanceof Error ? error.message : defaultMessage;
+}

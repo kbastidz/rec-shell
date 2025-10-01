@@ -7,8 +7,7 @@ const API_URL = `/agricultura/cultivos`;
 
 export class ConexionService extends InvokeApi {
 
-  async POST(model: Cultivo): Promise<Cultivo> {
-    
+  async POST(model: Cultivo): Promise<Cultivo> {    
     const response = await this.post<Cultivo>(API_URL, model, {});
     return response;
   }
@@ -63,11 +62,7 @@ export class ConexionService extends InvokeApi {
   }
 
   async PUT_STATE(id: string, nuevoEstado: EstadoCultivo): Promise<Cultivo> {
-    const response = await this.put<Cultivo>(`${API_URL}/${id}/estado`, nuevoEstado); /*, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });*/
+    const response = await this.put<Cultivo>(`${API_URL}/${id}/estado`, nuevoEstado); 
     return response;
   }
 

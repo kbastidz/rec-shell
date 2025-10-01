@@ -237,7 +237,7 @@ export const CultivosAdmin = () => {
             </Flex>
           ) : cultivosFiltrados.length === 0 ? (
             <Text ta="center" c="dimmed" py="xl">
-              No se encontraron cultivos
+              No se encontraron registros
             </Text>
           ) : (
             <Table.ScrollContainer minWidth={800}>

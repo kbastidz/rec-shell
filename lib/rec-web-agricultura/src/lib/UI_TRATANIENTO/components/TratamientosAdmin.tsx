@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Title,
@@ -19,15 +19,17 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconEdit, IconTrash, IconPlus, IconAlertCircle } from '@tabler/icons-react';
-import { useTratamientos } from '../hooks/useTratamientos';
+import { useTratamientos } from '../hooks/useAgricultura';
 import { Tratamiento } from '../../types/model';
+import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
 
-export  function TratamientosCRUD() {
-  const { tratamientos, loading, error, crear, actualizar, eliminar, obtenerTodos } = useTratamientos();
+export  function TratamientosAdmin() {
+  const { tratamientos, loading, error, CREAR, ACTUALIZAR, ELIMINAR, BUSCAR } = useTratamientos();
   const [modalOpened, setModalOpened] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deletingTratamiento, setDeletingTratamiento] = useState<Tratamiento | null>(null);
+  
 
   const form = useForm({
     initialValues: {
@@ -47,8 +49,8 @@ export  function TratamientosCRUD() {
   });
 
   useEffect(() => {
-    obtenerTodos();
-  }, [obtenerTodos]);
+    BUSCAR();
+  }, [BUSCAR]);
 
   const handleOpenModal = (tratamiento: Tratamiento | null = null) => {
     if (tratamiento) {
@@ -79,9 +81,9 @@ export  function TratamientosCRUD() {
   const handleSubmit = async (values: typeof form.values) => {
     try {
       if (editingId) {
-        await actualizar(editingId, values);
+        await ACTUALIZAR(editingId, values);
       } else {
-        await crear(values);
+        await CREAR(values);
       }
       handleCloseModal();
     } catch (err) {
@@ -91,8 +93,8 @@ export  function TratamientosCRUD() {
 
   const handleDelete = async (id: number) => {
     try {
-      await eliminar(id);
-      setDeleteConfirmId(null);
+      await ELIMINAR(id);
+      setDeletingTratamiento(null);
     } catch (err) {
       console.error('Error al eliminar:', err);
     }
@@ -107,7 +109,7 @@ export  function TratamientosCRUD() {
             leftSection={<IconPlus size={16} />}
             onClick={() => handleOpenModal()}
           >
-            Nuevo Tratamiento
+            Registrar
           </Button>
         </Group>
 
@@ -159,7 +161,7 @@ export  function TratamientosCRUD() {
                       <ActionIcon
                         variant="light"
                         color="red"
-                        onClick={() => setDeleteConfirmId(tratamiento.id)}
+                        onClick={() => setDeletingTratamiento(tratamiento)}
                       >
                         <IconTrash size={16} />
                       </ActionIcon>
@@ -172,7 +174,7 @@ export  function TratamientosCRUD() {
 
           {tratamientos.length === 0 && !loading && (
             <Text ta="center" py="xl" c="dimmed">
-              No hay tratamientos registrados
+              No se encontraron registros
             </Text>
           )}
         </div>
@@ -182,7 +184,7 @@ export  function TratamientosCRUD() {
       <Modal
         opened={modalOpened}
         onClose={handleCloseModal}
-        title={editingId ? 'Editar Tratamiento' : 'Nuevo Tratamiento'}
+        title={editingId ? 'Editar Registro' : 'Nuevo Registro'}
         size="lg"
       >
         <Stack gap="md">
@@ -253,31 +255,17 @@ export  function TratamientosCRUD() {
       </Modal>
 
       {/* Modal Confirmación Eliminar */}
-      <Modal
-        opened={deleteConfirmId !== null}
-        onClose={() => setDeleteConfirmId(null)}
-        title="Confirmar Eliminación"
-        size="sm"
-      >
-        <Stack gap="md">
-          <Text>¿Está seguro que desea eliminar este tratamiento?</Text>
-          <Text size="sm" c="dimmed">
-            Esta acción no se puede deshacer.
-          </Text>
-          <Group justify="flex-end">
-            <Button variant="light" onClick={() => setDeleteConfirmId(null)}>
-              Cancelar
-            </Button>
-            <Button
-              color="red"
-              onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
-              loading={loading}
-            >
-              Eliminar
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      <DeleteConfirmModal
+        opened={deletingTratamiento !== null}
+        onClose={() => setDeletingTratamiento(null)}
+        onConfirm={async () => {
+          if (deletingTratamiento) {
+            await handleDelete(deletingTratamiento.id);
+          }
+        }}
+        itemName={deletingTratamiento?.nombreTratamiento || "Registro"}
+      />
+
     </Container>
   );
 }
