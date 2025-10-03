@@ -34,3 +34,12 @@ export interface MedidaPreventivaInput {
   efectividadPorcentaje?: number;
   activo: boolean;
 }
+
+export interface DeficienciaNutrienteInput {
+  codigo: string;
+  nombre: string;
+  descripcion?: string;
+  sintomasVisuales?: string;
+  nutrienteDeficiente?: string;
+  activo: boolean;
+}

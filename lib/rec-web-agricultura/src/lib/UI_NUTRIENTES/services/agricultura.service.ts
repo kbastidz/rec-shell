@@ -1,76 +1,68 @@
 import { InvokeApi } from '@rec-shell/rec-web-shared';
 import { DeficienciaNutriente } from '../../types/model';
-
-
-export interface DeficienciaNutrienteInput {
-  codigo: string;
-  nombre: string;
-  descripcion?: string;
-  sintomasVisuales?: string;
-  nutrienteDeficiente?: string;
-  activo: boolean;
-}
+import { DeficienciaNutrienteInput } from '../../types/dto';
 
 const API_URL = `/agricultura/deficiencias-nutrientes`;
 
 export class ConexionService extends InvokeApi {
-  async crearDeficienciaNutriente(deficiencia: DeficienciaNutrienteInput): Promise<DeficienciaNutriente> {
+
+  async POST(deficiencia: DeficienciaNutrienteInput): Promise<DeficienciaNutriente> {
     const response = await this.post<DeficienciaNutriente>(API_URL, deficiencia);
     return response;
   }
 
-  async obtenerDeficienciaPorId(id: string): Promise<DeficienciaNutriente> {
+  async GET_ID(id: string): Promise<DeficienciaNutriente> {
     const response = await this.getById<DeficienciaNutriente>(API_URL, id);
     return response;
   }
 
-  async obtenerDeficienciaPorCodigo(codigo: string): Promise<DeficienciaNutriente> {
+  async GET_BY_CODE(codigo: string): Promise<DeficienciaNutriente> {
     const response = await this.get<DeficienciaNutriente>(`${API_URL}/codigo/${encodeURIComponent(codigo)}`);
     return response;
   }
 
-  async obtenerTodasLasDeficiencias(): Promise<DeficienciaNutriente[]> {
+  async GET(): Promise<DeficienciaNutriente[]> {
     const response = await this.get<DeficienciaNutriente[]>(API_URL);
     return response;
   }
 
-  async obtenerDeficienciasActivas(): Promise<DeficienciaNutriente[]> {
+  async GET_STATE(): Promise<DeficienciaNutriente[]> {
     const response = await this.get<DeficienciaNutriente[]>(`${API_URL}/activas`);
     return response;
   }
 
-  async obtenerDeficienciasPorNutriente(nutrienteDeficiente: string): Promise<DeficienciaNutriente[]> {
+  async GET_NUTRIENTES(nutrienteDeficiente: string): Promise<DeficienciaNutriente[]> {
     const response = await this.get<DeficienciaNutriente[]>(
       `${API_URL}/nutriente/${encodeURIComponent(nutrienteDeficiente)}`
     );
     return response;
   }
 
-  async obtenerDeficienciasActivasOrdenadas(): Promise<DeficienciaNutriente[]> {
+  async GET_STATE_ORDERED(): Promise<DeficienciaNutriente[]> {
     const response = await this.get<DeficienciaNutriente[]>(`${API_URL}/activas-ordenadas`);
     return response;
   }
 
-  async contarDeficienciasActivas(): Promise<number> {
+  async COUNT_ACTIVE(): Promise<number> {
     const response = await this.get<number>(`${API_URL}/count-activas`);
     return response;
   }
 
-  async actualizarDeficiencia(id: string, deficiencia: DeficienciaNutrienteInput): Promise<DeficienciaNutriente> {
+  async PUT(id: string, deficiencia: DeficienciaNutrienteInput): Promise<DeficienciaNutriente> {
     const response = await this.put<DeficienciaNutriente>(`${API_URL}/${id}`, deficiencia);
     return response;
   }
 
-  async eliminarDeficiencia(id: string): Promise<void> {
+  async DELETE(id: string): Promise<void> {
     await this.delete(`${API_URL}/${id}`);
   }
 
-  async activarDeficiencia(id: string): Promise<DeficienciaNutriente> {
+  async IS_ACTIVE(id: string): Promise<DeficienciaNutriente> {
     const response = await this.patch<DeficienciaNutriente>(`${API_URL}/${id}/activar`);
     return response;
   }
 
-  async desactivarDeficiencia(id: string): Promise<DeficienciaNutriente> {
+  async IS_INACTIVE(id: string): Promise<DeficienciaNutriente> {
     const response = await this.patch<DeficienciaNutriente>(`${API_URL}/${id}/desactivar`);
     return response;
   }

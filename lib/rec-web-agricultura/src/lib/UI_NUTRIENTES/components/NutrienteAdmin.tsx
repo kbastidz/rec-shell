@@ -27,32 +27,32 @@ import {
   IconX,
   IconExclamationMark
 } from '@tabler/icons-react';
-import { useDeficienciaNutriente } from '../hooks/useDeficienciaNutriente';
-import { DeficienciaNutrienteInput } from '../services/agricultura.service';
+import { useDeficienciaNutriente } from '../hooks/useAgricultura';
 import { DeficienciaNutriente } from '../../types/model';
+import { DeficienciaNutrienteInput } from '../../types/dto';
+import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
-export const NutrienteCRUD = () => {
+export const NutrienteAdmin = () => {
   const {
     deficiencias,
     loading,
     error,
-    crearDeficiencia,
-    obtenerTodas,
-    actualizar,
-    eliminar,
+    CREAR,
+    BUSCAR,
+    ACTUALIZAR,
+    ELIMINAR,
     activar,
     desactivar,
     clearError
   } = useDeficienciaNutriente();
 
-  // Estados para modales
+ 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalDetalle, setModalDetalle] = useState(false);
-  const [modalEliminar, setModalEliminar] = useState(false);
+  const [modalELIMINAR, setModalELIMINAR] = useState(false);
   const [deficienciaSeleccionada, setDeficienciaSeleccionada] = useState<DeficienciaNutriente | null>(null);
   const [editando, setEditando] = useState(false);
-
-  // Estados del formulario
+  
   const [formulario, setFormulario] = useState<DeficienciaNutrienteInput>({
     codigo: '',
     nombre: '',
@@ -62,9 +62,9 @@ export const NutrienteCRUD = () => {
     activo: true
   });
 
-  // Cargar datos al montar
+  
   useEffect(() => {
-    obtenerTodas();
+    BUSCAR();
   }, []);
 
   const limpiarFormulario = () => {
@@ -106,26 +106,26 @@ export const NutrienteCRUD = () => {
     clearError();
   };
 
-  const manejarSubmit = async () => {
+  const handlerSubmit = async () => {
     
     if (editando && deficienciaSeleccionada) {
-      const resultado = await actualizar(deficienciaSeleccionada.id.toString(), formulario);
+      const resultado = await ACTUALIZAR(deficienciaSeleccionada.id.toString(), formulario);
       if (resultado) {
         cerrarModal();
       }
     } else {
-      const resultado = await crearDeficiencia(formulario);
+      const resultado = await CREAR(formulario);
       if (resultado) {
         cerrarModal();
       }
     }
   };
 
-  const manejarEliminar = async () => {
+  const handlerEliminar = async () => {
     if (deficienciaSeleccionada) {
-      const exito = await eliminar(deficienciaSeleccionada.id.toString());
+      const exito = await ELIMINAR(deficienciaSeleccionada.id.toString());
       if (exito) {
-        setModalEliminar(false);
+        setModalELIMINAR(false);
         setDeficienciaSeleccionada(null);
       }
     }
@@ -139,12 +139,13 @@ export const NutrienteCRUD = () => {
     }
   };
 
-  const verDetalle = (deficiencia: DeficienciaNutriente) => {
+  const handlerDetalle = (deficiencia: DeficienciaNutriente) => {
     setDeficienciaSeleccionada(deficiencia);
     setModalDetalle(true);
   };
 
-  const rows = deficiencias.map((deficiencia) => (
+  const lista = Array.isArray(deficiencias) ? deficiencias : [];
+  const rows = lista.map((deficiencia) => (
     <Table.Tr key={deficiencia.id}>
       <Table.Td>{deficiencia.codigo}</Table.Td>
       <Table.Td>{deficiencia.nombre}</Table.Td>
@@ -159,7 +160,7 @@ export const NutrienteCRUD = () => {
           <ActionIcon
             variant="light"
             color="blue"
-            onClick={() => verDetalle(deficiencia)}
+            onClick={() => handlerDetalle(deficiencia)}
           >
             <IconEye size={16} />
           </ActionIcon>
@@ -182,7 +183,7 @@ export const NutrienteCRUD = () => {
             color="red"
             onClick={() => {
               setDeficienciaSeleccionada(deficiencia);
-              setModalEliminar(true);
+              setModalELIMINAR(true);
             }}
           >
             <IconTrash size={16} />
@@ -200,7 +201,7 @@ export const NutrienteCRUD = () => {
           leftSection={<IconPlus size={16} />}
           onClick={() => abrirModal()}
         >
-          Nueva Deficiencia
+          Registrar
         </Button>
       </Flex>
 
@@ -237,7 +238,9 @@ export const NutrienteCRUD = () => {
               {rows.length > 0 ? rows : (
                 <Table.Tr>
                   <Table.Td colSpan={5} style={{ textAlign: 'center' }}>
-                    <Text c="dimmed">No hay deficiencias registradas</Text>
+                    <Text c="dimmed">
+                      No se encontraron registros
+                    </Text>
                   </Table.Td>
                 </Table.Tr>
               )}
@@ -250,8 +253,8 @@ export const NutrienteCRUD = () => {
       <Modal
         opened={modalAbierto}
         onClose={cerrarModal}
-        title={editando ? 'Editar Deficiencia' : 'Nueva Deficiencia'}
-        size="md"
+        title={editando ? 'Editar Registro' : 'Nuevo Registro'}
+        size="lg"
       >
         <div>
           <Stack gap="md">
@@ -294,18 +297,18 @@ export const NutrienteCRUD = () => {
               onChange={(e) => setFormulario(prev => ({ ...prev, nutrienteDeficiente: e.target.value }))}
             />
             
-            <Switch
-              label="Activo"
-              checked={formulario.activo}
-              onChange={(e) => setFormulario(prev => ({ ...prev, activo: e.currentTarget.checked }))}
+           <Switch
+            label="Activo"
+            checked={formulario.activo}
+            onChange={(e) => setFormulario(prev => ({ ...prev, activo: e.target.checked }))}
             />
 
             <Group justify="flex-end" mt="md">
               <Button variant="light" onClick={cerrarModal}>
                 Cancelar
               </Button>
-              <Button onClick={manejarSubmit} loading={loading}>
-                {editando ? 'Actualizar' : 'Crear'}
+              <Button onClick={handlerSubmit} loading={loading}>
+                {editando ? 'ACTUALIZAR' : 'Crear'}
               </Button>
             </Group>
           </Stack>
@@ -363,38 +366,14 @@ export const NutrienteCRUD = () => {
       </Modal>
 
       {/* Modal de Confirmación de Eliminación */}
-      <Modal
-        opened={modalEliminar}
-        onClose={() => setModalEliminar(false)}
-        title="Confirmar Eliminación"
-        size="sm"
-      >
-        <Stack gap="md">
-          <Text>
-            ¿Estás seguro de que deseas eliminar la deficiencia{' '}
-            <Text span fw={500}>{deficienciaSeleccionada?.nombre}</Text>?
-          </Text>
-          <Text size="sm" c="dimmed">
-            Esta acción no se puede deshacer.
-          </Text>
-          
-          <Group justify="flex-end" mt="md">
-            <Button
-              variant="light"
-              onClick={() => setModalEliminar(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              color="red"
-              onClick={manejarEliminar}
-              loading={loading}
-            >
-              Eliminar
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      <DeleteConfirmModal
+        opened={modalELIMINAR}
+        onClose={() => setModalELIMINAR(false)}
+        onConfirm={handlerEliminar}
+        itemName={deficienciaSeleccionada?.nombre || ""}
+        itemType="cultivo"
+      />
+     
     </Container>
   );
 };

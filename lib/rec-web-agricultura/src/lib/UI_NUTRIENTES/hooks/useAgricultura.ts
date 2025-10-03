@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import { DeficienciaNutriente } from '../../types/model';
-import { DeficienciaNutrienteInput, service } from '../services/agricultura.service';
+import { service } from '../services/agricultura.service';
+import { DeficienciaNutrienteInput } from '../../types/dto';
+import { GET_ERROR } from '../../utils/utils';
 
 export const useDeficienciaNutriente = () => {
   const [deficiencias, setDeficiencias] = useState<DeficienciaNutriente[]>([]);
@@ -9,19 +11,17 @@ export const useDeficienciaNutriente = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleError = (err: any) => {
-    console.error('Error en DeficienciaNutriente:', err);
-    setError(err.message || 'Ha ocurrido un error');
+  const handleError = (err: unknown) => {
+    setError(GET_ERROR(error));
   };
 
   const clearError = () => setError(null);
 
-  // Crear deficiencia
-  const crearDeficiencia = async (data: DeficienciaNutrienteInput): Promise<DeficienciaNutriente | null> => {
+  const CREAR = async (data: DeficienciaNutrienteInput): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);
       clearError();
-      const nuevaDeficiencia = await service.crearDeficienciaNutriente(data);
+      const nuevaDeficiencia = await service.POST(data);
       setDeficiencias(prev => [...prev, nuevaDeficiencia]);
       return nuevaDeficiencia;
     } catch (err) {
@@ -32,12 +32,12 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Obtener por ID
-  const obtenerPorId = async (id: string): Promise<DeficienciaNutriente | null> => {
+  
+  const BUSCAR_ID = async (id: string): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);
       clearError();
-      const deficienciaEncontrada = await service.obtenerDeficienciaPorId(id);
+      const deficienciaEncontrada = await service.GET_ID(id);
       setDeficiencia(deficienciaEncontrada);
       return deficienciaEncontrada;
     } catch (err) {
@@ -48,12 +48,12 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Obtener por código
-  const obtenerPorCodigo = async (codigo: string): Promise<DeficienciaNutriente | null> => {
+  
+  const buscarPorCodigo = async (codigo: string): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);
       clearError();
-      const deficienciaEncontrada = await service.obtenerDeficienciaPorCodigo(codigo);
+      const deficienciaEncontrada = await service.GET_BY_CODE(codigo);
       setDeficiencia(deficienciaEncontrada);
       return deficienciaEncontrada;
     } catch (err) {
@@ -64,12 +64,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Obtener todas
-  const obtenerTodas = async () => {
+  const BUSCAR = async () => {
     try {
       setLoading(true);
       clearError();
-      const todasDeficiencias = await service.obtenerTodasLasDeficiencias();
+      const todasDeficiencias = await service.GET();
       setDeficiencias(todasDeficiencias);
       return todasDeficiencias;
     } catch (err) {
@@ -80,12 +79,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Obtener activas
-  const obtenerActivas = async () => {
+  const buscarActivas = async () => {
     try {
       setLoading(true);
       clearError();
-      const deficienciasActivas = await service.obtenerDeficienciasActivas();
+      const deficienciasActivas = await service.GET_STATE();
       setDeficiencias(deficienciasActivas);
       return deficienciasActivas;
     } catch (err) {
@@ -96,12 +94,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Obtener por nutriente
-  const obtenerPorNutriente = async (nutriente: string) => {
+  const buscarPorNutriente = async (nutriente: string) => {
     try {
       setLoading(true);
       clearError();
-      const deficienciasPorNutriente = await service.obtenerDeficienciasPorNutriente(nutriente);
+      const deficienciasPorNutriente = await service.GET_NUTRIENTES(nutriente);
       setDeficiencias(deficienciasPorNutriente);
       return deficienciasPorNutriente;
     } catch (err) {
@@ -112,12 +109,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Obtener activas ordenadas
-  const obtenerActivasOrdenadas = async () => {
+  const buscarActivasOrdenadas = async () => {
     try {
       setLoading(true);
       clearError();
-      const deficienciasOrdenadas = await service.obtenerDeficienciasActivasOrdenadas();
+      const deficienciasOrdenadas = await service.GET_STATE_ORDERED();
       setDeficiencias(deficienciasOrdenadas);
       return deficienciasOrdenadas;
     } catch (err) {
@@ -128,12 +124,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Contar activas
   const contarActivas = async (): Promise<number> => {
     try {
       setLoading(true);
       clearError();
-      const count = await service.contarDeficienciasActivas();
+      const count = await service.COUNT_ACTIVE();
       return count;
     } catch (err) {
       handleError(err);
@@ -143,12 +138,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Actualizar
-  const actualizar = async (id: string, data: DeficienciaNutrienteInput): Promise<DeficienciaNutriente | null> => {
+  const ACTUALIZAR = async (id: string, data: DeficienciaNutrienteInput): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);
       clearError();
-      const deficienciaActualizada = await service.actualizarDeficiencia(id, data);
+      const deficienciaActualizada = await service.PUT(id, data);
       setDeficiencias(prev => 
         prev.map(def => def.id.toString() === id ? deficienciaActualizada : def)
       );
@@ -164,12 +158,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Eliminar
-  const eliminar = async (id: string): Promise<boolean> => {
+  const ELIMINAR = async (id: string): Promise<boolean> => {
     try {
       setLoading(true);
       clearError();
-      await service.eliminarDeficiencia(id);
+      await service.DELETE(id);
       setDeficiencias(prev => prev.filter(def => def.id.toString() !== id));
       if (deficiencia?.id.toString() === id) {
         setDeficiencia(null);
@@ -183,12 +176,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Activar
   const activar = async (id: string): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);
       clearError();
-      const deficienciaActivada = await service.activarDeficiencia(id);
+      const deficienciaActivada = await service.IS_ACTIVE(id);
       setDeficiencias(prev => 
         prev.map(def => def.id.toString() === id ? deficienciaActivada : def)
       );
@@ -204,12 +196,11 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  // Desactivar
   const desactivar = async (id: string): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);
       clearError();
-      const deficienciaDesactivada = await service.desactivarDeficiencia(id);
+      const deficienciaDesactivada = await service.IS_INACTIVE(id);
       setDeficiencias(prev => 
         prev.map(def => def.id.toString() === id ? deficienciaDesactivada : def)
       );
@@ -226,23 +217,21 @@ export const useDeficienciaNutriente = () => {
   };
 
   return {
-    // Estados
     deficiencias,
     deficiencia,
     loading,
     error,
     
-    // Acciones
-    crearDeficiencia,
-    obtenerPorId,
-    obtenerPorCodigo,
-    obtenerTodas,
-    obtenerActivas,
-    obtenerPorNutriente,
-    obtenerActivasOrdenadas,
+    CREAR,
+    BUSCAR_ID,
+    buscarPorCodigo,
+    BUSCAR,
+    buscarActivas,
+    buscarPorNutriente,
+    buscarActivasOrdenadas,
     contarActivas,
-    actualizar,
-    eliminar,
+    ACTUALIZAR,
+    ELIMINAR,
     activar,
     desactivar,
     clearError
