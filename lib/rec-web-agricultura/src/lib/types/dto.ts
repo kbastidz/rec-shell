@@ -22,3 +22,15 @@ export interface CultivoFormData {
   estadoCultivo: string;
   notas?: string;
 }
+
+export interface MedidaPreventivaInput {
+  deficienciaNutrienteId?: number;
+  titulo: string;
+  descripcion: string;
+  tipoMedida?: string;
+  frecuenciaRecomendada?: string;
+  temporadaAplicacion?: string;
+  costoEstimado?: number;
+  efectividadPorcentaje?: number;
+  activo: boolean;
+}

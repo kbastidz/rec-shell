@@ -452,7 +452,7 @@ export const CultivosAdmin = () => {
       </Modal>
 
       {/* Modal Generico de Eliminación */}
-       <DeleteConfirmModal
+      <DeleteConfirmModal
         opened={deleteOpened}
         onClose={() => setDeleteOpened(false)}
         onConfirm={confirmarEliminacion}

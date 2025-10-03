@@ -46,6 +46,9 @@ export const NOTIFICATION_MESSAGES = {
     },
     DELETE: {
       message: 'Registro eliminado correctamente',
+    },
+    STATE: {
+      message: 'Estado actualizado correctamente',
     }
   },
 } as const;

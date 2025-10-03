@@ -9,11 +9,11 @@ export const useActividadSeguimiento = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const crearActividad = useCallback(async (actividadData: ActividadSeguimiento) => {
+  const CREAR = useCallback(async (actividadData: ActividadSeguimiento) => {
     try {
       setLoading(true);
       setError(null);
-      const nuevaActividad = await service.crearActividad(actividadData);
+      const nuevaActividad = await service.POST(actividadData);
       setActividades(prev => [...prev, nuevaActividad]);
       return nuevaActividad;
     } catch (err) {
@@ -24,11 +24,44 @@ export const useActividadSeguimiento = () => {
     }
   }, []);
 
-  const obtenerActividadPorId = useCallback(async (id: string) => {
+   const ACTUALIZAR = useCallback(async (id: string, actividadData: ActividadSeguimiento) => {
     try {
       setLoading(true);
       setError(null);
-      const actividadObtenida = await service.obtenerActividadPorId(id);
+      const actividadActualizada = await service.PUT(id, actividadData);
+      setActividades(prev => prev.map(act => act.id === id ? actividadActualizada : act));
+      setActividad(actividadActualizada);
+      return actividadActualizada;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar actividad');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const ELIMINAR = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await service.DELETE(id);
+      setActividades(prev => prev.filter(act => act.id !== id));
+      if (actividad?.id === id) {
+        setActividad(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al eliminar actividad');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [actividad?.id]);
+
+  const BUSCAR_ID = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const actividadObtenida = await service.GET_ID(id);
       setActividad(actividadObtenida);
       return actividadObtenida;
     } catch (err) {
@@ -39,11 +72,11 @@ export const useActividadSeguimiento = () => {
     }
   }, []);
 
-  const obtenerTodasLasActividades = useCallback(async () => {
+  const BUSCAR = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const todasActividades = await service.obtenerTodasLasActividades();
+      const todasActividades = await service.GET();
       setActividades(todasActividades);
       return todasActividades;
     } catch (err) {
@@ -58,7 +91,7 @@ export const useActividadSeguimiento = () => {
     try {
       setLoading(true);
       setError(null);
-      const actividadesPlan = await service.obtenerActividadesPorPlan(planId);
+      const actividadesPlan = await service.GET_PLAN(planId);
       setActividades(actividadesPlan);
       return actividadesPlan;
     } catch (err) {
@@ -73,7 +106,7 @@ export const useActividadSeguimiento = () => {
     try {
       setLoading(true);
       setError(null);
-      const actividadesEstado = await service.obtenerActividadesPorEstado(estado);
+      const actividadesEstado = await service.GET_STATE(estado);
       setActividades(actividadesEstado);
       return actividadesEstado;
     } catch (err) {
@@ -88,7 +121,7 @@ export const useActividadSeguimiento = () => {
     try {
       setLoading(true);
       setError(null);
-      const actividadesFecha = await service.obtenerActividadesPorFecha(fecha);
+      const actividadesFecha = await service.GET_DATE(fecha);
       setActividades(actividadesFecha);
       return actividadesFecha;
     } catch (err) {
@@ -103,7 +136,7 @@ export const useActividadSeguimiento = () => {
     try {
       setLoading(true);
       setError(null);
-      const actividadesUsuario = await service.obtenerActividadesPorUsuario(usuarioId);
+      const actividadesUsuario = await service.GET_ACTIVITY_BY_USER(usuarioId);
       setActividades(actividadesUsuario);
       return actividadesUsuario;
     } catch (err) {
@@ -118,7 +151,7 @@ export const useActividadSeguimiento = () => {
     try {
       setLoading(true);
       setError(null);
-      const actividadesVencidas = await service.obtenerActividadesVencidas(fecha);
+      const actividadesVencidas = await service.GET_VENCIDAS(fecha);
       setActividades(actividadesVencidas);
       return actividadesVencidas;
     } catch (err) {
@@ -133,7 +166,7 @@ export const useActividadSeguimiento = () => {
     try {
       setLoading(true);
       setError(null);
-      const actividadesRecordatorio = await service.obtenerActividadesParaRecordatorio(fecha);
+      const actividadesRecordatorio = await service.GET_RECORDATORY(fecha);
       setActividades(actividadesRecordatorio);
       return actividadesRecordatorio;
     } catch (err) {
@@ -148,7 +181,7 @@ export const useActividadSeguimiento = () => {
     try {
       setLoading(true);
       setError(null);
-      const conteo = await service.contarActividadesEjecutadas(planId);
+      const conteo = await service.GET_EJECUTADAS(planId);
       return conteo;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al contar actividades ejecutadas');
@@ -158,44 +191,11 @@ export const useActividadSeguimiento = () => {
     }
   }, []);
 
-  const actualizarActividad = useCallback(async (id: string, actividadData: ActividadSeguimiento) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const actividadActualizada = await service.actualizarActividad(id, actividadData);
-      setActividades(prev => prev.map(act => act.id === id ? actividadActualizada : act));
-      setActividad(actividadActualizada);
-      return actividadActualizada;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar actividad');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const eliminarActividad = useCallback(async (id: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await service.eliminarActividad(id);
-      setActividades(prev => prev.filter(act => act.id !== id));
-      if (actividad?.id === id) {
-        setActividad(null);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar actividad');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [actividad?.id]);
-
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  const resetActividades = useCallback(() => {
+  const RESET = useCallback(() => {
     setActividades([]);
     setActividad(null);
   }, []);
@@ -205,9 +205,9 @@ export const useActividadSeguimiento = () => {
     actividad,
     loading,
     error,
-    crearActividad,
-    obtenerActividadPorId,
-    obtenerTodasLasActividades,
+    CREAR,
+    BUSCAR_ID,
+    BUSCAR,
     obtenerActividadesPorPlan,
     obtenerActividadesPorEstado,
     obtenerActividadesPorFecha,
@@ -215,9 +215,9 @@ export const useActividadSeguimiento = () => {
     obtenerActividadesVencidas,
     obtenerActividadesParaRecordatorio,
     contarActividadesEjecutadas,
-    actualizarActividad,
-    eliminarActividad,
+    ACTUALIZAR,
+    ELIMINAR,
     clearError,
-    resetActividades
+    RESET
   };
 };

@@ -17,46 +17,68 @@ import {
   Stack,
   Alert,
   LoadingOverlay,
-  Box
+  Box,
+  Divider,
+  ThemeIcon
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconEye, IconAlertCircle } from '@tabler/icons-react';
 import { EstadoActividad } from '../../enums/Enums';
-import { ActividadSeguimiento } from '../../types/model';
-import { useActividadSeguimiento } from '../hooks/useSeguimiento';
-
-
-const estadoColors: Record<EstadoActividad, string> = {
-  [EstadoActividad.PENDIENTE]: 'blue',
-  [EstadoActividad.OMITIDA]: 'yellow',
-  [EstadoActividad.EJECUTADA]: 'green',
-  //[EstadoActividad.CANCELADA]: 'red'
-};
-
+import { ActividadSeguimiento, PlanTratamiento } from '../../types/model';
+import { useActividadSeguimiento } from '../hooks/useAgricultura';
+import { estadoColors } from '../../utils/utils';
+import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { Activity, ClipboardList, FileText, Bell, Calendar, CheckCircle, Clock, DollarSign, User } from 'lucide-react';
 
 const estadoOptions = Object.values(EstadoActividad).map(estado => ({
   value: estado,
   label: estado.replace('_', ' ')
 }));
 
-export const SeguimientoCRUD: React.FC = () => {
+export const SeguimientosAdmin: React.FC = () => {
   const [modalOpened, setModalOpened] = useState(false);
   const [detailModalOpened, setDetailModalOpened] = useState(false);
+  const [deleteOpened, setDeleteOpened] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+  const [registroAEliminar, setRegistroAEliminar] = useState<any>(null);
   const [editingActividad, setEditingActividad] = useState<ActividadSeguimiento | null>(null);
   const [viewingActividad, setViewingActividad] = useState<ActividadSeguimiento | null>(null);
+  const notifications = useNotifications();
 
   const {
     actividades,
     loading,
     error,
-    crearActividad,
-    obtenerTodasLasActividades,
-    actualizarActividad,
-    eliminarActividad,
+    CREAR,
+    BUSCAR,
+    ACTUALIZAR,
+    ELIMINAR,
     clearError
   } = useActividadSeguimiento();
 
+  interface InfoItemProps {
+    icon: React.ElementType;
+    label: string;
+    value: string | number | React.ReactNode;
+    color?: string;
+  }
+
+  const InfoItem = ({ icon: Icon, label, value, color = 'blue' }: InfoItemProps) => (
+    <Group gap="sm" wrap="nowrap" align="flex-start">
+      <ThemeIcon size="lg" variant="light" color={color} radius="md">
+        <Icon size={18} />
+      </ThemeIcon>
+      <div style={{ flex: 1 }}>
+        <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
+          {label}
+        </Text>
+        <Text size="sm" fw={500}>
+          {value}
+        </Text>
+      </div>
+    </Group>
+  );
+  
   const form = useForm<Partial<ActividadSeguimiento>>({
     initialValues: {
       planTratamiento: undefined,
@@ -67,10 +89,11 @@ export const SeguimientoCRUD: React.FC = () => {
       resultadoActividad: '',
       costoReal: undefined,
       responsable: '',
-      recordatorioEnviado: false
+      recordatorioEnviado: false,
+      planTratamientoId: ''
     },
     validate: {
-      planTratamiento: (value) => (!value ? 'El plan de tratamiento es requerido' : null),
+      //planTratamiento: (value) => (!value ? 'El plan de tratamiento es requerido' : null),
       nombreActividad: (value) => (!value ? 'El nombre es requerido' : null),
       fechaProgramada: (value) => (!value ? 'La fecha programada es requerida' : null),
       estado: (value) => (!value ? 'El estado es requerido' : null)
@@ -78,7 +101,7 @@ export const SeguimientoCRUD: React.FC = () => {
   });
 
   useEffect(() => {
-    obtenerTodasLasActividades();
+    BUSCAR();
   }, []);
 
   useEffect(() => {
@@ -91,7 +114,7 @@ export const SeguimientoCRUD: React.FC = () => {
       });
       clearError();
     }
-  }, [error, clearError]);
+  }, [error, clearError, notifications]);
 
   const handleOpenModal = (actividad?: ActividadSeguimiento) => {
     if (actividad) {
@@ -105,7 +128,8 @@ export const SeguimientoCRUD: React.FC = () => {
         resultadoActividad: actividad.resultadoActividad || '',
         costoReal: actividad.costoReal,
         responsable: actividad.responsable || '',
-        recordatorioEnviado: actividad.recordatorioEnviado
+        recordatorioEnviado: actividad.recordatorioEnviado,
+        planTratamientoId: actividad.planTratamiento?.id || ''
       });
     } else {
       setEditingActividad(null);
@@ -122,43 +146,59 @@ export const SeguimientoCRUD: React.FC = () => {
 
   const handleSubmit = async (values: Partial<ActividadSeguimiento>) => {
     try {
+      if (values.planTratamientoId) {
+        values.planTratamiento = {
+          id: values.planTratamientoId
+        } as PlanTratamiento;
+      }
+
       if (editingActividad) {
-        await actualizarActividad(editingActividad.id, {
+        await ACTUALIZAR(editingActividad.id, {
           ...editingActividad,
           ...values
         } as ActividadSeguimiento);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Actividad actualizada correctamente',
-          color: 'green'
-        });
+        
+        notifications.success();
       } else {
-        await crearActividad(values as ActividadSeguimiento);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Actividad creada correctamente',
-          color: 'green'
-        });
+        await CREAR(values as ActividadSeguimiento);
+        notifications.success();
       }
       handleCloseModal();
-      obtenerTodasLasActividades();
+      BUSCAR();
     } catch (error) {
       console.error('Error al guardar actividad:', error);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  /*const handleEliminar = async (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta actividad?')) {
       try {
-        await eliminarActividad(id);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Actividad eliminada correctamente',
-          color: 'green'
-        });
-        obtenerTodasLasActividades();
+        await ELIMINAR(id);
+        notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, NOTIFICATION_MESSAGES.GENERAL.DELETE.message);
+        BUSCAR();
       } catch (error) {
         console.error('Error al eliminar actividad:', error);
+      }
+    }
+  };*/
+
+  const handleEliminar = (cultivo: any) => {
+    setRegistroAEliminar(cultivo);
+    setDeleteOpened(true);
+  };
+
+  const confirmarEliminacion = async () => {
+    if (registroAEliminar) {
+      setEliminando(true);
+      try {
+        await ELIMINAR(registroAEliminar.id);
+        
+        setDeleteOpened(false);
+        setRegistroAEliminar(null);
+      } catch (error) {
+        console.error('Error al eliminar:', error);
+      } finally {
+        setEliminando(false);
       }
     }
   };
@@ -182,7 +222,7 @@ export const SeguimientoCRUD: React.FC = () => {
             onClick={() => handleOpenModal()}
             loading={loading}
           >
-            Nueva Actividad
+            Registrar
           </Button>
         </Group>
 
@@ -191,7 +231,7 @@ export const SeguimientoCRUD: React.FC = () => {
           
           {actividades.length === 0 ? (
             <Alert icon={<IconAlertCircle size={16} />} title="Sin datos">
-              No hay actividades registradas
+              No se encontraron registros
             </Alert>
           ) : (
             <Table striped highlightOnHover>
@@ -210,7 +250,7 @@ export const SeguimientoCRUD: React.FC = () => {
                 {actividades.map((actividad) => (
                   <Table.Tr key={actividad.id}>
                     <Table.Td>
-                      <Text size="sm">{actividad.planTratamiento?.tratamiento?.nombreTratamiento || 'Sin plan'}</Text>
+                      <Text size="sm">{actividad.planTratamiento?.nombreTratamiento || 'Sin plan'}</Text>
                     </Table.Td>
                     <Table.Td>
                       <Text fw={500}>{actividad.nombreActividad}</Text>
@@ -244,7 +284,7 @@ export const SeguimientoCRUD: React.FC = () => {
                         <ActionIcon
                           variant="subtle"
                           color="red"
-                          onClick={() => handleDelete(actividad.id)}
+                          onClick={() => handleEliminar(actividad.id)}
                         >
                           <IconTrash size={16} />
                         </ActionIcon>
@@ -262,7 +302,7 @@ export const SeguimientoCRUD: React.FC = () => {
       <Modal
         opened={modalOpened}
         onClose={handleCloseModal}
-        title={editingActividad ? 'Editar Actividad' : 'Nueva Actividad'}
+        title={editingActividad ? 'Editar Registro' : 'Nuevo Registro'}
         size="md"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -272,8 +312,9 @@ export const SeguimientoCRUD: React.FC = () => {
               placeholder="Seleccione un plan de tratamiento"
               data={[
                 { value: '1', label: 'Plan de Fertilización Orgánica 2024' },
+                { value: '2', label: 'Tratamiento foliar con nitrógeno líquido' },
               ]} // Aquí necesitas cargar los planes de tratamiento disponibles
-              {...form.getInputProps('planTratamiento')}
+              {...form.getInputProps('planTratamientoId')}
               required
               searchable
             />
@@ -344,87 +385,164 @@ export const SeguimientoCRUD: React.FC = () => {
       </Modal>
 
       {/* Modal para Ver Detalles */}
-      <Modal
-        opened={detailModalOpened}
-        onClose={() => setDetailModalOpened(false)}
-        title="Detalles de la Actividad"
-        size="md"
-      >
-        {viewingActividad && (
-          <Stack gap="md">
-            <Group>
-              <Text fw={500}>Plan de Tratamiento:</Text>
-              <Text>{viewingActividad.planTratamiento?.tratamiento?.nombreTratamiento || 'Sin plan asignado'}</Text>
-            </Group>
+     <Modal
+      opened={detailModalOpened}
+      onClose={() => setDetailModalOpened(false)}
+      title={
+        <Group gap="xs">
+          <ThemeIcon size="lg" variant="light" color="blue" radius="md">
+            <Activity size={20} />
+          </ThemeIcon>
+          <Text fw={600} size="lg">Detalles de la Actividad</Text>
+        </Group>
+      }
+      size="lg"
+      radius="md"
+      padding="xl"
+    >
+      {viewingActividad && (
+        <Stack gap="lg">
+          {/* Sección Principal */}
+          <Paper p="md" radius="md" withBorder>
+            <Stack gap="md">
+              <InfoItem
+                icon={ClipboardList}
+                label="Plan de Tratamiento"
+                value={viewingActividad.planTratamiento?.nombreTratamiento || 'Sin plan asignado'}
+                color="violet"
+              />
+              
+              <InfoItem
+                icon={FileText}
+                label="Nombre de la Actividad"
+                value={viewingActividad.nombreActividad}
+                color="blue"
+              />
 
-            <Group>
-              <Text fw={500}>Nombre:</Text>
-              <Text>{viewingActividad.nombreActividad}</Text>
-            </Group>
+              {viewingActividad.descripcion && (
+                <InfoItem
+                  icon={FileText}
+                  label="Descripción"
+                  value={viewingActividad.descripcion}
+                  color="gray"
+                />
+              )}
+            </Stack>
+          </Paper>
 
-            {viewingActividad.descripcion && (
-              <Group align="flex-start">
-                <Text fw={500}>Descripción:</Text>
-                <Text>{viewingActividad.descripcion}</Text>
+          {/* Estado y Fechas */}
+          <Paper p="md" radius="md" withBorder>
+            <Stack gap="md">
+              <Group gap="md" grow>
+                <div>
+                  <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={8}>
+                    Estado
+                  </Text>
+                  <Badge 
+                    size="lg" 
+                    color={estadoColors[viewingActividad.estado]} 
+                    variant="light"
+                    radius="md"
+                    fullWidth
+                  >
+                    {viewingActividad.estado.replace('_', ' ')}
+                  </Badge>
+                </div>
+
+                {viewingActividad.recordatorioEnviado !== undefined && (
+                  <div>
+                    <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={8}>
+                      Recordatorio
+                    </Text>
+                    <Badge 
+                      size="lg"
+                      color={viewingActividad.recordatorioEnviado ? 'green' : 'gray'}
+                      variant="light"
+                      radius="md"
+                      fullWidth
+                      leftSection={<Bell size={14} />}
+                    >
+                      {viewingActividad.recordatorioEnviado ? 'Enviado' : 'No enviado'}
+                    </Badge>
+                  </div>
+                )}
               </Group>
-            )}
 
-            <Group>
-              <Text fw={500}>Fecha Programada:</Text>
-              <Text>{formatDate(viewingActividad.fechaProgramada)}</Text>
-            </Group>
+              <Divider />
 
-            {viewingActividad.fechaEjecutada && (
-              <Group>
-                <Text fw={500}>Fecha Ejecutada:</Text>
-                <Text>{formatDate(viewingActividad.fechaEjecutada)}</Text>
-              </Group>
-            )}
+              <InfoItem
+                icon={Calendar}
+                label="Fecha Programada"
+                value={formatDate(viewingActividad.fechaProgramada)}
+                color="orange"
+              />
 
-            <Group>
-              <Text fw={500}>Estado:</Text>
-              <Badge color={estadoColors[viewingActividad.estado]} variant="light">
-                {viewingActividad.estado.replace('_', ' ')}
-              </Badge>
-            </Group>
+              {viewingActividad.fechaEjecutada && (
+                <InfoItem
+                  icon={CheckCircle}
+                  label="Fecha Ejecutada"
+                  value={formatDate(viewingActividad.fechaEjecutada)}
+                  color="green"
+                />
+              )}
 
-            {viewingActividad.resultadoActividad && (
-              <Group align="flex-start">
-                <Text fw={500}>Resultado:</Text>
-                <Text>{viewingActividad.resultadoActividad}</Text>
-              </Group>
-            )}
+              {viewingActividad.fechaCreacion && (
+                <InfoItem
+                  icon={Clock}
+                  label="Fecha de Creación"
+                  value={formatDate(viewingActividad.fechaCreacion)}
+                  color="gray"
+                />
+              )}
+            </Stack>
+          </Paper>
 
-            {viewingActividad.costoReal && (
-              <Group>
-                <Text fw={500}>Costo Real:</Text>
-                <Text>${viewingActividad.costoReal.toLocaleString()}</Text>
-              </Group>
-            )}
+          {/* Resultados y Detalles Adicionales */}
+          {(viewingActividad.resultadoActividad || viewingActividad.costoReal || viewingActividad.responsable) && (
+            <Paper p="md" radius="md" withBorder>
+              <Stack gap="md">
+                {viewingActividad.resultadoActividad && (
+                  <InfoItem
+                    icon={FileText}
+                    label="Resultado"
+                    value={viewingActividad.resultadoActividad}
+                    color="teal"
+                  />
+                )}
 
-            {viewingActividad.responsable && (
-              <Group>
-                <Text fw={500}>Responsable:</Text>
-                <Text>{viewingActividad.responsable}</Text>
-              </Group>
-            )}
+                {viewingActividad.costoReal && (
+                  <InfoItem
+                    icon={DollarSign}
+                    label="Costo Real"
+                    value={`$${viewingActividad.costoReal.toLocaleString()}`}
+                    color="green"
+                  />
+                )}
 
-            <Group>
-              <Text fw={500}>Recordatorio Enviado:</Text>
-              <Badge color={viewingActividad.recordatorioEnviado ? 'green' : 'gray'}>
-                {viewingActividad.recordatorioEnviado ? 'Sí' : 'No'}
-              </Badge>
-            </Group>
+                {viewingActividad.responsable && (
+                  <InfoItem
+                    icon={User}
+                    label="Responsable"
+                    value={viewingActividad.responsable}
+                    color="indigo"
+                  />
+                )}
+              </Stack>
+            </Paper>
+          )}
+        </Stack>
+      )}
+    </Modal>
 
-            {viewingActividad.fechaCreacion && (
-              <Group>
-                <Text fw={500}>Fecha de Creación:</Text>
-                <Text>{formatDate(viewingActividad.fechaCreacion)}</Text>
-              </Group>
-            )}
-          </Stack>
-        )}
-      </Modal>
+    {/* Modal Generico de Eliminación */}
+    <DeleteConfirmModal
+      opened={deleteOpened}
+      onClose={() => setDeleteOpened(false)}
+      onConfirm={confirmarEliminacion}
+      itemName={registroAEliminar?.nombreActividad || ''}
+      itemType="registro"
+    />
+
     </Container>
   );
 };

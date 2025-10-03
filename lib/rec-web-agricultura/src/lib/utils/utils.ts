@@ -1,3 +1,4 @@
+import { EstadoActividad } from "../enums/Enums";
 import { Cultivo, AnalisisImagen, ParametroMonitoreo, AlertaMonitoreo, ResultadoDiagnostico, DeficienciaNutriente, PlanTratamiento } from "../types/model";
 
 
@@ -59,3 +60,25 @@ export function ST_GET_USER_ID(): string {
 export function GET_ERROR(error: unknown, defaultMessage = "Error al cargar los registros"): string {
   return error instanceof Error ? error.message : defaultMessage;
 }
+
+export const estadoColors: Record<EstadoActividad, string> = {
+  [EstadoActividad.PENDIENTE]: 'blue',
+  [EstadoActividad.OMITIDA]: 'yellow',
+  [EstadoActividad.EJECUTADA]: 'green'
+};
+
+ export const tiposMedida = [
+    { value: 'PREVENTIVA', label: 'Preventiva' },
+    { value: 'CORRECTIVA', label: 'Correctiva' },
+    { value: 'CULTURAL', label: 'Cultural' },
+    { value: 'QUIMICA', label: 'Química' },
+    { value: 'BIOLOGICA', label: 'Biológica' }
+  ];
+
+export const temporadas = [
+    { value: 'PRIMAVERA', label: 'Primavera' },
+    { value: 'VERANO', label: 'Verano' },
+    { value: 'OTOÑO', label: 'Otoño' },
+    { value: 'INVIERNO', label: 'Invierno' },
+    { value: 'TODO_AÑO', label: 'Todo el año' }
+  ];

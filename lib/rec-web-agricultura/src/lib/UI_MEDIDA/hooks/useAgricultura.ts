@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MedidaPreventiva } from '../../types/model';
-import { MedidaPreventivaInput, service } from '../services/agricultura.service';
+import { MedidaPreventivaInput } from '../../types/dto';
+import { service } from '../services/agricultura.service';
+import { GET_ERROR } from '../../utils/utils';
 
 export const useMedidaPreventiva = () => {
   const [medidas, setMedidas] = useState<MedidaPreventiva[]>([]);
@@ -8,16 +10,16 @@ export const useMedidaPreventiva = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleError = (error: any) => {
-    setError(error.message || 'Error inesperado');
+  const handleError = (error: unknown) => {
+    setError(GET_ERROR(error));
     setLoading(false);
   };
 
-  const crearMedidaPreventiva = async (input: MedidaPreventivaInput) => {
+  const CREAR = async (input: MedidaPreventivaInput) => {
     try {
       setLoading(true);
       setError(null);
-      const nuevaMedida = await service.crearMedidaPreventiva(input);
+      const nuevaMedida = await service.POST(input);
       setMedidas(prev => [...prev, nuevaMedida]);
       return nuevaMedida;
     } catch (error) {
@@ -28,11 +30,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const obtenerMedidaPorId = async (id: number) => {
+  const BUSCAR_ID = async (id: number) => {
     try {
       setLoading(true);
       setError(null);
-      const medida = await service.obtenerMedidaPorId(id);
+      const medida = await service.GET_ID(id);
       setMedida(medida);
       return medida;
     } catch (error) {
@@ -43,11 +45,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const obtenerTodasLasMedidas = async () => {
+  const BUSCAR = async () => {
     try {
       setLoading(true);
       setError(null);
-      const medidas = await service.obtenerTodasLasMedidas();
+      const medidas = await service.GET();
       setMedidas(medidas);
       return medidas;
     } catch (error) {
@@ -58,11 +60,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const obtenerMedidasPorDeficiencia = async (deficienciaId: number) => {
+  const buscarPorDeficiencia = async (deficienciaId: number) => {
     try {
       setLoading(true);
       setError(null);
-      const medidas = await service.obtenerMedidasPorDeficiencia(deficienciaId);
+      const medidas = await service.GET_DEFICIENCIA(deficienciaId);
       setMedidas(medidas);
       return medidas;
     } catch (error) {
@@ -73,11 +75,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const obtenerMedidasActivas = async () => {
+  const buscarActivas = async () => {
     try {
       setLoading(true);
       setError(null);
-      const medidas = await service.obtenerMedidasActivas();
+      const medidas = await service.GET_STATE();
       setMedidas(medidas);
       return medidas;
     } catch (error) {
@@ -88,11 +90,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const obtenerMedidasPorTipo = async (tipoMedida: string) => {
+  const buscarPorTipo = async (tipoMedida: string) => {
     try {
       setLoading(true);
       setError(null);
-      const medidas = await service.obtenerMedidasPorTipo(tipoMedida);
+      const medidas = await service.GET_TYPE(tipoMedida);
       setMedidas(medidas);
       return medidas;
     } catch (error) {
@@ -103,11 +105,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const obtenerMedidasActivasPorDeficiencia = async (deficienciaId: number) => {
+  const buscarActivasPorDeficiencia = async (deficienciaId: number) => {
     try {
       setLoading(true);
       setError(null);
-      const medidas = await service.obtenerMedidasActivasPorDeficiencia(deficienciaId);
+      const medidas = await service.GET_DEFINCIENCIA_ACTIVE(deficienciaId);
       setMedidas(medidas);
       return medidas;
     } catch (error) {
@@ -118,11 +120,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const obtenerMedidasPorEfectividadMinima = async (efectividadMinima: number) => {
+  const buscarPorEfectividadMinima = async (efectividadMinima: number) => {
     try {
       setLoading(true);
       setError(null);
-      const medidas = await service.obtenerMedidasPorEfectividadMinima(efectividadMinima);
+      const medidas = await service.GET_EFECT_MINIMA(efectividadMinima);
       setMedidas(medidas);
       return medidas;
     } catch (error) {
@@ -133,11 +135,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const actualizarMedida = async (id: number, input: MedidaPreventivaInput) => {
+  const ACTUALIZAR = async (id: number, input: MedidaPreventivaInput) => {
     try {
       setLoading(true);
       setError(null);
-      const medidaActualizada = await service.actualizarMedida(id, input);
+      const medidaActualizada = await service.PUT(id, input);
       setMedidas(prev => prev.map(m => m.id === id ? medidaActualizada : m));
       setMedida(medidaActualizada);
       return medidaActualizada;
@@ -149,11 +151,11 @@ export const useMedidaPreventiva = () => {
     }
   };
 
-  const eliminarMedida = async (id: number) => {
+  const ELIMINAR = async (id: number) => {
     try {
       setLoading(true);
       setError(null);
-      await service.eliminarMedida(id);
+      await service.DELETE(id);
       setMedidas(prev => prev.filter(m => m.id !== id));
       if (medida?.id === id) {
         setMedida(null);
@@ -170,7 +172,7 @@ export const useMedidaPreventiva = () => {
     try {
       setLoading(true);
       setError(null);
-      const medidaActivada = await service.activarMedida(id);
+      const medidaActivada = await service.IS_ACTIVE(id);
       setMedidas(prev => prev.map(m => m.id === id ? medidaActivada : m));
       setMedida(medidaActivada);
       return medidaActivada;
@@ -186,7 +188,7 @@ export const useMedidaPreventiva = () => {
     try {
       setLoading(true);
       setError(null);
-      const medidaDesactivada = await service.desactivarMedida(id);
+      const medidaDesactivada = await service.IS_INACTIVE(id);
       setMedidas(prev => prev.map(m => m.id === id ? medidaDesactivada : m));
       setMedida(medidaDesactivada);
       return medidaDesactivada;
@@ -203,31 +205,26 @@ export const useMedidaPreventiva = () => {
   const clearMedidas = () => setMedidas([]);
 
   return {
-    // Estados
     medidas,
     medida,
     loading,
     error,
 
-    // Métodos CRUD
-    crearMedidaPreventiva,
-    obtenerMedidaPorId,
-    obtenerTodasLasMedidas,
-    actualizarMedida,
-    eliminarMedida,
+    CREAR,
+    BUSCAR_ID,
+    BUSCAR,
+    ACTUALIZAR,
+    ELIMINAR,
 
-    // Métodos de filtrado
-    obtenerMedidasPorDeficiencia,
-    obtenerMedidasActivas,
-    obtenerMedidasPorTipo,
-    obtenerMedidasActivasPorDeficiencia,
-    obtenerMedidasPorEfectividadMinima,
+    buscarPorDeficiencia,
+    buscarActivas,
+    buscarPorTipo,
+    buscarActivasPorDeficiencia,
+    buscarPorEfectividadMinima,
 
-    // Métodos de activación/desactivación
     activarMedida,
     desactivarMedida,
 
-    // Utilidades
     clearError,
     clearMedida,
     clearMedidas

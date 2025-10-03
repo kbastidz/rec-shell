@@ -16,26 +16,26 @@ import {
   Badge,
   Loader,
   Text,
-  Stack,
-  rem
+  Stack
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
-import { IconEdit, IconTrash, IconPlus, IconCheck, IconX, IconAlertTriangle } from '@tabler/icons-react';
-import { useMedidaPreventiva } from '../hooks/useMedidaPreventiva';
+import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
+import { useMedidaPreventiva } from '../hooks/useAgricultura';
 import { MedidaPreventiva } from '../../types/model';
-import { MedidaPreventivaInput } from '../services/agricultura.service';
+import { MedidaPreventivaInput } from '../../types/dto';
+import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { temporadas, tiposMedida } from '../../utils/utils';
 
-export const MedidaCRUD = () => {
+export const MedidaAdmin = () => {
 
   const {
     medidas,
     loading,
     error,
-    crearMedidaPreventiva,
-    obtenerTodasLasMedidas,
-    actualizarMedida,
-    eliminarMedida,
+    CREAR,
+    BUSCAR,
+    ACTUALIZAR,
+    ELIMINAR,
     activarMedida,
     desactivarMedida,
     clearError
@@ -45,6 +45,7 @@ export const MedidaCRUD = () => {
   const [modalEliminarOpened, setModalEliminarOpened] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [medidaSeleccionada, setMedidaSeleccionada] = useState<MedidaPreventiva | null>(null);
+  const notifications = useNotifications();
 
   const form = useForm<MedidaPreventivaInput>({
     initialValues: {
@@ -71,19 +72,14 @@ export const MedidaCRUD = () => {
 
   useEffect(() => {
     if (error) {
-      notifications.show({
-        title: 'Error',
-        message: error,
-        color: 'red',
-        icon: <IconX size={16} />
-      });
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, error);
       clearError();
     }
   }, [error]);
 
   const cargarMedidas = async () => {
     try {
-      await obtenerTodasLasMedidas();
+      await BUSCAR();
     } catch (error) {
       console.error('Error al cargar medidas:', error);
     }
@@ -115,21 +111,11 @@ export const MedidaCRUD = () => {
   const handleSubmit = async (values: MedidaPreventivaInput) => {
     try {
       if (modoEdicion && medidaSeleccionada) {
-        await actualizarMedida(medidaSeleccionada.id, values);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Medida preventiva actualizada correctamente',
-          color: 'green',
-          icon: <IconCheck size={16} />
-        });
+        await ACTUALIZAR(medidaSeleccionada.id, values);
+        notifications.success();  
       } else {
-        await crearMedidaPreventiva(values);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Medida preventiva creada correctamente',
-          color: 'green',
-          icon: <IconCheck size={16} />
-        });
+        await CREAR(values);
+        notifications.success();  
       }
       setModalOpened(false);
       form.reset();
@@ -140,13 +126,8 @@ export const MedidaCRUD = () => {
 
   const handleEliminar = async (id: number, titulo: string) => {
     try {
-      await eliminarMedida(id);
-      notifications.show({
-        title: 'Éxito',
-        message: 'Medida preventiva eliminada correctamente',
-        color: 'green',
-        icon: <IconCheck size={16} />
-      });
+      await ELIMINAR(id);
+      notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, NOTIFICATION_MESSAGES.GENERAL.DELETE.message);
       setModalEliminarOpened(false);
       setMedidaSeleccionada(null);
     } catch (error) {
@@ -163,41 +144,15 @@ export const MedidaCRUD = () => {
     try {
       if (medida.activo) {
         await desactivarMedida(medida.id);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Medida preventiva desactivada',
-          color: 'blue',
-          icon: <IconCheck size={16} />
-        });
+        notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, NOTIFICATION_MESSAGES.GENERAL.STATE.message);
       } else {
         await activarMedida(medida.id);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Medida preventiva activada',
-          color: 'blue',
-          icon: <IconCheck size={16} />
-        });
+        notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, NOTIFICATION_MESSAGES.GENERAL.STATE.message);
       }
     } catch (error) {
       console.error('Error al cambiar estado:', error);
     }
   };
-
-  const tiposMedida = [
-    { value: 'PREVENTIVA', label: 'Preventiva' },
-    { value: 'CORRECTIVA', label: 'Correctiva' },
-    { value: 'CULTURAL', label: 'Cultural' },
-    { value: 'QUIMICA', label: 'Química' },
-    { value: 'BIOLOGICA', label: 'Biológica' }
-  ];
-
-  const temporadas = [
-    { value: 'PRIMAVERA', label: 'Primavera' },
-    { value: 'VERANO', label: 'Verano' },
-    { value: 'OTOÑO', label: 'Otoño' },
-    { value: 'INVIERNO', label: 'Invierno' },
-    { value: 'TODO_AÑO', label: 'Todo el año' }
-  ];
 
   if (loading && medidas.length === 0) {
     return (
@@ -214,7 +169,7 @@ export const MedidaCRUD = () => {
       <Group justify="space-between" mb="xl">
         <Title order={2}>Medidas Preventivas</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={abrirModalCrear}>
-          Nueva Medida
+          Registrar
         </Button>
       </Group>
 
@@ -235,7 +190,7 @@ export const MedidaCRUD = () => {
               <Table.Tr>
                 <Table.Td colSpan={6}>
                   <Text ta="center" c="dimmed">
-                    No hay medidas preventivas registradas
+                    No se encontraron registros
                   </Text>
                 </Table.Td>
               </Table.Tr>
@@ -298,7 +253,7 @@ export const MedidaCRUD = () => {
       <Modal
         opened={modalOpened}
         onClose={() => setModalOpened(false)}
-        title={modoEdicion ? 'Editar Medida Preventiva' : 'Nueva Medida Preventiva'}
+        title={modoEdicion ? 'Editar Registro' : 'Nuevo Registro'}
         size="lg"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -376,67 +331,17 @@ export const MedidaCRUD = () => {
       </Modal>
 
       {/* Modal de Confirmación para Eliminar */}
-      <Modal
+      <DeleteConfirmModal
         opened={modalEliminarOpened}
         onClose={() => setModalEliminarOpened(false)}
-        title="Confirmar Eliminación"
-        centered
-        size="md"
-      >
-        <Stack align="center" gap="lg">
-          
-
-          <Stack gap="xs" align="center">
-            <Group gap="md">
-              <IconAlertTriangle size={32} color="red" />
-              <div>
-                <Text fw={500}>¿Está seguro de eliminar este registro?</Text>
-                <Text size="sm" c="dimmed">Esta acción no se puede deshacer.</Text>
-              </div>
-            </Group>
-          </Stack>
-
-          {medidaSeleccionada && (
-            <Paper p="md" withBorder w="100%" bg="gray.0">
-              <Stack gap="xs">
-                <Group gap="xs">
-                  <Text size="sm" fw={500}>Título:</Text>
-                  <Text size="sm">{medidaSeleccionada.titulo}</Text>
-                </Group>
-                <Group gap="xs">
-                  <Text size="sm" fw={500}>Tipo:</Text>
-                  <Badge size="sm" variant="light" color="blue">
-                    {medidaSeleccionada.tipoMedida || 'N/A'}
-                  </Badge>
-                </Group>
-                <Text size="xs" c="dimmed" lineClamp={2}>
-                  {medidaSeleccionada.descripcion}
-                </Text>
-              </Stack>
-            </Paper>
-          )}
-
-          <Group justify="center" w="100%" mt="md">
-            <Button
-              variant="light"
-              color="gray"
-              onClick={() => setModalEliminarOpened(false)}
-              fullWidth
-            >
-              Cancelar
-            </Button>
-            <Button
-              color="red"
-              onClick={() => medidaSeleccionada && handleEliminar(medidaSeleccionada.id, medidaSeleccionada.titulo)}
-              loading={loading}
-              fullWidth
-              leftSection={<IconTrash size={16} />}
-            >
-              Eliminar
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        onConfirm={async () => {
+          if (medidaSeleccionada) {
+            await handleEliminar(medidaSeleccionada.id, medidaSeleccionada.titulo);
+          }
+        }}
+        itemName={medidaSeleccionada?.titulo || ""}
+        itemType="cultivo"
+      />
     </Container>
   );
 };

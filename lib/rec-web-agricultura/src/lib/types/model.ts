@@ -14,6 +14,8 @@ export interface ActividadSeguimiento {
   responsable?: string;
   recordatorioEnviado: boolean;
   fechaCreacion?: string; 
+
+  planTratamientoId: string;
 }
 
 export interface AlertaMonitoreo {
@@ -156,6 +158,7 @@ export interface PlanTratamiento {
   
   // Relaciones
   actividadesSeguimiento?: ActividadSeguimiento[];
+  nombreTratamiento?: string;
 }
 
 export interface ReporteGenerado {
