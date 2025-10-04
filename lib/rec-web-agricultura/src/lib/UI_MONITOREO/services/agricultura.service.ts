@@ -5,43 +5,39 @@ const API_URL = `/agricultura/parametros-monitoreo`;
 
 export class ConexionService extends InvokeApi {
   
-  async crearParametroMonitoreo(parametroMonitoreo: Omit<ParametroMonitoreo, 'id'>): Promise<ParametroMonitoreo> {
+  async POST(parametroMonitoreo: Omit<ParametroMonitoreo, 'id'>): Promise<ParametroMonitoreo> {
     const response = await this.post<ParametroMonitoreo>(API_URL, parametroMonitoreo);
     return response;
   }
 
-  async obtenerParametroPorId(id: string): Promise<ParametroMonitoreo> {
+  async GET_ID(id: string): Promise<ParametroMonitoreo> {
     const response = await this.getById<ParametroMonitoreo>(API_URL, id);
     return response;
   }
 
-  async obtenerTodosLosParametros(): Promise<ParametroMonitoreo[]> {
+  async GET(): Promise<ParametroMonitoreo[]> {
     const response = await this.get<ParametroMonitoreo[]>(API_URL);
     return response;
   }
 
-  async obtenerParametrosPorCultivo(cultivoId: string): Promise<ParametroMonitoreo[]> {
+  async GET_BY_CULTIVO(cultivoId: string): Promise<ParametroMonitoreo[]> {
     const response = await this.get<ParametroMonitoreo[]>(`${API_URL}/cultivo/${cultivoId}`);
     return response;
   }
 
-  async obtenerParametrosPorFuente(fuenteDatos: string): Promise<ParametroMonitoreo[]> {
+  async GET_BY_FUENTE(fuenteDatos: string): Promise<ParametroMonitoreo[]> {
     const response = await this.get<ParametroMonitoreo[]>(
       `${API_URL}/fuente/${encodeURIComponent(fuenteDatos)}`
     );
     return response;
   }
 
-  async obtenerParametrosPorCultivoOrdenados(cultivoId: string): Promise<ParametroMonitoreo[]> {
+  async GET_BY_CULTIVO_ORDERED(cultivoId: string): Promise<ParametroMonitoreo[]> {
     const response = await this.get<ParametroMonitoreo[]>(`${API_URL}/cultivo/${cultivoId}/ordenados`);
     return response;
   }
 
-  async obtenerParametrosPorRangoFechas(
-    cultivoId: string, 
-    fechaInicio: string, 
-    fechaFin: string
-  ): Promise<ParametroMonitoreo[]> {
+  async GET_BY_RANGOS_DATE(cultivoId: string,fechaInicio: string,fechaFin: string): Promise<ParametroMonitoreo[]> {
     const params = new URLSearchParams({
       fechaInicio: fechaInicio,
       fechaFin: fechaFin
@@ -52,10 +48,7 @@ export class ConexionService extends InvokeApi {
     return response;
   }
 
-  async obtenerTemperaturaPromedio(
-    cultivoId: string, 
-    fechaInicio: string
-  ): Promise<number> {
+  async GET_TEMPERATURA_PROMEDIO(cultivoId: string,fechaInicio: string): Promise<number> {
     const params = new URLSearchParams({
       fechaInicio: fechaInicio
     });
@@ -65,15 +58,12 @@ export class ConexionService extends InvokeApi {
     return response;
   }
 
-  async actualizarParametro(
-    id: string, 
-    parametroMonitoreo: Omit<ParametroMonitoreo, 'id'>
-  ): Promise<ParametroMonitoreo> {
+  async PUT(id: string, parametroMonitoreo: Omit<ParametroMonitoreo, 'id'>): Promise<ParametroMonitoreo> {
     const response = await this.put<ParametroMonitoreo>(`${API_URL}/${id}`, parametroMonitoreo);
     return response;
   }
 
-  async eliminarParametro(id: string): Promise<void> {
+  async DELETE(id: string): Promise<void> {
     await this.delete(`${API_URL}/${id}`);
   }
 }

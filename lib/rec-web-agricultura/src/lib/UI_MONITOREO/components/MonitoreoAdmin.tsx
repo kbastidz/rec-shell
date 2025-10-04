@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
   Title,
@@ -23,15 +23,11 @@ import {
   Box
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconEye, IconAlertCircle, IconRefresh } from '@tabler/icons-react';
-import { DatePickerInput } from '@mantine/dates';
-import { modals } from '@mantine/modals';
 import { ParametroMonitoreo } from '../../types/model';
-import { useParametrosMonitoreo, useParametrosMonitoreoCRUD } from '../../UI_MONITOREO/hooks/useMonitoreo';
+import { useParametrosMonitoreo, useParametrosMonitoreoCRUD } from '../hooks/useAgricultura';
+import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 
-
-// Modal para crear/editar parámetros
 const ParametroModal: React.FC<{
   opened: boolean;
   onClose: () => void;
@@ -42,17 +38,17 @@ const ParametroModal: React.FC<{
   
   const form = useForm({
     initialValues: {
-      cultivoId: parametro?.cultivoId || '',
-      fechaMedicion: parametro?.fechaMedicion ? new Date(parametro.fechaMedicion) : new Date(),
-      humedadSuelo: parametro?.humedadSuelo || '',
-      humedadAmbiente: parametro?.humedadAmbiente || '',
-      temperatura: parametro?.temperatura || '',
-      phSuelo: parametro?.phSuelo || '',
-      precipitacionMm: parametro?.precipitacionMm || '',
-      horasSol: parametro?.horasSol || '',
-      velocidadVientoKmh: parametro?.velocidadVientoKmh || '',
-      fuenteDatos: parametro?.fuenteDatos || '',
-      coordenadasGps: parametro?.coordenadasGps || '',
+      cultivoId: '',
+      fechaMedicion: new Date(),
+      humedadSuelo: 0,
+      humedadAmbiente: 0,
+      temperatura: 0,
+      phSuelo: 0,
+      precipitacionMm: 0,
+      horasSol: 0,
+      velocidadVientoKmh: 0,
+      fuenteDatos: '',
+      coordenadasGps: ''
     },
     validate: {
       cultivoId: (value) => (value ? null : 'Cultivo es requerido'),
@@ -84,58 +80,55 @@ const ParametroModal: React.FC<{
     }
   });
 
-  // Resetear formulario cuando cambie el parámetro
-  React.useEffect(() => {
-    if (parametro) {
-      form.setValues({
-        cultivoId: parametro.cultivoId || '',
-        fechaMedicion: parametro.fechaMedicion ? new Date(parametro.fechaMedicion) : new Date(),
-        humedadSuelo: parametro.humedadSuelo || '',
-        humedadAmbiente: parametro.humedadAmbiente || '',
-        temperatura: parametro.temperatura || '',
-        phSuelo: parametro.phSuelo || '',
-        precipitacionMm: parametro.precipitacionMm || '',
-        horasSol: parametro.horasSol || '',
-        velocidadVientoKmh: parametro.velocidadVientoKmh || '',
-        fuenteDatos: parametro.fuenteDatos || '',
-        coordenadasGps: parametro.coordenadasGps || '',
-      });
-    } else {
-      form.reset();
+  useEffect(() => {
+    if (opened) {
+      if (parametro) {
+        form.setValues({
+          cultivoId: parametro.cultivoId || '',
+          fechaMedicion: parametro.fechaMedicion ? new Date(parametro.fechaMedicion) : new Date(),
+          humedadSuelo: parametro.humedadSuelo,
+          humedadAmbiente: parametro.humedadAmbiente,
+          temperatura: parametro.temperatura,
+          phSuelo: parametro.phSuelo,
+          precipitacionMm: parametro.precipitacionMm,
+          horasSol: parametro.horasSol,
+          velocidadVientoKmh: parametro.velocidadVientoKmh,
+          fuenteDatos: parametro.fuenteDatos || '',
+          coordenadasGps: parametro.coordenadasGps || '',
+        });
+      } else {
+        form.reset();
+      }
     }
-  }, [parametro]);
+  }, [opened, parametro?.id]); 
 
   const handleSubmit = (values: any) => {
     const formData = {
       ...values,
-      fechaMedicion: values.fechaMedicion.toISOString().split('T')[0],
+      cultivo: { id: values.cultivoId }
     };
+    console.log(formData);
     onSubmit(formData);
   };
 
-  // Opciones de ejemplo para cultivos - idealmente estos deberían venir de otro hook
-  const cultivosOptions = [
+  const cultivosOptions = useMemo(() => [
     { value: '1', label: 'Cacao Trinitario - Finca San Miguel' },
     { value: '2', label: 'Cacao Nacional - Finca El Dorado' },
     { value: '3', label: 'Cacao CCN-51 - Finca La Esperanza' }
-  ];
+  ], []);
 
-  const fuentesOptions = [
+  const fuentesOptions = useMemo(() => [
     { value: 'Sensor Automático', label: 'Sensor Automático' },
     { value: 'Medición Manual', label: 'Medición Manual' },
     { value: 'Estación Meteorológica', label: 'Estación Meteorológica' },
     { value: 'Satelital', label: 'Satelital' }
-  ];
+  ], []);
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={
-        <Title order={3}>
-          {parametro ? 'Editar Parámetro' : 'Nuevo Parámetro'}
-        </Title>
-      }
+      title={parametro ? 'Editar Registro' : 'Nuevo Registro'}
       size="lg"
       centered
     >
@@ -154,11 +147,11 @@ const ParametroModal: React.FC<{
               />
             </Grid.Col>
             <Grid.Col span={6}>
-              <DatePickerInput
-                label="Fecha de Medición"
-                placeholder="Seleccionar fecha"
-                required
+              <TextInput
+                label="Fecha Medición"
+                type="date"
                 {...form.getInputProps('fechaMedicion')}
+                required
               />
             </Grid.Col>
           </Grid>
@@ -272,7 +265,6 @@ const ParametroModal: React.FC<{
   );
 };
 
-// Modal para ver detalles
 const DetalleParametroModal: React.FC<{
   opened: boolean;
   onClose: () => void;
@@ -285,110 +277,186 @@ const DetalleParametroModal: React.FC<{
     return value !== undefined ? `${value} ${unit}` : 'No registrado';
   };
 
+  const MetricCard: React.FC<{ label: string; value: string; icon?: React.ReactNode }> = ({ label, value, icon }) => (
+    <Box
+      p="md"
+      style={{
+        background: 'linear-gradient(135deg, rgba(34, 139, 230, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
+        borderRadius: '12px',
+        border: '1px solid rgba(34, 139, 230, 0.1)',
+        transition: 'all 0.3s ease',
+      }}      
+    >
+      <Flex direction="column" gap={4}>
+        <Text size="xs" c="dimmed" tt="uppercase" fw={600} style={{ letterSpacing: '0.5px' }}>
+          {label}
+        </Text>
+        <Flex align="center" gap="xs">
+          {icon}
+          <Text size="lg" fw={700} style={{ color: '#228be6' }}>
+            {value}
+          </Text>
+        </Flex>
+      </Flex>
+    </Box>
+  );
+
   return (
     <Modal
       opened={opened}
       onClose={onClose}
       title={<Title order={3}>Detalle del Parámetro</Title>}
-      size="md"
+      size="lg"
       centered
     >
-      <Stack gap="sm">
-        <Card withBorder>
-          <Stack gap="xs">
-            <Text fw={500}>Información General</Text>
-            <Text size="sm"><strong>Cultivo:</strong> {parametro.nombreCultivo}</Text>
-            <Text size="sm"><strong>Ubicación:</strong> {parametro.ubicacionNombre}</Text>
-            <Text size="sm"><strong>Fecha:</strong> {parametro.fechaMedicion}</Text>
-            <Text size="sm"><strong>Fuente:</strong> {parametro.fuenteDatos}</Text>
-          </Stack>
-        </Card>
-
-        <Card withBorder>
-          <Stack gap="xs">
-            <Text fw={500}>Mediciones Ambientales</Text>
-            <Grid>
+      <Stack gap="lg" pt="md">
+        {/* Información General */}
+        <Box>
+          <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+            Información General
+          </Text>
+          <Card 
+            withBorder 
+            p="lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(34, 139, 230, 0.02) 0%, rgba(139, 92, 246, 0.02) 100%)',
+              borderColor: 'rgba(34, 139, 230, 0.15)',
+              borderRadius: '12px',
+            }}
+          >
+            <Grid gutter="md">
               <Grid.Col span={6}>
-                <Text size="sm"><strong>Temperatura:</strong> {formatValue(parametro.temperatura, '°C')}</Text>
+                <Stack gap={4}>
+                  <Text size="xs" c="dimmed" fw={600}>Cultivo</Text>
+                  <Text fw={600} size="md">{parametro.nombreCultivo}</Text>
+                </Stack>
               </Grid.Col>
               <Grid.Col span={6}>
-                <Text size="sm"><strong>Humedad Ambiente:</strong> {formatValue(parametro.humedadAmbiente, '%')}</Text>
+                <Stack gap={4}>
+                  <Text size="xs" c="dimmed" fw={600}>Ubicación</Text>
+                  <Text fw={600} size="md">{parametro.ubicacionNombre}</Text>
+                </Stack>
               </Grid.Col>
               <Grid.Col span={6}>
-                <Text size="sm"><strong>Precipitación:</strong> {formatValue(parametro.precipitacionMm, 'mm')}</Text>
+                <Stack gap={4}>
+                  <Text size="xs" c="dimmed" fw={600}>Fecha de Medición</Text>
+                  <Text fw={600} size="md">{parametro.fechaMedicion}</Text>
+                </Stack>
               </Grid.Col>
               <Grid.Col span={6}>
-                <Text size="sm"><strong>Horas de Sol:</strong> {formatValue(parametro.horasSol, 'h')}</Text>
-              </Grid.Col>
-              <Grid.Col span={6}>
-                <Text size="sm"><strong>Viento:</strong> {formatValue(parametro.velocidadVientoKmh, 'km/h')}</Text>
-              </Grid.Col>
-            </Grid>
-          </Stack>
-        </Card>
-
-        <Card withBorder>
-          <Stack gap="xs">
-            <Text fw={500}>Mediciones del Suelo</Text>
-            <Grid>
-              <Grid.Col span={6}>
-                <Text size="sm"><strong>Humedad:</strong> {formatValue(parametro.humedadSuelo, '%')}</Text>
-              </Grid.Col>
-              <Grid.Col span={6}>
-                <Text size="sm"><strong>pH:</strong> {formatValue(parametro.phSuelo, '')}</Text>
+                <Stack gap={4}>
+                  <Text size="xs" c="dimmed" fw={600}>Fuente de Datos</Text>
+                  <Badge variant="gradient" gradient={{ from: 'blue', to: 'violet' }} size="lg">
+                    {parametro.fuenteDatos}
+                  </Badge>
+                </Stack>
               </Grid.Col>
             </Grid>
-          </Stack>
-        </Card>
-
-        {parametro.coordenadasGps && (
-          <Card withBorder>
-            <Text fw={500}>Ubicación</Text>
-            <Text size="sm"><strong>Coordenadas:</strong> {parametro.coordenadasGps}</Text>
           </Card>
+        </Box>
+
+        {/* Mediciones Ambientales */}
+        <Box>
+          <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+            Mediciones Ambientales
+          </Text>
+          <Grid gutter="md">
+            <Grid.Col span={6}>
+              <MetricCard label="Temperatura" value={formatValue(parametro.temperatura, '°C')} />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <MetricCard label="Humedad Ambiente" value={formatValue(parametro.humedadAmbiente, '%')} />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <MetricCard label="Precipitación" value={formatValue(parametro.precipitacionMm, 'mm')} />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <MetricCard label="Horas de Sol" value={formatValue(parametro.horasSol, 'h')} />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <MetricCard label="Velocidad Viento" value={formatValue(parametro.velocidadVientoKmh, 'km/h')} />
+            </Grid.Col>
+          </Grid>
+        </Box>
+
+        {/* Mediciones del Suelo */}
+        <Box>
+          <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+            Mediciones del Suelo
+          </Text>
+          <Grid gutter="md">
+            <Grid.Col span={6}>
+              <MetricCard label="Humedad del Suelo" value={formatValue(parametro.humedadSuelo, '%')} />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <MetricCard label="pH del Suelo" value={formatValue(parametro.phSuelo, '')} />
+            </Grid.Col>
+          </Grid>
+        </Box>
+
+        {/* Coordenadas GPS */}
+        {parametro.coordenadasGps && (
+          <Box>
+            <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+              Ubicación GPS
+            </Text>
+            <Card 
+              withBorder 
+              p="md"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34, 139, 230, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
+                borderColor: 'rgba(34, 139, 230, 0.15)',
+                borderRadius: '12px',
+              }}
+            >
+              <Text fw={600} size="md" style={{ fontFamily: 'monospace' }}>
+                {parametro.coordenadasGps}
+              </Text>
+            </Card>
+          </Box>
         )}
       </Stack>
     </Modal>
   );
 };
 
-// Componente principal
-export const MonitoreoCRUD: React.FC = () => {
-  // Usar los hooks reales
+export const MonitoreoAdmin: React.FC = () => {
   const { parametros, loading: loadingList, error, refetch } = useParametrosMonitoreo();
   const { 
-    crearParametro, 
-    actualizarParametro, 
-    eliminarParametro, 
+    CREAR, 
+    ACTUALIZAR, 
+    ELIMINAR, 
     loading: loadingCRUD,
     clearError 
   } = useParametrosMonitoreoCRUD();
 
   const [modalOpened, setModalOpened] = useState(false);
   const [detalleModalOpened, setDetalleModalOpened] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [selectedParametro, setSelectedParametro] = useState<ParametroMonitoreo | undefined>();
   const [editMode, setEditMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
   const itemsPerPage = 10;
 
-  // Calcular paginación
   const totalPages = Math.ceil(parametros.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = parametros.slice(startIndex, endIndex);
 
+  const notifications = useNotifications();
+
   const handleCreate = () => {
     setSelectedParametro(undefined);
     setEditMode(false);
-    clearError(); // Limpiar errores previos
+    clearError();
     setModalOpened(true);
   };
 
   const handleEdit = (parametro: ParametroMonitoreo) => {
     setSelectedParametro(parametro);
     setEditMode(true);
-    clearError(); // Limpiar errores previos
+    clearError();
     setModalOpened(true);
   };
 
@@ -400,52 +468,38 @@ export const MonitoreoCRUD: React.FC = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await refetch();
-      notifications.show({
-        title: 'Datos actualizados',
-        message: 'La información ha sido actualizada correctamente',
-        color: 'green',
-      });
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudieron actualizar los datos',
-        color: 'red',
-      });
+      await refetch();  
+    } catch (error: unknown) {
+      console.error('Error:', error);
     } finally {
       setRefreshing(false);
     }
   };
 
-  const handleDelete = (parametro: ParametroMonitoreo) => {
-    modals.openConfirmModal({
-      title: 'Eliminar Parámetro',
-      children: (
-        <Text size="sm">
-          ¿Estás seguro de que deseas eliminar este parámetro de monitoreo? 
-          Esta acción no se puede deshacer.
-        </Text>
-      ),
-      labels: { confirm: 'Eliminar', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: async () => {
-        const success = await eliminarParametro(parametro.id);
-        if (success) {
-          notifications.show({
-            title: 'Éxito',
-            message: 'Parámetro eliminado correctamente',
-            color: 'green',
-          });
-          refetch();
-        } else {
-          notifications.show({
-            title: 'Error',
-            message: 'No se pudo eliminar el parámetro',
-            color: 'red',
-          });
-        }
-      },
-    });
+  const handleDeleteClick = (parametro: ParametroMonitoreo) => {
+    setSelectedParametro(parametro);
+    setDeleteModalOpened(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedParametro) return;
+
+    const success = await ELIMINAR(selectedParametro.id);
+    if (success) {
+      notifications.show({
+        title: 'Éxito',
+        message: 'Parámetro eliminado correctamente',
+        color: 'green',
+      });
+      setDeleteModalOpened(false);
+      refetch();
+    } else {
+      notifications.show({
+        title: 'Error',
+        message: 'No se pudo eliminar el parámetro',
+        color: 'red',
+      });
+    }
   };
 
   const handleSubmit = async (data: any) => {
@@ -453,40 +507,29 @@ export const MonitoreoCRUD: React.FC = () => {
       let result;
       
       if (editMode && selectedParametro) {
-        result = await actualizarParametro(selectedParametro.id, data);
+        result = await ACTUALIZAR(selectedParametro.id, data);
       } else {
-        result = await crearParametro(data);
+        result = await CREAR(data);
       }
 
       if (result) {
-        notifications.show({
-          title: 'Éxito',
-          message: `Parámetro ${editMode ? 'actualizado' : 'creado'} correctamente`,
-          color: 'green',
-        });
+        notifications.success(); 
         setModalOpened(false);
         refetch();
       } else {
-        // El error ya se maneja en el hook, solo mostrar notificación
-        notifications.show({
-          title: 'Error',
-          message: `No se pudo ${editMode ? 'actualizar' : 'crear'} el parámetro`,
-          color: 'red',
-        });
+        notifications.error(
+          NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title,
+          `No se pudo ${editMode ? 'actualizar' : 'crear'} el parámetro`
+        ); 
       }
     } catch (error) {
-      console.error('Error en handleSubmit:', error);
-      notifications.show({
-        title: 'Error',
-        message: `Error inesperado al ${editMode ? 'actualizar' : 'crear'} el parámetro`,
-        color: 'red',
-      });
+      console.error('Error en handleSubmit:', error);   
     }
   };
 
   const handleCloseModal = () => {
     setModalOpened(false);
-    clearError(); // Limpiar errores al cerrar
+    clearError();
   };
 
   if (error) {
@@ -517,10 +560,10 @@ export const MonitoreoCRUD: React.FC = () => {
                 onClick={handleRefresh}
                 loading={refreshing}
                 aria-label="Actualizar"
-                />
+              />
             </Tooltip>
             <Button leftSection={<IconPlus size="1rem" />} onClick={handleCreate}>
-              Nuevo Parámetro
+              Registrar
             </Button>
           </Group>
         </Flex>
@@ -586,7 +629,7 @@ export const MonitoreoCRUD: React.FC = () => {
                           variant="light"
                           color="red"
                           size="sm"
-                          onClick={() => handleDelete(parametro)}
+                          onClick={() => handleDeleteClick(parametro)}
                         >
                           <IconTrash size="1rem" />
                         </ActionIcon>
@@ -600,7 +643,7 @@ export const MonitoreoCRUD: React.FC = () => {
 
           {parametros.length === 0 && !loadingList && (
             <Text ta="center" py="xl" c="dimmed">
-              No hay parámetros registrados
+              No se encontraron registros
             </Text>
           )}
 
@@ -630,6 +673,15 @@ export const MonitoreoCRUD: React.FC = () => {
         opened={detalleModalOpened}
         onClose={() => setDetalleModalOpened(false)}
         parametro={selectedParametro}
+      />
+
+      {/* Modal genérico de confirmación para Eliminar */}
+      <DeleteConfirmModal
+        opened={deleteModalOpened}
+        onClose={() => setDeleteModalOpened(false)}
+        onConfirm={handleDeleteConfirm}
+        itemName={selectedParametro ? `${selectedParametro.nombreCultivo} - ${selectedParametro.fechaMedicion}` : ""}
+        itemType="parámetro de monitoreo"
       />
     </Container>
   );

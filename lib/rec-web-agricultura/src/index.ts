@@ -2,7 +2,7 @@
 export * from './lib/UI_CULTIVO/components/CultivosAdmin.js'; 
 
 
-export { MonitoreoCRUD } from './lib/UI_MONITOREO/components/MonitoreoCRUD.js';
+export { MonitoreoAdmin } from './lib/UI_MONITOREO/components/MonitoreoAdmin.js';
 export { SeguimientosAdmin } from './lib/UI_SEGUIMIENTO/components/SeguimientosAdmin.js';
 export { NutrienteAdmin } from './lib/UI_NUTRIENTES/components/NutrienteAdmin.js';
 export { MedidaAdmin } from './lib/UI_MEDIDA/components/MedidaAdmin.js';

@@ -1,53 +1,51 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ParametroMonitoreo } from '../../types/model';
 import { service } from '../services/agricultura.service';
+import { GET_ERROR } from '../../utils/utils';
 
-
-// Hook para obtener todos los parámetros
 export const useParametrosMonitoreo = () => {
   const [parametros, setParametros] = useState<ParametroMonitoreo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerParametros = useCallback(async () => {
+  const BUSCAR = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await service.obtenerTodosLosParametros();
+      const data = await service.GET();
       setParametros(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener parámetros');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    obtenerParametros();
-  }, [obtenerParametros]);
+    BUSCAR();
+  }, [BUSCAR]);
 
   return {
     parametros,
     loading,
     error,
-    refetch: obtenerParametros
+    refetch: BUSCAR
   };
 };
 
-// Hook para obtener un parámetro por ID
 export const useParametroMonitoreoPorId = (id: string | null) => {
   const [parametro, setParametro] = useState<ParametroMonitoreo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerParametro = useCallback(async (parametroId: string) => {
+  const BUSCAR_ID = useCallback(async (parametroId: string) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await service.obtenerParametroPorId(parametroId);
+      const data = await service.GET_ID(parametroId);
       setParametro(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener parámetro');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -55,32 +53,31 @@ export const useParametroMonitoreoPorId = (id: string | null) => {
 
   useEffect(() => {
     if (id) {
-      obtenerParametro(id);
+      BUSCAR_ID(id);
     }
-  }, [id, obtenerParametro]);
+  }, [id, BUSCAR_ID]);
 
   return {
     parametro,
     loading,
     error,
-    refetch: () => id && obtenerParametro(id)
+    refetch: () => id && BUSCAR_ID(id)
   };
 };
 
-// Hook para obtener parámetros por cultivo
 export const useParametrosPorCultivo = (cultivoId: string | null) => {
   const [parametros, setParametros] = useState<ParametroMonitoreo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerParametrosPorCultivo = useCallback(async (cultivo: string) => {
+  const buscarParametrosPorCultivo = useCallback(async (cultivo: string) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await service.obtenerParametrosPorCultivo(cultivo);
+      const data = await service.GET_BY_CULTIVO(cultivo);
       setParametros(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener parámetros por cultivo');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -88,32 +85,31 @@ export const useParametrosPorCultivo = (cultivoId: string | null) => {
 
   useEffect(() => {
     if (cultivoId) {
-      obtenerParametrosPorCultivo(cultivoId);
+      buscarParametrosPorCultivo(cultivoId);
     }
-  }, [cultivoId, obtenerParametrosPorCultivo]);
+  }, [cultivoId, buscarParametrosPorCultivo]);
 
   return {
     parametros,
     loading,
     error,
-    refetch: () => cultivoId && obtenerParametrosPorCultivo(cultivoId)
+    refetch: () => cultivoId && buscarParametrosPorCultivo(cultivoId)
   };
 };
 
-// Hook para obtener parámetros por fuente de datos
 export const useParametrosPorFuente = (fuenteDatos: string | null) => {
   const [parametros, setParametros] = useState<ParametroMonitoreo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerParametrosPorFuente = useCallback(async (fuente: string) => {
+  const buscarParametrosPorFuente = useCallback(async (fuente: string) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await service.obtenerParametrosPorFuente(fuente);
+      const data = await service.GET_BY_FUENTE(fuente);
       setParametros(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener parámetros por fuente');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -121,32 +117,31 @@ export const useParametrosPorFuente = (fuenteDatos: string | null) => {
 
   useEffect(() => {
     if (fuenteDatos) {
-      obtenerParametrosPorFuente(fuenteDatos);
+      buscarParametrosPorFuente(fuenteDatos);
     }
-  }, [fuenteDatos, obtenerParametrosPorFuente]);
+  }, [fuenteDatos, buscarParametrosPorFuente]);
 
   return {
     parametros,
     loading,
     error,
-    refetch: () => fuenteDatos && obtenerParametrosPorFuente(fuenteDatos)
+    refetch: () => fuenteDatos && buscarParametrosPorFuente(fuenteDatos)
   };
 };
 
-// Hook para obtener parámetros por cultivo ordenados
 export const useParametrosPorCultivoOrdenados = (cultivoId: string | null) => {
   const [parametros, setParametros] = useState<ParametroMonitoreo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerParametrosOrdenados = useCallback(async (cultivo: string) => {
+  const buscarParametrosOrdenados = useCallback(async (cultivo: string) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await service.obtenerParametrosPorCultivoOrdenados(cultivo);
+      const data = await service.GET_BY_CULTIVO_ORDERED(cultivo);
       setParametros(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener parámetros ordenados');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -154,19 +149,18 @@ export const useParametrosPorCultivoOrdenados = (cultivoId: string | null) => {
 
   useEffect(() => {
     if (cultivoId) {
-      obtenerParametrosOrdenados(cultivoId);
+      buscarParametrosOrdenados(cultivoId);
     }
-  }, [cultivoId, obtenerParametrosOrdenados]);
+  }, [cultivoId, buscarParametrosOrdenados]);
 
   return {
     parametros,
     loading,
     error,
-    refetch: () => cultivoId && obtenerParametrosOrdenados(cultivoId)
+    refetch: () => cultivoId && buscarParametrosOrdenados(cultivoId)
   };
 };
 
-// Hook para obtener parámetros por rango de fechas
 export const useParametrosPorRangoFechas = (
   cultivoId: string | null,
   fechaInicio: string | null,
@@ -176,7 +170,7 @@ export const useParametrosPorRangoFechas = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerParametrosPorRango = useCallback(async (
+  const buscarParametrosPorRango = useCallback(async (
     cultivo: string,
     inicio: string,
     fin: string
@@ -184,10 +178,10 @@ export const useParametrosPorRangoFechas = (
     try {
       setLoading(true);
       setError(null);
-      const data = await service.obtenerParametrosPorRangoFechas(cultivo, inicio, fin);
+      const data = await service.GET_BY_RANGOS_DATE(cultivo, inicio, fin);
       setParametros(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener parámetros por rango de fechas');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -195,20 +189,19 @@ export const useParametrosPorRangoFechas = (
 
   useEffect(() => {
     if (cultivoId && fechaInicio && fechaFin) {
-      obtenerParametrosPorRango(cultivoId, fechaInicio, fechaFin);
+      buscarParametrosPorRango(cultivoId, fechaInicio, fechaFin);
     }
-  }, [cultivoId, fechaInicio, fechaFin, obtenerParametrosPorRango]);
+  }, [cultivoId, fechaInicio, fechaFin, buscarParametrosPorRango]);
 
   return {
     parametros,
     loading,
     error,
     refetch: () => cultivoId && fechaInicio && fechaFin && 
-      obtenerParametrosPorRango(cultivoId, fechaInicio, fechaFin)
+      buscarParametrosPorRango(cultivoId, fechaInicio, fechaFin)
   };
 };
 
-// Hook para obtener temperatura promedio
 export const useTemperaturaPromedio = (
   cultivoId: string | null,
   fechaInicio: string | null
@@ -217,17 +210,17 @@ export const useTemperaturaPromedio = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerTemperaturaPromedio = useCallback(async (
+  const buscarTemperaturaPromedio = useCallback(async (
     cultivo: string,
     inicio: string
   ) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await service.obtenerTemperaturaPromedio(cultivo, inicio);
+      const data = await service.GET_TEMPERATURA_PROMEDIO(cultivo, inicio);
       setTemperatura(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener temperatura promedio');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -235,63 +228,62 @@ export const useTemperaturaPromedio = (
 
   useEffect(() => {
     if (cultivoId && fechaInicio) {
-      obtenerTemperaturaPromedio(cultivoId, fechaInicio);
+      buscarTemperaturaPromedio(cultivoId, fechaInicio);
     }
-  }, [cultivoId, fechaInicio, obtenerTemperaturaPromedio]);
+  }, [cultivoId, fechaInicio, buscarTemperaturaPromedio]);
 
   return {
     temperatura,
     loading,
     error,
     refetch: () => cultivoId && fechaInicio && 
-      obtenerTemperaturaPromedio(cultivoId, fechaInicio)
+      buscarTemperaturaPromedio(cultivoId, fechaInicio)
   };
 };
 
-// Hook para operaciones CRUD (crear, actualizar, eliminar)
-export const useParametrosMonitoreoCRUD = () => {
+  export const useParametrosMonitoreoCRUD = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const crearParametro = async (parametro: Omit<ParametroMonitoreo, 'id'>): Promise<ParametroMonitoreo | null> => {
+  const CREAR = async (parametro: Omit<ParametroMonitoreo, 'id'>): Promise<ParametroMonitoreo | null> => {
     try {
       setLoading(true);
       setError(null);
-      const nuevoParametro = await service.crearParametroMonitoreo(parametro);
+      const nuevoParametro = await service.POST(parametro);
       return nuevoParametro;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear parámetro');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const actualizarParametro = async (
+  const ACTUALIZAR = async (
     id: string,
     parametro: Omit<ParametroMonitoreo, 'id'>
   ): Promise<ParametroMonitoreo | null> => {
     try {
       setLoading(true);
       setError(null);
-      const parametroActualizado = await service.actualizarParametro(id, parametro);
+      const parametroActualizado = await service.PUT(id, parametro);
       return parametroActualizado;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar parámetro');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const eliminarParametro = async (id: string): Promise<boolean> => {
+  const ELIMINAR = async (id: string): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
-      await service.eliminarParametro(id);
+      await service.DELETE(id);
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar parámetro');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return false;
     } finally {
       setLoading(false);
@@ -301,9 +293,9 @@ export const useParametrosMonitoreoCRUD = () => {
   return {
     loading,
     error,
-    crearParametro,
-    actualizarParametro,
-    eliminarParametro,
+    CREAR,
+    ACTUALIZAR,
+    ELIMINAR,
     clearError: () => setError(null)
   };
 };
