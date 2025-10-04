@@ -6,11 +6,11 @@ export const useTipoRecompensa = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const crearTipoRecompensa = useCallback(async (tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>) => {
+  const CREAR = useCallback(async (tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>) => {
     setLoading(true);
     setError(null);
     try {
-      const resultado = await service.crearTipoRecompensa(tipoRecompensa);
+      const resultado = await service.POST(tipoRecompensa);
       return resultado;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear tipo de recompensa');
@@ -20,11 +20,11 @@ export const useTipoRecompensa = () => {
     }
   }, []);
 
-  const obtenerRecompensasFisicas = useCallback(async () => {
+  const buscarRecompensasFisicas = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const resultado = await service.obtenerRecompensasFisicas();
+      const resultado = await service.GET_FISICAS();
       return resultado;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al obtener recompensas físicas');
@@ -34,11 +34,11 @@ export const useTipoRecompensa = () => {
     }
   }, []);
 
-  const obtenerRecompensasDigitales = useCallback(async () => {
+  const buscarRecompensasDigitales = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const resultado = await service.obtenerRecompensasDigitales();
+      const resultado = await service.GET_DIGITALES();
       return resultado;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al obtener recompensas digitales');
@@ -52,7 +52,7 @@ export const useTipoRecompensa = () => {
     setLoading(true);
     setError(null);
     try {
-      const resultado = await service.buscarPorNombre(nombre);
+      const resultado = await service.GET_BY_NAME(nombre);
       return resultado;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al buscar tipo de recompensa');
@@ -62,11 +62,11 @@ export const useTipoRecompensa = () => {
     }
   }, []);
 
-  const actualizarTipoRecompensa = useCallback(async (id: string, tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>) => {
+  const ACTUALIZAR = useCallback(async (id: string, tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>) => {
     setLoading(true);
     setError(null);
     try {
-      const resultado = await service.actualizarTipoRecompensa(id, tipoRecompensa);
+      const resultado = await service.PUT(id, tipoRecompensa);
       return resultado;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar tipo de recompensa');
@@ -76,11 +76,11 @@ export const useTipoRecompensa = () => {
     }
   }, []);
 
-  const eliminarTipoRecompensa = useCallback(async (id: string) => {
+  const ELIMINAR = useCallback(async (id: string) => {
     setLoading(true);
     setError(null);
     try {
-      await service.eliminarTipoRecompensa(id);
+      await service.DELETE(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al eliminar tipo de recompensa');
       throw err;
@@ -92,11 +92,11 @@ export const useTipoRecompensa = () => {
   return {
     loading,
     error,
-    crearTipoRecompensa,
-    obtenerRecompensasFisicas,
-    obtenerRecompensasDigitales,
+    CREAR,
+    buscarRecompensasFisicas,
+    buscarRecompensasDigitales,
     buscarPorNombre,
-    actualizarTipoRecompensa,
-    eliminarTipoRecompensa,
+    ACTUALIZAR,
+    ELIMINAR,
   };
 };

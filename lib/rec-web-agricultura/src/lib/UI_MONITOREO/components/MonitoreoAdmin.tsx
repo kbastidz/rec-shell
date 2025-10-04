@@ -486,11 +486,7 @@ export const MonitoreoAdmin: React.FC = () => {
 
     const success = await ELIMINAR(selectedParametro.id);
     if (success) {
-      notifications.show({
-        title: 'Éxito',
-        message: 'Parámetro eliminado correctamente',
-        color: 'green',
-      });
+      notifications.success(); 
       setDeleteModalOpened(false);
       refetch();
     } else {

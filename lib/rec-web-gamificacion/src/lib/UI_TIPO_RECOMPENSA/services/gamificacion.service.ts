@@ -4,37 +4,32 @@ import { TipoRecompensa } from '../../types/model';
 const API_URL = `/gamificacion/tipos-recompensa`;
 
 export class ConexionService extends InvokeApi {
-  async crearTipoRecompensa(tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>): Promise<TipoRecompensa> {
+  async POST(tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>): Promise<TipoRecompensa> {
     const response = await this.post<TipoRecompensa>(API_URL, tipoRecompensa);
     return response;
   }
 
-  async obtenerRecompensasFisicas(): Promise<TipoRecompensa[]> {
+  async GET_FISICAS(): Promise<TipoRecompensa[]> {
     const response = await this.get<TipoRecompensa[]>(`${API_URL}/fisicas`);
     return response;
   }
 
-  async obtenerRecompensasDigitales(): Promise<TipoRecompensa[]> {
+  async GET_DIGITALES(): Promise<TipoRecompensa[]> {
     const response = await this.get<TipoRecompensa[]>(`${API_URL}/digitales`);
     return response;
   }
 
-  async buscarPorNombre(nombre: string): Promise<TipoRecompensa> {
-    const response = await this.get<TipoRecompensa>(
-      `${API_URL}/buscar?nombre=${encodeURIComponent(nombre)}`
-    );
+  async GET_BY_NAME(nombre: string): Promise<TipoRecompensa> {
+    const response = await this.get<TipoRecompensa>(`${API_URL}/buscar?nombre=${encodeURIComponent(nombre)}`);
     return response;
   }
 
-  async actualizarTipoRecompensa(
-    id: string, 
-    tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>
-  ): Promise<TipoRecompensa> {
+  async PUT(id: string, tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>): Promise<TipoRecompensa> {
     const response = await this.put<TipoRecompensa>(`${API_URL}/${id}`, tipoRecompensa);
     return response;
   }
 
-  async eliminarTipoRecompensa(id: string): Promise<void> {
+  async DELETE(id: string): Promise<void> {
     await this.delete(`${API_URL}/${id}`);
   }
 }

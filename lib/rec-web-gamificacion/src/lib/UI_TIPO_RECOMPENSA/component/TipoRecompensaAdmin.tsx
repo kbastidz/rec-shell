@@ -20,7 +20,6 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
 import {
   IconPlus,
   IconEdit,
@@ -31,33 +30,31 @@ import {
   IconAlertCircle,
 } from '@tabler/icons-react';
 import { TipoRecompensa } from '../../types/model';
-import { useTipoRecompensa } from '../hooks/useTipoRecompensa';
+import { useTipoRecompensa } from '../hooks/useGamificacion';
+import { TipoRecompensaForm } from '../../types/dto';
+import { DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { getBadgeColor, getBadgeText } from '../../utils/utilidad';
 
-interface TipoRecompensaForm {
-  nombre: string;
-  nombreMostrar: string;
-  descripcion: string;
-  esFisico: boolean;
-  esDigital: boolean;
-}
-
-export const TipoRecompensaCRUD: React.FC = () => {
+export const TipoRecompensaAdmin: React.FC = () => {
   const [opened, { open, close }] = useDisclosure(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [editingItem, setEditingItem] = useState<TipoRecompensa | null>(null);
+  const [selectedItem, setSelectedItem] = useState<TipoRecompensa | null>(null);
   const [tiposRecompensa, setTiposRecompensa] = useState<TipoRecompensa[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<string>('todos');
   const [localLoading, setLocalLoading] = useState(false);
+  const notifications = useNotifications();
 
   const {
     loading,
     error,
-    crearTipoRecompensa,
-    obtenerRecompensasFisicas,
-    obtenerRecompensasDigitales,
+    CREAR,
+    buscarRecompensasFisicas,
+    buscarRecompensasDigitales,
     buscarPorNombre,
-    actualizarTipoRecompensa,
-    eliminarTipoRecompensa,
+    ACTUALIZAR,
+    ELIMINAR,
   } = useTipoRecompensa();
 
   const form = useForm<TipoRecompensaForm>({
@@ -80,25 +77,20 @@ export const TipoRecompensaCRUD: React.FC = () => {
       let data: TipoRecompensa[] = [];
       
       if (tab === 'fisicas') {
-        data = await obtenerRecompensasFisicas();
+        data = await buscarRecompensasFisicas();
       } else if (tab === 'digitales') {
-        data = await obtenerRecompensasDigitales();
+        data = await buscarRecompensasDigitales();
       } else {
-        // Para 'todos', combinamos físicas y digitales
         const [fisicas, digitales] = await Promise.all([
-          obtenerRecompensasFisicas(),
-          obtenerRecompensasDigitales()
+          buscarRecompensasFisicas(),
+          buscarRecompensasDigitales()
         ]);
         data = [...fisicas, ...digitales];
       }
       
       setTiposRecompensa(data);
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudieron cargar los tipos de recompensa',
-        color: 'red',
-      });
+      console.error('Error al cargar:', error);
     } finally {
       setLocalLoading(false);
     }
@@ -118,42 +110,24 @@ export const TipoRecompensaCRUD: React.FC = () => {
       const resultado = await buscarPorNombre(searchQuery);
       setTiposRecompensa([resultado]);
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se encontró el tipo de recompensa',
-        color: 'red',
-      });
+      console.error('Error al cargar:', error);
     }
   };
 
   const handleSubmit = async (values: TipoRecompensaForm) => {
     try {
       if (editingItem) {
-        await actualizarTipoRecompensa(editingItem.id, values);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Tipo de recompensa actualizado correctamente',
-          color: 'green',
-        });
+        await ACTUALIZAR(editingItem.id, values);
+        notifications.success(); 
       } else {
-        await crearTipoRecompensa(values);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Tipo de recompensa creado correctamente',
-          color: 'green',
-        });
+        await CREAR(values);
+        notifications.success(); 
       }
       
       handleCloseModal();
       loadData();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: editingItem 
-          ? 'Error al actualizar el tipo de recompensa' 
-          : 'Error al crear el tipo de recompensa',
-        color: 'red',
-      });
+      console.error('Error al guardar:', error);
     }
   };
 
@@ -169,23 +143,22 @@ export const TipoRecompensaCRUD: React.FC = () => {
     open();
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este tipo de recompensa?')) {
-      try {
-        await eliminarTipoRecompensa(id);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Tipo de recompensa eliminado correctamente',
-          color: 'green',
-        });
-        loadData();
-      } catch (error) {
-        notifications.show({
-          title: 'Error',
-          message: 'Error al eliminar el tipo de recompensa',
-          color: 'red',
-        });
-      }
+  const handleDelete = (item: TipoRecompensa) => {
+    setSelectedItem(item);
+    setDeleteModalOpened(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedItem) return;
+
+    try {
+      await ELIMINAR(selectedItem.id);
+      notifications.success();
+      setDeleteModalOpened(false);
+      setSelectedItem(null);
+      loadData();
+    } catch (error) {
+      console.error('Error al eliminar:', error);
     }
   };
 
@@ -199,20 +172,6 @@ export const TipoRecompensaCRUD: React.FC = () => {
     setEditingItem(null);
     form.reset();
     open();
-  };
-
-  const getBadgeColor = (item: TipoRecompensa) => {
-    if (item.esFisico && item.esDigital) return 'blue';
-    if (item.esFisico) return 'green';
-    if (item.esDigital) return 'orange';
-    return 'gray';
-  };
-
-  const getBadgeText = (item: TipoRecompensa) => {
-    if (item.esFisico && item.esDigital) return 'Física & Digital';
-    if (item.esFisico) return 'Física';
-    if (item.esDigital) return 'Digital';
-    return 'Sin tipo';
   };
 
   const rows = tiposRecompensa.map((item) => (
@@ -239,7 +198,7 @@ export const TipoRecompensaCRUD: React.FC = () => {
           <ActionIcon
             variant="subtle"
             color="red"
-            onClick={() => handleDelete(item.id)}
+            onClick={() => handleDelete(item)}
             loading={loading}
           >
             <IconTrash style={{ width: rem(16), height: rem(16) }} />
@@ -256,7 +215,7 @@ export const TipoRecompensaCRUD: React.FC = () => {
       <Group justify="space-between" mb="lg">
         <Title order={2}>Gestión de Tipos de Recompensa</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={handleNewItem}>
-          Nuevo Tipo
+          Registrar
         </Button>
       </Group>
 
@@ -315,15 +274,16 @@ export const TipoRecompensaCRUD: React.FC = () => {
 
         {tiposRecompensa.length === 0 && !loading && (
           <Alert mt="md" color="blue">
-            No se encontraron tipos de recompensa
+            No se encontraron registros
           </Alert>
         )}
       </Card>
 
+      {/* Modal de formulario */}
       <Modal
         opened={opened}
         onClose={handleCloseModal}
-        title={editingItem ? 'Editar Tipo de Recompensa' : 'Nuevo Tipo de Recompensa'}
+        title={editingItem ? 'Editar Registro' : 'Nuevo Registro'}
         size="md"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -372,6 +332,18 @@ export const TipoRecompensaCRUD: React.FC = () => {
           </Stack>
         </form>
       </Modal>
+
+      {/* Modal genérico de confirmación para Eliminar */}
+      <DeleteConfirmModal
+        opened={deleteModalOpened}
+        onClose={() => {
+          setDeleteModalOpened(false);
+          setSelectedItem(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        itemName={selectedItem ? selectedItem.nombreMostrar : ""}
+        itemType="tipo de recompensa"
+      />
     </Container>
   );
 };
