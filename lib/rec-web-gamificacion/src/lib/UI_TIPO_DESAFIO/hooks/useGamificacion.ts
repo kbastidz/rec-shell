@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react';
 import { TipoDesafio } from '../../types/model';
 import { service } from '../services/gamificacion.service';
+import { TipoDesafioInput } from '../../types/dto';
 
-interface TipoDesafioInput {
-  nombre: string;
-  nombreMostrar: string;
-  descripcion?: string;
-  esIndividual: boolean;
-  esGrupal: boolean;
-}
-
-// Hook para obtener tipos individuales
 export const useTiposIndividuales = () => {
   const [data, setData] = useState<TipoDesafio[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,7 +12,7 @@ export const useTiposIndividuales = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await service.obtenerTiposIndividuales();
+      const result = await service.GET_INDIVIDUALES();
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -36,7 +28,6 @@ export const useTiposIndividuales = () => {
   return { data, loading, error, refetch: fetchTiposIndividuales };
 };
 
-// Hook para obtener tipos grupales
 export const useTiposGrupales = () => {
   const [data, setData] = useState<TipoDesafio[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,7 +37,7 @@ export const useTiposGrupales = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await service.obtenerTiposGrupales();
+      const result = await service.GET_GRUPALES();
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -62,7 +53,6 @@ export const useTiposGrupales = () => {
   return { data, loading, error, refetch: fetchTiposGrupales };
 };
 
-// Hook para buscar por nombre
 export const useBuscarTipoPorNombre = () => {
   const [data, setData] = useState<TipoDesafio | null>(null);
   const [loading, setLoading] = useState(false);
@@ -74,7 +64,7 @@ export const useBuscarTipoPorNombre = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await service.buscarPorNombre(nombre);
+      const result = await service.GET_BY_NAME(nombre);
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -87,16 +77,15 @@ export const useBuscarTipoPorNombre = () => {
   return { data, loading, error, buscarPorNombre };
 };
 
-// Hook para crear tipo de desafío
-export const useCrearTipoDesafio = () => {
+export const useCrear = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const crearTipoDesafio = async (tipoDesafio: TipoDesafioInput) => {
+  const CREAR = async (tipoDesafio: TipoDesafioInput) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await service.crearTipoDesafio(tipoDesafio);
+      const result = await service.POST(tipoDesafio);
       return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -106,19 +95,18 @@ export const useCrearTipoDesafio = () => {
     }
   };
 
-  return { crearTipoDesafio, loading, error };
+  return { CREAR, loading, error };
 };
 
-// Hook para actualizar tipo de desafío
-export const useActualizarTipoDesafio = () => {
+export const useActualizar = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const actualizarTipoDesafio = async (id: string, tipoDesafio: TipoDesafioInput) => {
+  const ACTUALIZAR = async (id: string, tipoDesafio: TipoDesafioInput) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await service.actualizarTipoDesafio(id, tipoDesafio);
+      const result = await service.PUT(id, tipoDesafio);
       return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -128,19 +116,18 @@ export const useActualizarTipoDesafio = () => {
     }
   };
 
-  return { actualizarTipoDesafio, loading, error };
+  return { ACTUALIZAR, loading, error };
 };
 
-// Hook para eliminar tipo de desafío
-export const useEliminarTipoDesafio = () => {
+export const useEliminar = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const eliminarTipoDesafio = async (id: string) => {
+  const ELIMINAR = async (id: string) => {
     setLoading(true);
     setError(null);
     try {
-      await service.eliminarTipoDesafio(id);
+      await service.DELETE(id);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -150,5 +137,5 @@ export const useEliminarTipoDesafio = () => {
     }
   };
 
-  return { eliminarTipoDesafio, loading, error };
+  return { ELIMINAR, loading, error };
 };

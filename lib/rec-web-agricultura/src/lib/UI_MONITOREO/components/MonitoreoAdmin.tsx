@@ -671,7 +671,7 @@ export const MonitoreoAdmin: React.FC = () => {
         parametro={selectedParametro}
       />
 
-      {/* Modal genérico de confirmación para Eliminar */}
+      {/* Modal para Eliminar */}
       <DeleteConfirmModal
         opened={deleteModalOpened}
         onClose={() => setDeleteModalOpened(false)}

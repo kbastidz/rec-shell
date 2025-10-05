@@ -12,34 +12,34 @@ interface TipoDesafioInput {
 const API_URL = `/gamificacion/tipos-desafio`;
 
 export class ConexionService extends InvokeApi {
-  async crearTipoDesafio(tipoDesafio: TipoDesafioInput): Promise<TipoDesafio> {
+  async POST(tipoDesafio: TipoDesafioInput): Promise<TipoDesafio> {
     const response = await this.post<TipoDesafio>(API_URL, tipoDesafio);
     return response;
   }
 
-  async obtenerTiposIndividuales(): Promise<TipoDesafio[]> {
+  async GET_INDIVIDUALES(): Promise<TipoDesafio[]> {
     const response = await this.get<TipoDesafio[]>(`${API_URL}/individuales`);
     return response;
   }
 
-  async obtenerTiposGrupales(): Promise<TipoDesafio[]> {
+  async GET_GRUPALES(): Promise<TipoDesafio[]> {
     const response = await this.get<TipoDesafio[]>(`${API_URL}/grupales`);
     return response;
   }
 
-  async buscarPorNombre(nombre: string): Promise<TipoDesafio> {
+  async GET_BY_NAME(nombre: string): Promise<TipoDesafio> {
     const response = await this.get<TipoDesafio>(
       `${API_URL}/buscar?nombre=${encodeURIComponent(nombre)}`
     );
     return response;
   }
 
-  async actualizarTipoDesafio(id: string, tipoDesafio: TipoDesafioInput): Promise<TipoDesafio> {
+  async PUT(id: string, tipoDesafio: TipoDesafioInput): Promise<TipoDesafio> {
     const response = await this.put<TipoDesafio>(`${API_URL}/${id}`, tipoDesafio);
     return response;
   }
 
-  async eliminarTipoDesafio(id: string): Promise<void> {
+  async DELETE(id: string): Promise<void> {
     await this.delete(`${API_URL}/${id}`);
   }
 }

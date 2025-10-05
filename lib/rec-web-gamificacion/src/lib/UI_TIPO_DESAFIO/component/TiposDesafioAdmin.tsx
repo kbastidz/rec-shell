@@ -36,11 +36,12 @@ import {
   useTiposIndividuales,
   useTiposGrupales,
   useBuscarTipoPorNombre,
-  useCrearTipoDesafio,
-  useActualizarTipoDesafio,
-  useEliminarTipoDesafio
-} from '../hooks/useTipoDesafio';
+  useCrear,
+  useActualizar,
+  useEliminar
+} from '../hooks/useGamificacion';
 import { TipoDesafio } from '../../types/model';
+import { DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
 
 interface TipoDesafioFormData {
   nombre: string;
@@ -50,25 +51,24 @@ interface TipoDesafioFormData {
   esGrupal: boolean;
 }
 
-export const TiposDesafioCRUD: React.FC = () => {
+export const TiposDesafioAdmin: React.FC = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
   const [editingItem, setEditingItem] = useState<TipoDesafio | null>(null);
   const [itemToDelete, setItemToDelete] = useState<TipoDesafio | null>(null);
   const [activeTab, setActiveTab] = useState<string | null>('individuales');
   const [searchValue, setSearchValue] = useState('');
+  const notifications = useNotifications();
 
-  // Hooks para datos
   const { data: tiposIndividuales, loading: loadingIndividuales, error: errorIndividuales, refetch: refetchIndividuales } = useTiposIndividuales();
   const { data: tiposGrupales, loading: loadingGrupales, error: errorGrupales, refetch: refetchGrupales } = useTiposGrupales();
   const { data: resultadoBusqueda, loading: loadingBusqueda, error: errorBusqueda, buscarPorNombre } = useBuscarTipoPorNombre();
 
-  // Hooks para mutations
-  const { crearTipoDesafio, loading: creatingLoading, error: createError } = useCrearTipoDesafio();
-  const { actualizarTipoDesafio, loading: updatingLoading, error: updateError } = useActualizarTipoDesafio();
-  const { eliminarTipoDesafio, loading: deletingLoading, error: deleteError } = useEliminarTipoDesafio();
+  const { CREAR, loading: creatingLoading, error: createError } = useCrear();
+  const { ACTUALIZAR, loading: updatingLoading, error: updateError } = useActualizar();
+  const { ELIMINAR, loading: deletingLoading, error: deleteError } = useEliminar();
+  
 
-  // Formulario
   const form = useForm<TipoDesafioFormData>({
     initialValues: {
       nombre: '',
@@ -108,50 +108,30 @@ export const TiposDesafioCRUD: React.FC = () => {
   const handleSubmit = async (values: TipoDesafioFormData) => {
     try {
       if (editingItem) {
-        await actualizarTipoDesafio(editingItem.id, values);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Tipo de desafío actualizado correctamente',
-          color: 'green',
-        });
+        await ACTUALIZAR(editingItem.id, values);
+        notifications.success(); 
       } else {
-        await crearTipoDesafio(values);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Tipo de desafío creado correctamente',
-          color: 'green',
-        });
+        await CREAR(values);
+        notifications.success(); 
       }
       close();
       refetchIndividuales();
       refetchGrupales();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: editingItem ? 'Error al actualizar' : 'Error al crear',
-        color: 'red',
-      });
+      console.log(error);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await eliminarTipoDesafio(id);
-      notifications.show({
-        title: 'Éxito',
-        message: 'Tipo de desafío eliminado correctamente',
-        color: 'green',
-      });
+      await ELIMINAR(id);
+      notifications.success();
       closeDeleteModal();
       setItemToDelete(null);
       refetchIndividuales();
       refetchGrupales();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'Error al eliminar el tipo de desafío',
-        color: 'red',
-      });
+      console.log(error);
     }
   };
 
@@ -169,7 +149,7 @@ export const TiposDesafioCRUD: React.FC = () => {
   const renderTable = (data: TipoDesafio[], loading: boolean, error: string | null) => {
     if (loading) return <LoadingOverlay visible />;
     if (error) return <Alert icon={<IconAlertCircle size={16} />} color="red">{error}</Alert>;
-    if (!data.length) return <Text c="dimmed" ta="center" py="xl">No hay registros</Text>;
+    if (!data.length) return <Text c="dimmed" ta="center" py="xl">No se encontraron registros</Text>;
 
     return (
       <Table striped highlightOnHover>
@@ -233,7 +213,7 @@ export const TiposDesafioCRUD: React.FC = () => {
         <Flex justify="space-between" align="center">
           <Title order={2}>Gestión de Tipos de Desafío</Title>
           <Button leftSection={<IconPlus size={16} />} onClick={handleOpenCreate}>
-            Nuevo Tipo
+            Registrar
           </Button>
         </Flex>
 
@@ -295,7 +275,7 @@ export const TiposDesafioCRUD: React.FC = () => {
       <Modal
         opened={opened}
         onClose={close}
-        title={editingItem ? 'Editar Tipo de Desafío' : 'Crear Tipo de Desafío'}
+        title={editingItem ? 'Editar Registro' : 'Nuevo Registro'}
         size="md"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -355,73 +335,16 @@ export const TiposDesafioCRUD: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Modal de confirmación para eliminar */}
-      <Modal
+      {/* Modal para Eliminar */}
+      <DeleteConfirmModal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
-        title="Confirmar Eliminación"
-        size="md"
-        centered
-      >
-        <Stack gap="md">
-          <Group gap="md">
-            <IconAlertTriangle size={32} color="red" />
-            <div>
-              <Text fw={500}>¿Está seguro de eliminar este tipo de desafío?</Text>
-              <Text size="sm" c="dimmed">Esta acción no se puede deshacer.</Text>
-            </div>
-          </Group>
+        onConfirm={() => handleDelete(itemToDelete?.id || "")}
+        itemName={itemToDelete?.nombre || ""}
+        itemType="Tipo de desafío"
+      />
 
-          {itemToDelete && (
-            <Card withBorder bg="gray.0">
-              <Stack gap="xs">
-                <Group>
-                  <Text size="sm" fw={500}>Nombre:</Text>
-                  <Text size="sm">{itemToDelete.nombre}</Text>
-                </Group>
-                <Group>
-                  <Text size="sm" fw={500}>Nombre a mostrar:</Text>
-                  <Text size="sm">{itemToDelete.nombreMostrar}</Text>
-                </Group>
-                <Group>
-                  <Text size="sm" fw={500}>Tipo:</Text>
-                  <Group gap="xs">
-                    {itemToDelete.esIndividual && (
-                      <Badge color="blue" variant="light" size="sm">
-                        Individual
-                      </Badge>
-                    )}
-                    {itemToDelete.esGrupal && (
-                      <Badge color="green" variant="light" size="sm">
-                        Grupal
-                      </Badge>
-                    )}
-                  </Group>
-                </Group>
-              </Stack>
-            </Card>
-          )}
-
-          {deleteError && (
-            <Alert icon={<IconAlertCircle size={16} />} color="red">
-              {deleteError}
-            </Alert>
-          )}
-
-          <Group justify="flex-end">
-            <Button variant="subtle" onClick={closeDeleteModal}>
-              Cancelar
-            </Button>
-            <Button
-              color="red"
-              onClick={() => itemToDelete && handleDelete(itemToDelete.id)}
-              loading={deletingLoading}
-            >
-              Eliminar
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+     
     </Container>
   );
 };
