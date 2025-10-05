@@ -13,3 +13,7 @@ export const getBadgeText = (item: TipoRecompensa) => {
     if (item.esDigital) return 'Digital';
     return 'Sin tipo';
 };
+
+export function GET_ERROR(error: unknown, defaultMessage = "Error al cargar los registros"): string {
+  return error instanceof Error ? error.message : defaultMessage;
+}

@@ -4,7 +4,7 @@ import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
 import {  MonitoreoAdmin, SeguimientosAdmin, NutrienteAdmin, MedidaAdmin , TratamientosAdmin, CultivosAdmin} from '@rec-shell/rec-web-agricultura';
-import { TipoRecompensaAdmin, LogrosCRUD , DesafiosCRUD, TiposDesafioAdmin, TablaLideresCRUD, RecompensasCRUD, } from '@rec-shell/rec-web-gamificacion';
+import { TipoRecompensaAdmin, LogrosCRUD , DesafiosCRUD, RecompensasAdmin, TablaLideresCRUD } from '@rec-shell/rec-web-gamificacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',
@@ -17,7 +17,7 @@ const rolePermissions = {
     UserComponent: UserManagement,
     RoleComponent: RoleManagement,
     CultivoComponent: MonitoreoAdmin, //CultivosAdmin,// TratamientosCRUD,//MedidaCRUD,  //NutrienteCRUD, //SeguimientoCRUD, //MonitoreoCRUD, //CultivosManager ,
-    CategoriaComponent: TiposDesafioAdmin// TipoRecompensaAdmin, //RecompensasCRUD, //TiposDesafioCRUD, //TablaLideresCRUD //DesafiosCRUD //CategoriasList //LogrosCRUD
+    CategoriaComponent: RecompensasAdmin// TipoRecompensaAdmin, //RecompensasCRUD, //TiposDesafioCRUD, //TablaLideresCRUD //DesafiosCRUD //CategoriasList //LogrosCRUD
   },
   [ROLES.MODERATOR]: {
     UserComponent: UserManagement,

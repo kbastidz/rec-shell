@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Recompensa } from '../../types/model';
 import { service } from '../services/gamificacion.service';
+import { GET_ERROR } from '../../utils/utilidad';
 
-
-// Hook para obtener todas las recompensas activas
 export const useRecompensasActivas = () => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -13,10 +12,10 @@ export const useRecompensasActivas = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerTodasActivas();
+      const data = await service.GET();
       setRecompensas(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensas');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -29,7 +28,6 @@ export const useRecompensasActivas = () => {
   return { recompensas, loading, error, refetch: fetchRecompensas };
 };
 
-// Hook para obtener una recompensa por ID
 export const useRecompensa = (id: string) => {
   const [recompensa, setRecompensa] = useState<Recompensa | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -40,10 +38,10 @@ export const useRecompensa = (id: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerPorId(id);
+      const data = await service.GET_ID(id);
       setRecompensa(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensa');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -56,52 +54,49 @@ export const useRecompensa = (id: string) => {
   return { recompensa, loading, error, refetch: fetchRecompensa };
 };
 
-// Hook para crear recompensa
-export const useCrearRecompensa = () => {
+export const useCrear = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const crear = async (recompensa: Recompensa): Promise<Recompensa | null> => {
+  const CREAR = async (recompensa: Recompensa): Promise<Recompensa | null> => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.crear(recompensa);
+      const data = await service.POST(recompensa);
       return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear recompensa');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  return { crear, loading, error };
+  return { CREAR, loading, error };
 };
 
-// Hook para actualizar recompensa
-export const useActualizarRecompensa = () => {
+export const useActualizar = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const actualizar = async (id: string, recompensa: Recompensa): Promise<Recompensa | null> => {
+  const ACTUALIZAR = async (id: string, recompensa: Recompensa): Promise<Recompensa | null> => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.actualizar(id, recompensa);
+      const data = await service.PUT(id, recompensa);
       return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar recompensa');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  return { actualizar, loading, error };
+  return { ACTUALIZAR, loading, error };
 };
 
-// Hook para eliminar recompensa
-export const useEliminarRecompensa = () => {
+export const useEliminar = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,10 +104,10 @@ export const useEliminarRecompensa = () => {
     setLoading(true);
     setError(null);
     try {
-      await service.eliminar(id);
+      await service.DELETE(id);
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar recompensa');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return false;
     } finally {
       setLoading(false);
@@ -122,7 +117,6 @@ export const useEliminarRecompensa = () => {
   return { eliminar, loading, error };
 };
 
-// Hook para obtener recompensas disponibles
 export const useRecompensasDisponibles = () => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -132,10 +126,10 @@ export const useRecompensasDisponibles = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerDisponibles();
+      const data = await service.GET_DISPONIBLES();
       setRecompensas(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensas disponibles');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -148,7 +142,6 @@ export const useRecompensasDisponibles = () => {
   return { recompensas, loading, error, refetch: fetchRecompensas };
 };
 
-// Hook para obtener recompensas vigentes
 export const useRecompensasVigentes = () => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -158,10 +151,10 @@ export const useRecompensasVigentes = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerVigentes();
+      const data = await service.GET_VIGENTES();
       setRecompensas(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensas vigentes');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -174,7 +167,6 @@ export const useRecompensasVigentes = () => {
   return { recompensas, loading, error, refetch: fetchRecompensas };
 };
 
-// Hook para obtener recompensas expiradas
 export const useRecompensasExpiradas = () => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -184,10 +176,10 @@ export const useRecompensasExpiradas = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerExpiradas();
+      const data = await service.GET_EXPIRADAS();
       setRecompensas(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensas expiradas');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -200,7 +192,6 @@ export const useRecompensasExpiradas = () => {
   return { recompensas, loading, error, refetch: fetchRecompensas };
 };
 
-// Hook para obtener recompensas por tipo
 export const useRecompensasPorTipo = (tipoId: string) => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -211,10 +202,10 @@ export const useRecompensasPorTipo = (tipoId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerPorTipo(tipoId);
+      const data = await service.GET_BY_TYPE(tipoId);
       setRecompensas(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensas por tipo');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -227,7 +218,6 @@ export const useRecompensasPorTipo = (tipoId: string) => {
   return { recompensas, loading, error, refetch: fetchRecompensas };
 };
 
-// Hook para obtener recompensas por rango de costo
 export const useRecompensasPorRangoCosto = (minCosto: number, maxCosto: number) => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -237,10 +227,10 @@ export const useRecompensasPorRangoCosto = (minCosto: number, maxCosto: number) 
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerPorRangoCosto(minCosto, maxCosto);
+      const data = await service.GET_RANGE_COSTO(minCosto, maxCosto);
       setRecompensas(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensas por rango de costo');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -253,7 +243,6 @@ export const useRecompensasPorRangoCosto = (minCosto: number, maxCosto: number) 
   return { recompensas, loading, error, refetch: fetchRecompensas };
 };
 
-// Hook para contar recompensas por tipo
 export const useContarRecompensasPorTipo = (tipoId: string) => {
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
@@ -264,10 +253,10 @@ export const useContarRecompensasPorTipo = (tipoId: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.contarPorTipo(tipoId);
+      const data = await service.GET_COUNT_TYPE(tipoId);
       setCount(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al contar recompensas');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -280,7 +269,6 @@ export const useContarRecompensasPorTipo = (tipoId: string) => {
   return { count, loading, error, refetch: fetchCount };
 };
 
-// Hook para verificar disponibilidad
 export const useVerificarDisponibilidad = (id: string) => {
   const [disponible, setDisponible] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -291,10 +279,10 @@ export const useVerificarDisponibilidad = (id: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.verificarDisponibilidad(id);
+      const data = await service.VERIFY_DISPONIBLE(id);
       setDisponible(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al verificar disponibilidad');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }
@@ -307,7 +295,6 @@ export const useVerificarDisponibilidad = (id: string) => {
   return { disponible, loading, error, refetch: verificar };
 };
 
-// Hook para activar recompensa
 export const useActivarRecompensa = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -316,10 +303,10 @@ export const useActivarRecompensa = () => {
     setLoading(true);
     setError(null);
     try {
-      await service.activar(id);
+      await service.GET_ACTIVE(id);
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al activar recompensa');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return false;
     } finally {
       setLoading(false);
@@ -329,7 +316,6 @@ export const useActivarRecompensa = () => {
   return { activar, loading, error };
 };
 
-// Hook para desactivar recompensa
 export const useDesactivarRecompensa = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -338,10 +324,10 @@ export const useDesactivarRecompensa = () => {
     setLoading(true);
     setError(null);
     try {
-      await service.desactivar(id);
+      await service.GET_INACTIVE(id);
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al desactivar recompensa');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return false;
     } finally {
       setLoading(false);
@@ -351,7 +337,6 @@ export const useDesactivarRecompensa = () => {
   return { desactivar, loading, error };
 };
 
-// Hook para reducir stock
 export const useReducirStock = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -360,10 +345,10 @@ export const useReducirStock = () => {
     setLoading(true);
     setError(null);
     try {
-      await service.reducirStock(id, cantidad);
+      await service.GET_REDICIR_STOCK(id, cantidad);
       return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al reducir stock');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
       return false;
     } finally {
       setLoading(false);
@@ -373,7 +358,6 @@ export const useReducirStock = () => {
   return { reducirStock, loading, error };
 };
 
-// Hook para obtener todas las recompensas (admin)
 export const useRecompensasAdmin = () => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -383,10 +367,10 @@ export const useRecompensasAdmin = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await service.obtenerTodasAdmin();
+      const data = await service.GET_ADMIN();
       setRecompensas(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener recompensas admin');
+    } catch (error: unknown) {
+      setError(GET_ERROR(error));
     } finally {
       setLoading(false);
     }

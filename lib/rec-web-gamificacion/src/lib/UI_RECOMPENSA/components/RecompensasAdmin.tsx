@@ -20,12 +20,11 @@ import {
   Alert,
   Menu,
   Image,
-  Text
+  Text,
+  Select
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
-import { modals } from '@mantine/modals';
-import { notifications } from '@mantine/notifications';
 import {
   IconPlus,
   IconEdit,
@@ -37,15 +36,45 @@ import {
   IconAlertCircle,
   IconCheck
 } from '@tabler/icons-react';
-import { Recompensa } from '../../types/model';
-import { useCrearRecompensa, useActualizarRecompensa, useReducirStock, useRecompensasAdmin, useEliminarRecompensa, useActivarRecompensa, useDesactivarRecompensa } from '../hooks/useRecompensa';
+import { Recompensa, TipoRecompensa } from '../../types/model';
+import { useCrear, useActualizar, useReducirStock, useRecompensasAdmin, useEliminar, useActivarRecompensa, useDesactivarRecompensa } from '../hooks/useGamificacion';
+import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 
-// ========== COMPONENTE: MODAL DE FORMULARIO ==========
 interface RecompensaFormModalProps {
   opened: boolean;
   onClose: () => void;
   recompensa: Recompensa | null;
   onSuccess: () => void;
+}
+
+const mockTiposRecompensa: TipoRecompensa[] = [
+  {
+    id: '1',
+    nombre: 'PRODUCTO_FISICO',
+    nombreMostrar: 'Producto Físico',
+    descripcion: 'Productos tangibles que requieren envío',
+    esFisico: true,
+    esDigital: false,
+    creadoEn: '2025-01-01',
+    recompensas: []
+  }
+];
+
+function useTiposRecompensa() {
+  const [loading, setLoading] = useState(false);
+  
+  /* // Reemplaza esto con tu hook real
+  const { data, isLoading } = useTuApiDeTipos();
+  
+  return {
+    tiposRecompensa: data || [],
+    loading: isLoading
+  };*/
+  
+  return {
+    tiposRecompensa: mockTiposRecompensa,
+    loading
+  };
 }
 
 function RecompensaFormModal({ 
@@ -54,24 +83,42 @@ function RecompensaFormModal({
   recompensa, 
   onSuccess 
 }: RecompensaFormModalProps) {
-  const { crear, loading: creando } = useCrearRecompensa();
-  const { actualizar, loading: actualizando } = useActualizarRecompensa();
+  const { CREAR, loading: creando } = useCrear();
+  const { ACTUALIZAR, loading: actualizando } = useActualizar();
   const loading = creando || actualizando;
+  const notifications = useNotifications();
+  const { tiposRecompensa } = useTiposRecompensa();
 
-  const form = useForm({
+  interface FormValues {
+    tipoRecompensaId: string;
+    nombre: string;
+    descripcion: string;
+    urlImagen: string;
+    costoPuntos: number;
+    cantidadStock: number;
+    esIlimitado: boolean;
+    estaActivo: boolean;
+    terminosCondiciones: string;
+    validoDesde: Date | null;
+    validoHasta: Date | null;
+  }
+
+  const form = useForm<FormValues>({
     initialValues: {
-      nombre: recompensa?.nombre || '',
-      descripcion: recompensa?.descripcion || '',
-      urlImagen: recompensa?.urlImagen || '',
-      costoPuntos: recompensa?.costoPuntos || 0,
-      cantidadStock: recompensa?.cantidadStock || 0,
-      esIlimitado: recompensa?.esIlimitado || false,
-      estaActivo: recompensa?.estaActivo ?? true,
-      terminosCondiciones: recompensa?.terminosCondiciones || '',
-      validoDesde: recompensa?.validoDesde ? new Date(recompensa.validoDesde) : null,
-      validoHasta: recompensa?.validoHasta ? new Date(recompensa.validoHasta) : null
+      tipoRecompensaId: '',
+      nombre: '',
+      descripcion: '',
+      urlImagen: '',
+      costoPuntos: 0,
+      cantidadStock: 0,
+      esIlimitado: false,
+      estaActivo: true,
+      terminosCondiciones: '',
+      validoDesde: null,
+      validoHasta: null
     },
     validate: {
+      tipoRecompensaId: (value) => (!value ? 'El tipo de recompensa es requerido' : null),
       nombre: (value) => (!value?.trim() ? 'El nombre es requerido' : null),
       costoPuntos: (value) => (value < 0 ? 'El costo debe ser mayor o igual a 0' : null),
       cantidadStock: (value, values) =>
@@ -79,42 +126,48 @@ function RecompensaFormModal({
     }
   });
 
+  React.useEffect(() => {
+    if (opened) {
+      if (recompensa) {
+        form.setValues({
+          tipoRecompensaId: recompensa.tipoRecompensa?.id || '',
+          nombre: recompensa.nombre || '',
+          descripcion: recompensa.descripcion || '',
+          urlImagen: recompensa.urlImagen || '',
+          costoPuntos: recompensa.costoPuntos || 0,
+          cantidadStock: recompensa.cantidadStock || 0,
+          esIlimitado: recompensa.esIlimitado || false,
+          estaActivo: recompensa.estaActivo ?? true,
+          terminosCondiciones: recompensa.terminosCondiciones || '',
+          validoDesde: recompensa.validoDesde ? new Date(recompensa.validoDesde) : null,
+          validoHasta: recompensa.validoHasta ? new Date(recompensa.validoHasta) : null
+        });
+      } else {
+        form.reset();
+      }
+    }
+  }, [opened, recompensa]);
+
   const handleSubmit = async (values: typeof form.values) => {
     try {
       const data: any = {
         ...values,
-        validoDesde: values.validoDesde?.toISOString(),
-        validoHasta: values.validoHasta?.toISOString()
+        tipoRecompensa: { id: values.tipoRecompensaId }
       };
 
       if (recompensa?.id) {
-        await actualizar(recompensa.id, data);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Recompensa actualizada correctamente',
-          color: 'green',
-          icon: <IconCheck size="1rem" />
-        });
+        await ACTUALIZAR(recompensa.id, data);
+        notifications.success(); 
       } else {
-        await crear(data);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Recompensa creada correctamente',
-          color: 'green',
-          icon: <IconCheck size="1rem" />
-        });
+        await CREAR(data);
+        notifications.success(); 
       }
       
       form.reset();
       onSuccess();
       onClose();
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error?.message || 'Ocurrió un error al guardar',
-        color: 'red',
-        icon: <IconAlertCircle size="1rem" />
-      });
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -129,7 +182,7 @@ function RecompensaFormModal({
       }}
       title={
         <Title order={3}>
-          {recompensa ? 'Editar Recompensa' : 'Nueva Recompensa'}
+          {recompensa ? 'Editar Registro' : 'Nuevo Registro'}
         </Title>
       }
       size="lg"
@@ -137,6 +190,18 @@ function RecompensaFormModal({
       closeOnEscape={!loading}
     >
       <Stack gap="md">
+        <Select
+          label="Tipo de Recompensa"
+          placeholder="Seleccione un tipo"
+          required
+          disabled={loading}
+          data={tiposRecompensa.map(tipo => ({
+            value: tipo.id,
+            label: tipo.nombreMostrar
+          }))}
+          {...form.getInputProps('tipoRecompensaId')}
+        />
+        
         <TextInput
           label="Nombre"
           placeholder="Ingrese el nombre"
@@ -196,22 +261,21 @@ function RecompensaFormModal({
 
         <Grid>
           <Grid.Col span={6}>
-            <DateInput
+            <TextInput
               label="Válido Desde"
-              placeholder="Seleccione fecha"
-              disabled={loading}
-              valueFormat="DD/MM/YYYY"
+              type="date"
               {...form.getInputProps('validoDesde')}
-            />
+              required
+            />            
           </Grid.Col>
           <Grid.Col span={6}>
-            <DateInput
+            <TextInput
               label="Válido Hasta"
-              placeholder="Seleccione fecha"
-              disabled={loading}
-              valueFormat="DD/MM/YYYY"
+              type="date"
               {...form.getInputProps('validoHasta')}
-            />
+              required
+            /> 
+            
           </Grid.Col>
         </Grid>
 
@@ -238,7 +302,7 @@ function RecompensaFormModal({
             onClick={() => form.onSubmit(handleSubmit)()} 
             loading={loading}
           >
-            {recompensa ? 'Actualizar' : 'Crear'}
+            {recompensa ? 'ACTUALIZAR' : 'CREAR'}
           </Button>
         </Group>
       </Stack>
@@ -246,7 +310,6 @@ function RecompensaFormModal({
   );
 }
 
-// ========== COMPONENTE: MODAL REDUCIR STOCK ==========
 interface ReducirStockModalProps {
   opened: boolean;
   onClose: () => void;
@@ -262,28 +325,20 @@ function ReducirStockModal({
 }: ReducirStockModalProps) {
   const { reducirStock, loading } = useReducirStock();
   const [cantidad, setCantidad] = useState(1);
+  const notifications = useNotifications();
 
   const handleReducir = async () => {
     if (!recompensa?.id) return;
 
     try {
       await reducirStock(recompensa.id, cantidad);
-      notifications.show({
-        title: 'Éxito',
-        message: `Stock reducido en ${cantidad} unidades`,
-        color: 'green',
-        icon: <IconCheck size="1rem" />
-      });
+      notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, `Stock reducido en ${cantidad} unidades`); 
+     
       setCantidad(1);
       onSuccess();
       onClose();
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error?.message || 'Error al reducir stock',
-        color: 'red',
-        icon: <IconAlertCircle size="1rem" />
-      });
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -337,16 +392,18 @@ function ReducirStockModal({
   );
 }
 
-// ========== COMPONENTE PRINCIPAL: CRUD RECOMPENSAS ==========
-export  function RecompensasCRUD() {
+export  function RecompensasAdmin() {
   const { recompensas, loading, error, refetch } = useRecompensasAdmin();
-  const { eliminar } = useEliminarRecompensa();
+  const { eliminar } = useEliminar();
   const { activar } = useActivarRecompensa();
   const { desactivar } = useDesactivarRecompensa();
 
   const [modalOpened, setModalOpened] = useState(false);
   const [stockModalOpened, setStockModalOpened] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [selectedRecompensa, setSelectedRecompensa] = useState<Recompensa | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<Recompensa | null>(null);
+  const notifications = useNotifications();
 
   const handleNueva = () => {
     setSelectedRecompensa(null);
@@ -359,39 +416,34 @@ export  function RecompensasCRUD() {
   };
 
   const handleEliminar = (recompensa: Recompensa) => {
-    modals.openConfirmModal({
-      title: 'Eliminar Recompensa',
-      centered: true,
-      children: (
-        <Text size="sm">
-          ¿Estás seguro de eliminar la recompensa{' '}
-          <strong>{recompensa.nombre}</strong>? Esta acción no se puede deshacer.
-        </Text>
-      ),
-      labels: { confirm: 'Eliminar', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: async () => {
-        try {
-          const success = await eliminar(recompensa.id);
-          if (success) {
-            notifications.show({
-              title: 'Éxito',
-              message: 'Recompensa eliminada correctamente',
-              color: 'green',
-              icon: <IconCheck size="1rem" />
-            });
-            refetch();
-          }
-        } catch (error: any) {
-          notifications.show({
-            title: 'Error',
-            message: error?.message || 'Error al eliminar',
-            color: 'red',
-            icon: <IconAlertCircle size="1rem" />
-          });
-        }
+    setItemToDelete(recompensa);
+    setDeleteModalOpened(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpened(false);
+    setItemToDelete(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const success = await eliminar(id);
+      if (success) {
+        notifications.success(
+          NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title,
+          'Recompensa eliminada correctamente'
+        );
+        refetch();
       }
-    });
+      closeDeleteModal();
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error?.message || 'Error al eliminar',
+        color: 'red',
+        icon: <IconAlertCircle size="1rem" />
+      });
+    }
   };
 
   const handleToggleEstado = async (recompensa: Recompensa) => {
@@ -399,31 +451,18 @@ export  function RecompensasCRUD() {
       if (recompensa.estaActivo) {
         const success = await desactivar(recompensa.id);
         if (success) {
-          notifications.show({
-            title: 'Desactivada',
-            message: 'Recompensa desactivada correctamente',
-            color: 'blue'
-          });
+          notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, NOTIFICATION_MESSAGES.GENERAL.STATE.message); 
           refetch();
         }
       } else {
         const success = await activar(recompensa.id);
         if (success) {
-          notifications.show({
-            title: 'Activada',
-            message: 'Recompensa activada correctamente',
-            color: 'green'
-          });
+          notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, NOTIFICATION_MESSAGES.GENERAL.STATE.message); 
           refetch();
         }
       }
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error?.message || 'Error al cambiar estado',
-        color: 'red',
-        icon: <IconAlertCircle size="1rem" />
-      });
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -461,7 +500,7 @@ export  function RecompensasCRUD() {
             leftSection={<IconPlus size="1rem" />} 
             onClick={handleNueva}
           >
-            Nueva Recompensa
+            Registrar
           </Button>
         </Group>
 
@@ -484,7 +523,7 @@ export  function RecompensasCRUD() {
                 <Table.Tr>
                   <Table.Td colSpan={8} style={{ textAlign: 'center' }}>
                     <Text c="dimmed" size="sm" py="xl">
-                      No hay recompensas registradas
+                      No se encontraron registros
                     </Text>
                   </Table.Td>
                 </Table.Tr>
@@ -550,12 +589,8 @@ export  function RecompensasCRUD() {
                     <Table.Td>
                       <Text size="xs">
                         {recompensa.validoDesde && recompensa.validoHasta
-                          ? `${new Date(
-                              recompensa.validoDesde
-                            ).toLocaleDateString()} - ${new Date(
-                              recompensa.validoHasta
-                            ).toLocaleDateString()}`
-                          : 'Sin límite'}
+                        ? `${recompensa.validoDesde} - ${recompensa.validoHasta}`
+                        : 'Sin límite'}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -635,6 +670,15 @@ export  function RecompensasCRUD() {
         onClose={() => setStockModalOpened(false)}
         recompensa={selectedRecompensa}
         onSuccess={refetch}
+      />
+
+      {/* Modal para Eliminar */}
+      <DeleteConfirmModal
+        opened={deleteModalOpened}
+        onClose={closeDeleteModal}
+        onConfirm={() => handleDelete(itemToDelete?.id || "")}
+        itemName={itemToDelete?.nombre || ""}
+        itemType="recompensa"
       />
     </Container>
   );
