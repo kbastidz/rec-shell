@@ -25,40 +25,22 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
-import { modals } from '@mantine/modals';
 import {
   IconSearch,
   IconPlus,
   IconEdit,
   IconTrash,
   IconEye,
-  IconAlertCircle,
   IconStar,
   IconAward,
   IconPhoto
 } from '@tabler/icons-react';
-import { useLogros } from '../hooks/useLogros';
+import { useLogros } from '../hooks/useGamificacion';
 import { Rareza } from '../../enums/Enums';
 import { Logro } from '../../types/model';
+import { rarezaColors, rarezaOptions } from '../../utils/utilidad';
+import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 
-// Opciones para el select de rareza
-const rarezaOptions = [
-  { value: 'COMUN', label: 'Común' },
-  { value: 'POCO_COMUN', label: 'Poco Común' },
-  { value: 'RARO', label: 'Raro' },
-  { value: 'EPICO', label: 'Épico' },
-  { value: 'LEGENDARIO', label: 'Legendario' }
-];
-
-// Colores para las rarezas
-const rarezaColors: Record<string, string> = {
-  COMUN: 'gray',
-  POCO_COMUN: 'green',
-  RARO: 'blue',
-  EPICO: 'violet',
-  LEGENDARIO: 'orange'
-};
 
 interface LogroFormData {
   nombre: string;
@@ -72,23 +54,26 @@ interface LogroFormData {
   criterioDesbloqueo: string;
 }
 
-export const LogrosCRUD: React.FC = () => {
+export const LogrosAdmin: React.FC = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
+  const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingLogro, setEditingLogro] = useState<Logro | null>(null);
   const [selectedLogro, setSelectedLogro] = useState<Logro | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<Logro | null>(null);
   const [activePage, setActivePage] = useState(1);
+  const notifications = useNotifications();
   const itemsPerPage = 10;
 
   const {
     logros,
     loading,
     error,
-    obtenerLogrosActivos,
-    crearLogro,
-    actualizarLogro,
-    eliminarLogro,
+    GET,
+    CREAR,
+    ACTUALIZAR,
+    ELIMINAR,
     buscarPorTexto,
     clearError
   } = useLogros();
@@ -103,38 +88,26 @@ export const LogrosCRUD: React.FC = () => {
       esSecreto: false,
       estaActivo: true,
       mensajeDesbloqueo: '',
-      criterioDesbloqueo: '{}'
+      criterioDesbloqueo: ''
     },
     validate: {
       nombre: (value) => (!value ? 'El nombre es requerido' : null),
       descripcion: (value) => (!value ? 'La descripción es requerida' : null),
       recompensaPuntos: (value) => (value < 0 ? 'Los puntos no pueden ser negativos' : null),
-      criterioDesbloqueo: (value) => {
-        try {
-          JSON.parse(value);
-          return null;
-        } catch {
-          return 'Debe ser un JSON válido';
-        }
-      }
+      criterioDesbloqueo: (value) => (!value ? 'El criterio es requerido' : null),
     }
   });
 
   useEffect(() => {
-    obtenerLogrosActivos();
+    GET();
   }, []);
 
   useEffect(() => {
     if (error) {
-      notifications.show({
-        title: 'Error',
-        message: error,
-        color: 'red',
-        icon: <IconAlertCircle />
-      });
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title,error); 
       clearError();
     }
-  }, [error, clearError]);
+  }, [error, clearError, notifications]);
 
   // Filtrar logros por término de búsqueda
   const filteredLogros = logros.filter(logro =>
@@ -142,7 +115,6 @@ export const LogrosCRUD: React.FC = () => {
     logro.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Paginación
   const paginatedLogros = filteredLogros.slice(
     (activePage - 1) * itemsPerPage,
     activePage * itemsPerPage
@@ -156,7 +128,7 @@ export const LogrosCRUD: React.FC = () => {
     if (value.trim()) {
       buscarPorTexto(value);
     } else {
-      obtenerLogrosActivos();
+      GET();
     }
   };
 
@@ -177,7 +149,7 @@ export const LogrosCRUD: React.FC = () => {
       esSecreto: logro.esSecreto,
       estaActivo: logro.estaActivo,
       mensajeDesbloqueo: logro.mensajeDesbloqueo || '',
-      criterioDesbloqueo: JSON.stringify(logro.criterioDesbloqueo, null, 2)
+      criterioDesbloqueo: logro.criterioDesbloqueo
     });
     open();
   };
@@ -187,60 +159,36 @@ export const LogrosCRUD: React.FC = () => {
     openDetails();
   };
 
-  const handleDelete = (logro: Logro) => {
-    modals.openConfirmModal({
-      title: 'Eliminar Logro',
-      children: (
-        <Text>
-          ¿Estás seguro de que deseas eliminar el logro <strong>{logro.nombre}</strong>?
-          Esta acción no se puede deshacer.
-        </Text>
-      ),
-      labels: { confirm: 'Eliminar', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: async () => {
-        await eliminarLogro(logro.id);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Logro eliminado correctamente',
-          color: 'green'
-        });
-        obtenerLogrosActivos();
-      }
-    });
+  const handleDeleteClick = (logro: Logro) => {
+    setItemToDelete(logro);
+    openDeleteModal();
+  };
+
+  const handleDelete = async (id: string) => {
+    await ELIMINAR(id);
+    notifications.success(); 
+    closeDeleteModal();
+    GET();
   };
 
   const handleSubmit = async (values: LogroFormData) => {
     try {
       const logroData: Partial<Logro> = {
-        ...values,
-        criterioDesbloqueo: JSON.parse(values.criterioDesbloqueo)
+        ...values
       };
 
       if (editingLogro) {
-        await actualizarLogro(editingLogro.id, { ...editingLogro, ...logroData } as Logro);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Logro actualizado correctamente',
-          color: 'green'
-        });
+        await ACTUALIZAR(editingLogro.id, { ...editingLogro, ...logroData } as Logro);
+        notifications.success(); 
       } else {
-        await crearLogro(logroData as Logro);
-        notifications.show({
-          title: 'Éxito',
-          message: 'Logro creado correctamente',
-          color: 'green'
-        });
+        await CREAR(logroData as Logro);
+        notifications.success(); 
       }
       
       close();
-      obtenerLogrosActivos();
+      GET();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'Error al guardar el logro',
-        color: 'red'
-      });
+      console.log(error);
     }
   };
 
@@ -266,7 +214,7 @@ export const LogrosCRUD: React.FC = () => {
         <Group justify="space-between">
           <Title order={2}>Gestión de Logros</Title>
           <Button leftSection={<IconPlus size={16} />} onClick={handleCreate}>
-            Nuevo Logro
+            Registrar
           </Button>
         </Group>
 
@@ -367,7 +315,7 @@ export const LogrosCRUD: React.FC = () => {
                           <ActionIcon
                             variant="light"
                             color="red"
-                            onClick={() => handleDelete(logro)}
+                            onClick={() => handleDeleteClick(logro)}
                           >
                             <IconTrash size={16} />
                           </ActionIcon>
@@ -396,7 +344,7 @@ export const LogrosCRUD: React.FC = () => {
         <Modal
           opened={opened}
           onClose={close}
-          title={editingLogro ? 'Editar Logro' : 'Crear Nuevo Logro'}
+          title={editingLogro ? 'Editar Registro' : 'Nuevo Registro'}
           size="lg"
         >
           <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -450,8 +398,8 @@ export const LogrosCRUD: React.FC = () => {
               />
 
               <Textarea
-                label="Criterio de Desbloqueo (JSON)"
-                placeholder='{"tipo": "puntos", "valor": 100}'
+                label="Criterio de Desbloqueo"
+                placeholder='Criterios'
                 rows={4}
                 {...form.getInputProps('criterioDesbloqueo')}
               />
@@ -545,6 +493,15 @@ export const LogrosCRUD: React.FC = () => {
             </Stack>
           )}
         </Modal>
+
+        {/* Modal para Eliminar */}
+        <DeleteConfirmModal
+          opened={deleteModalOpened}
+          onClose={closeDeleteModal}
+          onConfirm={() => handleDelete(itemToDelete?.id || "")}
+          itemName={itemToDelete?.nombre || ""}
+          itemType="logro"
+        />
       </Stack>
     </Container>
   );

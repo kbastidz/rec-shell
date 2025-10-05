@@ -15,31 +15,25 @@ interface UseLogrosState {
 }
 
 interface UseLogrosActions {
-  // Consultas básicas
-  obtenerLogrosActivos: () => Promise<void>;
+  GET: () => Promise<void>;
   obtenerLogrosVisibles: () => Promise<void>;
   obtenerPorId: (id: string) => Promise<void>;
   buscarPorNombre: (nombre: string) => Promise<void>;
   verificarExistencia: (nombre: string) => Promise<void>;
   
-  // Consultas por categoría
   obtenerLogrosPorCategoria: (categoriaId: string) => Promise<void>;
   obtenerLogrosVisiblesPorCategoria: (categoriaId: string) => Promise<void>;
   obtenerLogrosPorCategoriaOrdenados: (categoriaId: string) => Promise<void>;
   
-  // Consultas por rareza
   obtenerLogrosPorRareza: (rareza: Rareza) => Promise<void>;
   filtrarPorRarezas: (rarezas: Rareza[]) => Promise<void>;
   
-  // Consultas por puntos
   obtenerLogrosPorPuntosMayoresA: (puntos: number) => Promise<void>;
   obtenerLogrosPorRangoPuntos: (min: number, max: number) => Promise<void>;
   
-  // Búsquedas y ordenamiento
   buscarPorTexto: (texto: string) => Promise<void>;
   obtenerLogrosOrdenadosPorRecompensa: () => Promise<void>;
   
-  // Gestión de usuario
   obtenerLogrosNoObtenidosPorUsuario: (usuarioId: string) => Promise<void>;
   obtenerLogrosVisiblesNoObtenidosPorUsuario: (usuarioId: string) => Promise<void>;
   obtenerLogrosObtenidosPorUsuario: (usuarioId: string) => Promise<void>;
@@ -47,20 +41,16 @@ interface UseLogrosActions {
   otorgarLogro: (usuarioId: string, logroId: string, datosProgreso?: Record<string, any>) => Promise<LogroUsuario | null>;
   toggleExhibirLogro: (usuarioId: string, logroId: string) => Promise<void>;
   
-  // Estadísticas
   obtenerEstadisticasGenerales: () => Promise<void>;
   obtenerEstadisticasUsuario: (usuarioId: string) => Promise<void>;
   
-  // Conteos
   contarLogrosPorCategoria: (categoriaId: string) => Promise<void>;
   contarLogrosPorRareza: (rareza: Rareza) => Promise<void>;
   
-  // CRUD Operations
-  crearLogro: (logro: Logro) => Promise<Logro | null>;
-  actualizarLogro: (id: string, logro: Logro) => Promise<Logro | null>;
-  eliminarLogro: (id: string) => Promise<void>;
+  CREAR: (logro: Logro) => Promise<Logro | null>;
+  ACTUALIZAR: (id: string, logro: Logro) => Promise<Logro | null>;
+  ELIMINAR: (id: string) => Promise<void>;
   
-  // Utilidades
   clearError: () => void;
   resetState: () => void;
 }
@@ -95,7 +85,6 @@ export const useLogros = (): UseLogrosState & UseLogrosActions => {
     setState(initialState);
   }, []);
 
-  // Helper para manejar errores
   const handleAsync = useCallback(async <T>(
     asyncFn: () => Promise<T>,
     onSuccess?: (data: T) => void
@@ -116,134 +105,130 @@ export const useLogros = (): UseLogrosState & UseLogrosActions => {
     }
   }, [setLoading, setError, clearError]);
 
-  // Consultas básicas
-  const obtenerLogrosActivos = useCallback(async () => {
+
+  const GET = useCallback(async () => {
     await handleAsync(
-      () => service.obtenerLogrosActivos(),
+      () => service.GET_ACTIVE(),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosVisibles = useCallback(async () => {
     await handleAsync(
-      () => service.obtenerLogrosVisibles(),
+      () => service.GET_VISIBLE(),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerPorId = useCallback(async (id: string) => {
     await handleAsync(
-      () => service.obtenerPorId(id),
+      () => service.GET_BY_ID(id),
       (logro) => setState(prev => ({ ...prev, logro }))
     );
   }, [handleAsync]);
 
   const buscarPorNombre = useCallback(async (nombre: string) => {
     await handleAsync(
-      () => service.buscarPorNombre(nombre),
+      () => service.BET_BY_NAME(nombre),
       (logro) => setState(prev => ({ ...prev, logro }))
     );
   }, [handleAsync]);
 
   const verificarExistencia = useCallback(async (nombre: string) => {
     await handleAsync(
-      () => service.existePorNombre(nombre),
+      () => service.isEXISTS_BY_NAME(nombre),
       (exists) => setState(prev => ({ ...prev, exists }))
     );
   }, [handleAsync]);
 
-  // Consultas por categoría
   const obtenerLogrosPorCategoria = useCallback(async (categoriaId: string) => {
     await handleAsync(
-      () => service.obtenerLogrosPorCategoria(categoriaId),
+      () => service.GET_BY_CATEGORY(categoriaId),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosVisiblesPorCategoria = useCallback(async (categoriaId: string) => {
     await handleAsync(
-      () => service.obtenerLogrosVisiblesPorCategoria(categoriaId),
+      () => service.GET_VISIBLE_BY_CATEGORY(categoriaId),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosPorCategoriaOrdenados = useCallback(async (categoriaId: string) => {
     await handleAsync(
-      () => service.obtenerLogrosPorCategoriaOrdenados(categoriaId),
+      () => service.GET_ORDERED_BY_CATEGORY(categoriaId),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
-  // Consultas por rareza
   const obtenerLogrosPorRareza = useCallback(async (rareza: Rareza) => {
     await handleAsync(
-      () => service.obtenerLogrosPorRareza(rareza),
+      () => service.GET_BY_RAREZA(rareza),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const filtrarPorRarezas = useCallback(async (rarezas: Rareza[]) => {
     await handleAsync(
-      () => service.obtenerLogrosPorRarezas(rarezas),
+      () => service.GET_BY_RAREZAS(rarezas),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
-  // Consultas por puntos
   const obtenerLogrosPorPuntosMayoresA = useCallback(async (puntos: number) => {
     await handleAsync(
-      () => service.obtenerLogrosPorPuntosMayoresA(puntos),
+      () => service.GET_BY_POINTS(puntos),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosPorRangoPuntos = useCallback(async (min: number, max: number) => {
     await handleAsync(
-      () => service.obtenerLogrosPorRangoPuntos(min, max),
+      () => service.GET_BY_RANGE(min, max),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
-  // Búsquedas y ordenamiento
   const buscarPorTexto = useCallback(async (texto: string) => {
     await handleAsync(
-      () => service.buscarPorTexto(texto),
+      () => service.GET_BY_TEXT(texto),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosOrdenadosPorRecompensa = useCallback(async () => {
     await handleAsync(
-      () => service.obtenerLogrosOrdenadosPorRecompensa(),
+      () => service.GET_ORDERED_BY_RECOMPENSA(),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
-  // Gestión de usuario
+
   const obtenerLogrosNoObtenidosPorUsuario = useCallback(async (usuarioId: string) => {
     await handleAsync(
-      () => service.obtenerLogrosNoObtenidosPorUsuario(usuarioId),
+      () => service.GET_NOT_OBTENDED_BY_USER(usuarioId),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosVisiblesNoObtenidosPorUsuario = useCallback(async (usuarioId: string) => {
     await handleAsync(
-      () => service.obtenerLogrosVisiblesNoObtenidosPorUsuario(usuarioId),
+      () => service.GET_VISIBLE_NOT_OBTENDED_BY_USER(usuarioId),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosObtenidosPorUsuario = useCallback(async (usuarioId: string) => {
     await handleAsync(
-      () => service.obtenerLogrosObtenidosPorUsuario(usuarioId),
+      () => service.GET_OBTENDED_BY_USER(usuarioId),
       (logrosUsuario) => setState(prev => ({ ...prev, logrosUsuario }))
     );
   }, [handleAsync]);
 
   const obtenerLogrosEnProgresoPorUsuario = useCallback(async (usuarioId: string) => {
     await handleAsync(
-      () => service.obtenerLogrosEnProgresoPorUsuario(usuarioId),
+      () => service.GET_PROGRESS_BY_USER(usuarioId),
       (logros) => setState(prev => ({ ...prev, logros }))
     );
   }, [handleAsync]);
@@ -253,95 +238,83 @@ export const useLogros = (): UseLogrosState & UseLogrosActions => {
     logroId: string, 
     datosProgreso?: Record<string, any>
   ): Promise<LogroUsuario | null> => {
-    return await handleAsync(() => service.otorgarLogro(usuarioId, logroId, datosProgreso));
+    return await handleAsync(() => service.POST_OTORGAR_LOGRO(usuarioId, logroId, datosProgreso));
   }, [handleAsync]);
 
   const toggleExhibirLogro = useCallback(async (usuarioId: string, logroId: string) => {
     await handleAsync(() => service.toggleExhibirLogro(usuarioId, logroId));
   }, [handleAsync]);
 
-  // Estadísticas
   const obtenerEstadisticasGenerales = useCallback(async () => {
     await handleAsync(
-      () => service.obtenerEstadisticasGenerales(),
+      () => service.GET_ESTATISTICAS(),
       (estadisticas) => setState(prev => ({ ...prev, estadisticas }))
     );
   }, [handleAsync]);
 
   const obtenerEstadisticasUsuario = useCallback(async (usuarioId: string) => {
     await handleAsync(
-      () => service.obtenerEstadisticasUsuario(usuarioId),
+      () => service.GET_ESTATISTICAS_BY_USER(usuarioId),
       (estadisticas) => setState(prev => ({ ...prev, estadisticas }))
     );
   }, [handleAsync]);
 
-  // Conteos
+
   const contarLogrosPorCategoria = useCallback(async (categoriaId: string) => {
     await handleAsync(
-      () => service.contarLogrosPorCategoria(categoriaId),
+      () => service.COUNT_BY_CATEGORY(categoriaId),
       (count) => setState(prev => ({ ...prev, count }))
     );
   }, [handleAsync]);
 
   const contarLogrosPorRareza = useCallback(async (rareza: Rareza) => {
     await handleAsync(
-      () => service.contarLogrosPorRareza(rareza),
+      () => service.COUNT_BY_RAREZA(rareza),
       (count) => setState(prev => ({ ...prev, count }))
     );
   }, [handleAsync]);
 
-  // CRUD Operations
-  const crearLogro = useCallback(async (logro: Logro): Promise<Logro | null> => {
-    return await handleAsync(() => service.crearLogro(logro));
+  const CREAR = useCallback(async (logro: Logro): Promise<Logro | null> => {
+    return await handleAsync(() => service.POST(logro));
   }, [handleAsync]);
 
-  const actualizarLogro = useCallback(async (id: string, logro: Logro): Promise<Logro | null> => {
-    return await handleAsync(() => service.actualizarLogro(id, logro));
+  const ACTUALIZAR = useCallback(async (id: string, logro: Logro): Promise<Logro | null> => {
+    return await handleAsync(() => service.UPDATE(id, logro));
   }, [handleAsync]);
 
-  const eliminarLogro = useCallback(async (id: string) => {
-    await handleAsync(() => service.eliminarLogro(id));
+  const ELIMINAR = useCallback(async (id: string) => {
+    await handleAsync(() => service.DELETE(id));
   }, [handleAsync]);
 
   return {
     ...state,
-    // Consultas básicas
-    obtenerLogrosActivos,
+    GET,
     obtenerLogrosVisibles,
     obtenerPorId,
     buscarPorNombre,
     verificarExistencia,
-    // Consultas por categoría
     obtenerLogrosPorCategoria,
     obtenerLogrosVisiblesPorCategoria,
     obtenerLogrosPorCategoriaOrdenados,
-    // Consultas por rareza
     obtenerLogrosPorRareza,
     filtrarPorRarezas,
-    // Consultas por puntos
     obtenerLogrosPorPuntosMayoresA,
     obtenerLogrosPorRangoPuntos,
-    // Búsquedas y ordenamiento
     buscarPorTexto,
     obtenerLogrosOrdenadosPorRecompensa,
-    // Gestión de usuario
     obtenerLogrosNoObtenidosPorUsuario,
     obtenerLogrosVisiblesNoObtenidosPorUsuario,
     obtenerLogrosObtenidosPorUsuario,
     obtenerLogrosEnProgresoPorUsuario,
     otorgarLogro,
     toggleExhibirLogro,
-    // Estadísticas
     obtenerEstadisticasGenerales,
     obtenerEstadisticasUsuario,
-    // Conteos
     contarLogrosPorCategoria,
     contarLogrosPorRareza,
-    // CRUD Operations
-    crearLogro,
-    actualizarLogro,
-    eliminarLogro,
-    // Utilidades
+    CREAR,
+    ACTUALIZAR,
+    ELIMINAR,
     clearError,
     resetState,
   };

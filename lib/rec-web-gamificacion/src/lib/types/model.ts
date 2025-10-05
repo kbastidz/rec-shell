@@ -99,7 +99,7 @@ export interface Logro {
   descripcion: string;
   urlImagenInsignia?: string;
   rareza: Rareza;
-  criterioDesbloqueo: Record<string, any>;
+  criterioDesbloqueo: string; //Record<string, any>;
   recompensaPuntos: number;
   esSecreto: boolean;
   estaActivo: boolean;
