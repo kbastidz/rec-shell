@@ -150,13 +150,15 @@ export interface Desafio {
   fechaInicio?: string; 
   fechaFin?: string; 
   maxParticipantes?: number;
-  criterioCompletado: Record<string, any>;
-  recompensas: Record<string, any>;
+  //criterioCompletado: Record<string, any>;
+  //recompensas: Record<string, any>;
+  criterioCompletado: string;
+  recompensas: string;
   esDiario: boolean;
   esSemanal: boolean;
   esEspecial: boolean;
   estaActivo: boolean;
-  creadoPor?: User;
+  creadoPor?: string;
   creadoEn: string; 
   actualizadoEn?: string; 
   participaciones: ParticipacionDesafio[];

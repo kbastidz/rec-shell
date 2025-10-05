@@ -17,17 +17,13 @@ import {
   NumberInput,
   Switch,
   Grid,
-  Card,
   Alert,
   Loader,
   Menu,
   rem
 } from '@mantine/core';
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
 import {
   IconPlus,
   IconSearch,
@@ -41,47 +37,21 @@ import {
   IconDotsVertical,
   IconRefresh
 } from '@tabler/icons-react';
-import { useDesafio } from '../hooks/useDesafio';
+import { useDesafio } from '../hooks/useGamificacion';
 import { Dificultad } from '../../enums/Enums';
 import { Desafio } from '../../types/model';
+import { DesafioFormData } from '../../types/dto';
+import { dificultadColors, ST_GET_USER_ID } from '../../utils/utilidad';
+import { NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 
-interface DesafioFormData {
-  titulo: string;
-  descripcion: string;
-  dificultad: Dificultad;
-  categoria: string;
-  fechaInicio: Date | null;
-  fechaFin: Date | null;
-  maxParticipantes: number;
-  esDiario: boolean;
-  esSemanal: boolean;
-  esEspecial: boolean;
-  estaActivo: boolean;
-  criterioCompletado: string;
-  recompensas: string;
-}
-
-const dificultadColors = {
-  FACIL: 'green',
-  MEDIO: 'yellow',
-  DIFICIL: 'orange',
-  EXTREMO: 'red',
-  EXPERTO: 'blue'
-};
-
-const tipoDesafioOptions = [
-  { value: 'DIARIO', label: 'Diario' },
-  { value: 'SEMANAL', label: 'Semanal' },
-  { value: 'ESPECIAL', label: 'Especial' }
-];
-
-export const DesafiosCRUD: React.FC = () => {
+export const DesafiosAdmin: React.FC = () => {
   const {
     desafios,
     loading,
     error,
-    crearDesafio,
-    obtenerDesafiosActivos,
+    CREAR,
+    ACTUALIZAR,
+    BUSCAR,
     obtenerDesafiosDiarios,
     obtenerDesafiosSemanales,
     procesarDesafiosVencidos,
@@ -92,6 +62,7 @@ export const DesafiosCRUD: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('activos');
   const [editingDesafio, setEditingDesafio] = useState<Desafio | null>(null);
+  const notifications = useNotifications();
 
   const form = useForm<DesafioFormData>({
     initialValues: {
@@ -106,8 +77,8 @@ export const DesafiosCRUD: React.FC = () => {
       esSemanal: false,
       esEspecial: false,
       estaActivo: true,
-      criterioCompletado: '{}',
-      recompensas: '{}'
+      criterioCompletado: '',
+      recompensas: ''
     },
     validate: {
       titulo: (value) => value.length < 3 ? 'El título debe tener al menos 3 caracteres' : null,
@@ -131,14 +102,10 @@ export const DesafiosCRUD: React.FC = () => {
           await obtenerDesafiosSemanales();
           break;
         default:
-          await obtenerDesafiosActivos();
+          await BUSCAR();
       }
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudieron cargar los desafíos',
-        color: 'red'
-      });
+      console.log(error);
     }
   };
 
@@ -146,39 +113,40 @@ export const DesafiosCRUD: React.FC = () => {
     try {
       const desafioData: Partial<Desafio> = {
         ...values,
-        criterioCompletado: JSON.parse(values.criterioCompletado || '{}'),
-        recompensas: JSON.parse(values.recompensas || '{}'),
-       
         fechaInicio: values.fechaInicio
-  ? new Date(values.fechaInicio).toISOString()
-  : undefined,
-   fechaFin: values.fechaFin
-  ? new Date(values.fechaFin).toISOString()
-  : undefined,
-
-       // fechaFin: values.fechaFin?.toISOString(),
-        creadoEn: new Date().toISOString(),
-        participaciones: []
+          ? new Date(values.fechaInicio).toISOString()
+          : undefined,
+        fechaFin: values.fechaFin
+          ? new Date(values.fechaFin).toISOString()
+          : undefined,
+        creadoPor: ST_GET_USER_ID()
       };
 
-      await crearDesafio(desafioData);
-      
-      notifications.show({
-        title: 'Éxito',
-        message: 'Desafío creado correctamente',
-        color: 'green'
-      });
+      if (editingDesafio) {
+        await ACTUALIZAR(editingDesafio.id, desafioData);
+        notifications.success(
+          NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, 
+          'Desafío actualizado correctamente'
+        );
+      } else {
+        desafioData.creadoEn = new Date().toISOString();
+        desafioData.participaciones = [];
+        await CREAR(desafioData);
+        notifications.success(
+          NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, 
+          'Desafío creado correctamente'
+        );
+      }
 
       form.reset();
-      close();
+      handleCloseModal();
       loadDesafios();
     } catch (error) {
-        console.log('error', error);
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudo crear el desafío',
-        color: 'red'
-      });
+      console.log('error', error);
+      notifications.error(
+        NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 
+        'Error al guardar el desafío'
+      );
     }
   };
 
@@ -196,8 +164,8 @@ export const DesafiosCRUD: React.FC = () => {
       esSemanal: desafio.esSemanal,
       esEspecial: desafio.esEspecial,
       estaActivo: desafio.estaActivo,
-      criterioCompletado: JSON.stringify(desafio.criterioCompletado, null, 2),
-      recompensas: JSON.stringify(desafio.recompensas, null, 2)
+      criterioCompletado: desafio.criterioCompletado,
+      recompensas: desafio.recompensas
     });
     open();
   };
@@ -211,18 +179,13 @@ export const DesafiosCRUD: React.FC = () => {
   const handleProcesarVencidos = async () => {
     try {
       await procesarDesafiosVencidos();
-      notifications.show({
-        title: 'Éxito',
-        message: 'Desafíos vencidos procesados correctamente',
-        color: 'green'
-      });
+      notifications.success(
+        NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title,
+        'Desafíos vencidos procesados correctamente'
+      );
       loadDesafios();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudieron procesar los desafíos vencidos',
-        color: 'red'
-      });
+      console.log('error', error);
     }
   };
 
@@ -257,7 +220,7 @@ export const DesafiosCRUD: React.FC = () => {
                 leftSection={<IconPlus size={16} />}
                 onClick={open}
               >
-                Nuevo Desafío
+                Registrar
               </Button>
             </Group>
           </Group>
@@ -407,12 +370,7 @@ export const DesafiosCRUD: React.FC = () => {
                             >
                               Editar
                             </Menu.Item>
-                            <Menu.Item
-                              leftSection={<IconTrash style={{ width: rem(14), height: rem(14) }} />}
-                              color="red"
-                            >
-                              Eliminar
-                            </Menu.Item>
+                            
                           </Menu.Dropdown>
                         </Menu>
                       </Table.Td>
@@ -426,7 +384,7 @@ export const DesafiosCRUD: React.FC = () => {
           {!loading && filteredDesafios.length === 0 && (
             <Stack align="center" p="xl">
               <IconCalendarStats size={48} stroke={1.5} color="gray" />
-              <Text c="dimmed">No se encontraron desafíos</Text>
+              <Text c="dimmed">No se encontraron registros</Text>
             </Stack>
           )}
         </Paper>
@@ -435,7 +393,7 @@ export const DesafiosCRUD: React.FC = () => {
         <Modal
           opened={opened}
           onClose={handleCloseModal}
-          title={editingDesafio ? 'Editar Desafío' : 'Nuevo Desafío'}
+          title={editingDesafio ? 'Editar Registro' : 'Nuevo Registro'}
           size="lg"
         >
           <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -484,18 +442,20 @@ export const DesafiosCRUD: React.FC = () => {
                 </Grid.Col>
 
                 <Grid.Col span={6}>
-                  <DateInput
+                  <TextInput
                     label="Fecha de Inicio"
-                    placeholder="Seleccione la fecha"
+                    type="date"
                     {...form.getInputProps('fechaInicio')}
+                    required
                   />
                 </Grid.Col>
 
                 <Grid.Col span={6}>
-                  <DateInput
+                  <TextInput
                     label="Fecha de Fin"
-                    placeholder="Seleccione la fecha"
+                    type="date"
                     {...form.getInputProps('fechaFin')}
+                    required
                   />
                 </Grid.Col>
 
@@ -532,8 +492,8 @@ export const DesafiosCRUD: React.FC = () => {
 
                 <Grid.Col span={6}>
                   <Textarea
-                    label="Criterios de Completado (JSON)"
-                    placeholder='{"puntos": 100, "dias": 7}'
+                    label="Criterios de Completado"
+                    placeholder='puntos: 100, dias: 7'
                     rows={4}
                     {...form.getInputProps('criterioCompletado')}
                   />
@@ -541,8 +501,8 @@ export const DesafiosCRUD: React.FC = () => {
 
                 <Grid.Col span={6}>
                   <Textarea
-                    label="Recompensas (JSON)"
-                    placeholder='{"puntos": 50, "insignia": "novato"}'
+                    label="Recompensas"
+                    placeholder='{puntos: 50, insignia: novato'
                     rows={4}
                     {...form.getInputProps('recompensas')}
                   />

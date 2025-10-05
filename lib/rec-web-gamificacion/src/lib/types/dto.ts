@@ -1,3 +1,5 @@
+import { Dificultad } from "../enums/Enums";
+
 export interface TipoRecompensaForm {
   nombre: string;
   nombreMostrar: string;
@@ -12,4 +14,20 @@ export interface TipoDesafioInput {
   descripcion?: string;
   esIndividual: boolean;
   esGrupal: boolean;
+}
+
+export interface DesafioFormData {
+  titulo: string;
+  descripcion: string;
+  dificultad: Dificultad;
+  categoria: string;
+  fechaInicio: Date | null;
+  fechaFin: Date | null;
+  maxParticipantes: number;
+  esDiario: boolean;
+  esSemanal: boolean;
+  esEspecial: boolean;
+  estaActivo: boolean;
+  criterioCompletado: string;
+  recompensas: string;
 }

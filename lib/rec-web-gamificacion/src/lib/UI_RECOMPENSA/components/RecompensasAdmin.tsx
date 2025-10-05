@@ -33,8 +33,7 @@ import {
   IconToggleLeft,
   IconToggleRight,
   IconMinus,
-  IconAlertCircle,
-  IconCheck
+  IconAlertCircle
 } from '@tabler/icons-react';
 import { Recompensa, TipoRecompensa } from '../../types/model';
 import { useCrear, useActualizar, useReducirStock, useRecompensasAdmin, useEliminar, useActivarRecompensa, useDesactivarRecompensa } from '../hooks/useGamificacion';
