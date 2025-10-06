@@ -181,7 +181,7 @@ export interface TablaLideres {
   nombre: string;
   descripcion?: string;
   tipoTablaLideres: string;
-  criterio: Record<string, any>;
+  criterio: string;
   periodoTiempo?: PeriodoTiempo;
   maxEntradas: number;
   estaActivo: boolean;

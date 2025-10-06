@@ -23,7 +23,7 @@ import { useForm } from '@mantine/form';
 import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { CategoriaInput } from '../../types/dto';
 import { CategoriaLogro } from '../../types/model';
-import { useCategorias } from '../hooks/useCategorias';
+import { useCategorias } from '../hooks/useGamificacion';
 import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
 export function CategoriaAdmin() {

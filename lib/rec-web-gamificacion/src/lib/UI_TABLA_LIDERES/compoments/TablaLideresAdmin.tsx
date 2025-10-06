@@ -15,17 +15,13 @@ import {
   NumberInput,
   Switch,
   Stack,
-  Grid,
-  Card,
   Text,
   Loader,
   Alert,
   Tabs
 } from '@mantine/core';
-import { DateInput } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
 import {
   IconPlus,
   IconEdit,
@@ -36,33 +32,29 @@ import {
 } from '@tabler/icons-react';
 import { useTablaLideres } from '../hooks/useTablaLideres';
 import { TablaLideres } from '../../types/model';
+import { TablaFormData } from '../../types/dto';
+import { TIPOS_TABLA } from '../../utils/utilidad';
+import { useNotifications } from '@rec-shell/rec-web-shared';
+import { PeriodoTiempo } from '../../enums/Enums';
 
-interface TablaFormData {
-  nombre: string;
-  descripcion: string;
-  tipoTablaLideres: string;
-  criterio: Record<string, any>;
-  maxEntradas: number;
-  estaActivo: boolean;
-}
-
-const TIPOS_TABLA = [
-  { value: 'PUNTUACION', label: 'Puntuación' },
-  { value: 'TIEMPO', label: 'Tiempo' },
-  { value: 'COMPLETADOS', label: 'Completados' },
-  { value: 'RACHA', label: 'Racha' }
+const PERIODOS_TIEMPO = [
+  { value: 'DIARIO', label: 'Diario' },
+  { value: 'SEMANAL', label: 'Semanal' },
+  { value: 'MENSUAL', label: 'Mensual' },
+  { value: 'ANUAL', label: 'Anual' },
+  { value: 'HISTORICO', label: 'Histórico' }
 ];
 
-export const TablaLideresCRUD: React.FC = () => {
+export const TablaLideresAdmin: React.FC = () => {
   const {
     tablas,
     entradas,
     loading,
     error,
-    crearTabla,
-    obtenerTablasActivas,
+    CREAR,
+    BUSCAR,
     obtenerEntradasTabla,
-    actualizarTabla,
+    ACTUALIZAR,
     obtenerEntradasPorPeriodo,
     clearError
   } = useTablaLideres();
@@ -73,13 +65,15 @@ export const TablaLideresCRUD: React.FC = () => {
   const [selectedTable, setSelectedTable] = useState<TablaLideres | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>('list');
+  const notifications = useNotifications();
 
   const form = useForm<TablaFormData>({
     initialValues: {
       nombre: '',
       descripcion: '',
       tipoTablaLideres: '',
-      criterio: {},
+      criterio: '',
+      periodoTiempo: PeriodoTiempo.DIARIO,
       maxEntradas: 10,
       estaActivo: true
     },
@@ -103,39 +97,29 @@ export const TablaLideresCRUD: React.FC = () => {
 
   const loadTablasActivas = async () => {
     try {
-      await obtenerTablasActivas();
+      await BUSCAR();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudieron cargar las tablas',
-        color: 'red'
-      });
+      console.log(error);
     }
   };
 
   const handleSubmit = async (values: TablaFormData) => {
     try {
-      await crearTabla({
-        ...values,
-        periodoTiempo: undefined
-      });
-      
-      notifications.show({
-        title: 'Éxito',
-        message: isEditing ? 'Tabla actualizada correctamente' : 'Tabla creada correctamente',
-        color: 'green'
-      });
+      if (isEditing && selectedTable) {
+        await ACTUALIZAR(selectedTable.id, values);
+        notifications.success();
+      } else {
+        await CREAR(values);
+        notifications.success();
+      }
       
       close();
       form.reset();
       setIsEditing(false);
-      loadTablasActivas();
+      setSelectedTable(null);
+      await loadTablasActivas();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudo guardar la tabla',
-        color: 'red'
-      });
+      console.log(error);
     }
   };
 
@@ -145,6 +129,7 @@ export const TablaLideresCRUD: React.FC = () => {
       descripcion: tabla.descripcion || '',
       tipoTablaLideres: tabla.tipoTablaLideres,
       criterio: tabla.criterio,
+      periodoTiempo: tabla.periodoTiempo,
       maxEntradas: tabla.maxEntradas,
       estaActivo: tabla.estaActivo
     });
@@ -159,29 +144,16 @@ export const TablaLideresCRUD: React.FC = () => {
       await obtenerEntradasTabla(tabla.id);
       openEntries();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudieron cargar las entradas',
-        color: 'red'
-      });
+      console.log(error);
     }
   };
 
   const handleRefresh = async (tablaId: string) => {
     try {
-      await actualizarTabla(tablaId);
-      notifications.show({
-        title: 'Éxito',
-        message: 'Tabla actualizada correctamente',
-        color: 'green'
-      });
-      loadTablasActivas();
+      await loadTablasActivas();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudo actualizar la tabla',
-        color: 'red'
-      });
+      console.log(error);
+     
     }
   };
 
@@ -194,19 +166,23 @@ export const TablaLideresCRUD: React.FC = () => {
     if (!selectedTable) return;
     
     try {
-      const inicioPeriodo = values.inicioPeriodo.toISOString().split('T')[0];
-      const finPeriodo = values.finPeriodo.toISOString().split('T')[0];
+      const inicioPeriodo = values.inicioPeriodo;
+      const finPeriodo = values.finPeriodo; 
       
       await obtenerEntradasPorPeriodo(selectedTable.id, inicioPeriodo, finPeriodo);
       closePeriod();
       openEntries();
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudieron cargar las entradas del período',
-        color: 'red'
-      });
+      console.log(error);
+      
     }
+  };
+
+  const handleCloseModal = () => {
+    close();
+    form.reset();
+    setIsEditing(false);
+    setSelectedTable(null);
   };
 
   const rows = tablas.map((tabla) => (
@@ -230,6 +206,7 @@ export const TablaLideresCRUD: React.FC = () => {
             variant="light"
             color="blue"
             onClick={() => handleEdit(tabla)}
+            title="Editar"
           >
             <IconEdit size={16} />
           </ActionIcon>
@@ -237,6 +214,7 @@ export const TablaLideresCRUD: React.FC = () => {
             variant="light"
             color="green"
             onClick={() => handleViewEntries(tabla)}
+            title="Ver entradas"
           >
             <IconEye size={16} />
           </ActionIcon>
@@ -244,6 +222,7 @@ export const TablaLideresCRUD: React.FC = () => {
             variant="light"
             color="orange"
             onClick={() => handleRefresh(tabla.id)}
+            title="Refrescar"
           >
             <IconRefresh size={16} />
           </ActionIcon>
@@ -251,6 +230,7 @@ export const TablaLideresCRUD: React.FC = () => {
             variant="light"
             color="violet"
             onClick={() => handleViewPeriod(tabla)}
+            title="Buscar por período"
           >
             <IconCalendar size={16} />
           </ActionIcon>
@@ -293,10 +273,11 @@ export const TablaLideresCRUD: React.FC = () => {
             onClick={() => {
               form.reset();
               setIsEditing(false);
+              setSelectedTable(null);
               open();
             }}
           >
-            Nueva Tabla
+            Registrar
           </Button>
         </Group>
 
@@ -310,7 +291,7 @@ export const TablaLideresCRUD: React.FC = () => {
               <Group justify="center" p="xl">
                 <Loader />
               </Group>
-            ) : (
+            ) : tablas.length > 0 ? (
               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
@@ -324,6 +305,10 @@ export const TablaLideresCRUD: React.FC = () => {
                 </Table.Thead>
                 <Table.Tbody>{rows}</Table.Tbody>
               </Table>
+            ) : (
+              <Text c="dimmed" ta="center" p="xl">
+                No se encontraron registros
+              </Text>
             )}
           </Tabs.Panel>
         </Tabs>
@@ -332,8 +317,8 @@ export const TablaLideresCRUD: React.FC = () => {
       {/* Modal para crear/editar tabla */}
       <Modal
         opened={opened}
-        onClose={close}
-        title={isEditing ? 'Editar Tabla de Líderes' : 'Nueva Tabla de Líderes'}
+        onClose={handleCloseModal}
+        title={isEditing ? 'Editar Registro' : 'Nuevo Registro'}
         size="md"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -359,6 +344,13 @@ export const TablaLideresCRUD: React.FC = () => {
               {...form.getInputProps('tipoTablaLideres')}
             />
             
+            <Select
+              label="Período de Tiempo"
+              placeholder="Seleccione el período"
+              data={PERIODOS_TIEMPO}
+              {...form.getInputProps('periodoTiempo')}
+            />
+            
             <NumberInput
               label="Máximo de Entradas"
               placeholder="10"
@@ -373,7 +365,7 @@ export const TablaLideresCRUD: React.FC = () => {
             />
             
             <Group justify="flex-end" gap="sm">
-              <Button variant="light" onClick={close}>
+              <Button variant="light" onClick={handleCloseModal}>
                 Cancelar
               </Button>
               <Button type="submit" loading={loading}>
@@ -423,19 +415,19 @@ export const TablaLideresCRUD: React.FC = () => {
       >
         <form onSubmit={periodForm.onSubmit(handlePeriodSearch)}>
           <Stack gap="md">
-            <DateInput
+            <TextInput
               label="Fecha de Inicio"
-              placeholder="Seleccione fecha de inicio"
-              required
+              type="date"
               {...periodForm.getInputProps('inicioPeriodo')}
-            />
-            
-            <DateInput
-              label="Fecha de Fin"
-              placeholder="Seleccione fecha de fin"
               required
+            />       
+
+            <TextInput
+              label="Fecha de Fin"
+              type="date"
               {...periodForm.getInputProps('finPeriodo')}
-            />
+              required
+            />  
             
             <Group justify="flex-end" gap="sm">
               <Button variant="light" onClick={closePeriod}>

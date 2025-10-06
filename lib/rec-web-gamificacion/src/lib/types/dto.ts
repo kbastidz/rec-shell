@@ -1,4 +1,4 @@
-import { Dificultad } from "../enums/Enums";
+import { Dificultad, PeriodoTiempo } from "../enums/Enums";
 
 export interface TipoRecompensaForm {
   nombre: string;
@@ -40,4 +40,14 @@ export interface CategoriaInput {
   color?: string;
   ordenClasificacion: number;
   estaActivo: boolean;
+}
+
+export interface TablaFormData {
+  nombre: string;
+  descripcion: string;
+  tipoTablaLideres: string;
+  criterio: string;
+  maxEntradas: number;
+  estaActivo: boolean;
+  periodoTiempo?: PeriodoTiempo;
 }

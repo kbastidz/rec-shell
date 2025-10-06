@@ -52,3 +52,10 @@ export const tipoDesafioOptions = [
   { value: 'SEMANAL', label: 'Semanal' },
   { value: 'ESPECIAL', label: 'Especial' }
 ];
+
+export const TIPOS_TABLA = [
+  { value: 'PUNTUACION', label: 'Puntuación' },
+  { value: 'TIEMPO', label: 'Tiempo' },
+  { value: 'COMPLETADOS', label: 'Completados' },
+  { value: 'RACHA', label: 'Racha' }
+];
