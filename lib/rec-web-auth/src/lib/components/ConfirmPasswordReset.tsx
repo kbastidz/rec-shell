@@ -1,8 +1,6 @@
-// components/ConfirmPasswordReset.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Paper,
-  TextInput,
   PasswordInput,
   Button,
   Title,
@@ -19,7 +17,6 @@ import { useForm } from '@mantine/form';
 import {
   IconAlertCircle,
   IconLock,
-  IconUser,
   IconArrowLeft,
   IconCheck,
   IconShieldCheck,

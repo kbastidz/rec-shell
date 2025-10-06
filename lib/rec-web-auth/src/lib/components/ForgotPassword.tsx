@@ -60,7 +60,7 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
       setIsSubmitting(true);
       await onSubmit(values.username);
     } catch (err) {
-      console.error('Forgot password error:', err);
+      console.log('Forgot password error:', err);
     } finally {
       setIsSubmitting(false);
     }
