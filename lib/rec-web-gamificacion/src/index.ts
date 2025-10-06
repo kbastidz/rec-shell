@@ -1,5 +1,5 @@
 export * from './lib/rec-web-gamificacion';
-export * from './lib/UI_CATEGORIA_LOGRO/components/CategoriasList';
+export * from './lib/UI_CATEGORIA_LOGRO/components/CategoriaAdmin';
 export * from './lib/UI_LOGROS/components/LogrosAdmin';
 export * from './lib/UI_DESAFIOS/components/DesafiosAdmin';
 export * from './lib/UI_TIPO_DESAFIO/component/TiposDesafioAdmin';

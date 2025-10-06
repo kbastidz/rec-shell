@@ -31,3 +31,13 @@ export interface DesafioFormData {
   criterioCompletado: string;
   recompensas: string;
 }
+
+export interface CategoriaInput {
+  nombre: string;
+  nombreMostrar: string;
+  descripcion?: string;
+  urlIcono?: string;
+  color?: string;
+  ordenClasificacion: number;
+  estaActivo: boolean;
+}
