@@ -1,7 +1,6 @@
 import { SimpleGrid, Stack, Text } from '@mantine/core';
 import { Role } from '../../../types/role.types';
-import { RoleCard } from '@rec-shell/rec-web-usuario';
-
+import { RoleCard } from './RoleCard';
 
 interface RoleListProps {
   roles: Role[];

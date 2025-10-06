@@ -18,7 +18,6 @@ import { useSignUp } from '../../../hooks/useSignUp';
 import { SignUpFormProps } from '../../../types/auth.types';
 import { FormErrorAlert } from '../../common/FormErrorAlert';
 
-// Interfaz extendida para recibir la función de navegación
 interface ExtendedSignUpFormProps extends SignUpFormProps {
   onNavigateToUsers?: () => void;
 }

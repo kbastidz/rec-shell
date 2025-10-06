@@ -1,7 +1,6 @@
 import { Card, Text, Badge, Group, Stack } from '@mantine/core';
 import { Role } from '../../../types/role.types';
 
-
 interface RoleCardProps {
   role: Role;
 }

@@ -10,7 +10,6 @@ interface SignUpFlowProps {
 
 export const SignUpFlow: React.FC<SignUpFlowProps> = ({ onNavigate }) => {
   
-//export const SignUpFlow = () => {
   const [currentStep, setCurrentStep] = useState<'signup' | 'confirm'>('signup');
   const [username, setUsername] = useState('');
 
