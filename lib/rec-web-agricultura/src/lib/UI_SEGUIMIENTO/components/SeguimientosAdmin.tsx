@@ -27,7 +27,7 @@ import { EstadoActividad } from '../../enums/Enums';
 import { ActividadSeguimiento, PlanTratamiento } from '../../types/model';
 import { useActividadSeguimiento } from '../hooks/useAgricultura';
 import { estadoColors } from '../../utils/utils';
-import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
 import { Activity, ClipboardList, FileText, Bell, Calendar, CheckCircle, Clock, DollarSign, User } from 'lucide-react';
 
 const estadoOptions = Object.values(EstadoActividad).map(estado => ({

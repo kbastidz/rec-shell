@@ -18,7 +18,8 @@ import {
   Text,
   Loader,
   Alert,
-  Tabs
+  Tabs,
+  Box
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
@@ -30,7 +31,7 @@ import {
   IconCalendar,
   IconAlertCircle
 } from '@tabler/icons-react';
-import { useTablaLideres } from '../hooks/useTablaLideres';
+import { useTablaLideres } from '../hooks/useGamificacion';
 import { TablaLideres } from '../../types/model';
 import { TablaFormData } from '../../types/dto';
 import { TIPOS_TABLA } from '../../utils/utilidad';
@@ -264,7 +265,7 @@ export const TablaLideresAdmin: React.FC = () => {
   }
 
   return (
-    <Container size="xl" py="md">
+    <Box p="md">
       <Paper shadow="sm" p="md">
         <Group justify="space-between" mb="lg">
           <Title order={2}>Gestión de Tablas de Líderes</Title>
@@ -440,6 +441,6 @@ export const TablaLideresAdmin: React.FC = () => {
           </Stack>
         </form>
       </Modal>
-    </Container>
+    </Box>
   );
 };

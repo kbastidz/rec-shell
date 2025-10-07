@@ -5,3 +5,4 @@ export * from './lib/UI_TIPO_DESAFIO/component/TiposDesafioAdmin';
 export * from './lib/UI_TABLA_LIDERES/compoments/TablaLideresAdmin';
 export * from './lib/UI_RECOMPENSA/components/RecompensasAdmin';
 export * from './lib/UI_TIPO_RECOMPENSA/component/TipoRecompensaAdmin';
+export * from './lib/MenuPague';

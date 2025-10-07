@@ -20,7 +20,8 @@ import {
   Alert,
   Loader,
   Menu,
-  rem
+  rem,
+  Box
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
@@ -196,7 +197,7 @@ export const DesafiosAdmin: React.FC = () => {
   );
 
   return (
-    <Container size="xl" py="xl">
+    <Box p="md">
       <Stack gap="lg">
         {/* Header */}
         <Paper p="md" withBorder>
@@ -521,6 +522,6 @@ export const DesafiosAdmin: React.FC = () => {
           </form>
         </Modal>
       </Stack>
-    </Container>
+    </Box>
   );
 };

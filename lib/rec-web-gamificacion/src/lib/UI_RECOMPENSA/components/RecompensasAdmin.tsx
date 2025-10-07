@@ -491,7 +491,7 @@ export  function RecompensasAdmin() {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Box p="md">
       <Paper shadow="sm" p="md" withBorder>
         <Group justify="space-between" mb="lg">
           <Title order={2}>Gestión de Recompensas</Title>
@@ -679,6 +679,6 @@ export  function RecompensasAdmin() {
         itemName={itemToDelete?.nombre || ""}
         itemType="recompensa"
       />
-    </Container>
+    </Box>
   );
 }

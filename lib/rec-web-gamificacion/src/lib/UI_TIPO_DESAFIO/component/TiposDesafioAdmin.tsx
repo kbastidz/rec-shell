@@ -17,7 +17,8 @@ import {
   Alert,
   LoadingOverlay,
   Text,
-  Flex
+  Flex,
+  Box
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
@@ -208,7 +209,7 @@ export const TiposDesafioAdmin: React.FC = () => {
   };
 
   return (
-    <Container size="xl" py="md">
+    <Box p="md">
       <Stack gap="md">
         <Flex justify="space-between" align="center">
           <Title order={2}>Gestión de Tipos de Desafío</Title>
@@ -342,9 +343,7 @@ export const TiposDesafioAdmin: React.FC = () => {
         onConfirm={() => handleDelete(itemToDelete?.id || "")}
         itemName={itemToDelete?.nombre || ""}
         itemType="Tipo de desafío"
-      />
-
-     
-    </Container>
+      />     
+    </Box>
   );
 };

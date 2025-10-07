@@ -17,6 +17,7 @@ import {
   Alert,
   LoadingOverlay,
   rem,
+  Box,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
@@ -209,7 +210,7 @@ export const TipoRecompensaAdmin: React.FC = () => {
   ));
 
   return (
-    <Container size="xl" py="md">
+    <Box p="md">
       <LoadingOverlay visible={localLoading} />
       
       <Group justify="space-between" mb="lg">
@@ -344,6 +345,6 @@ export const TipoRecompensaAdmin: React.FC = () => {
         itemName={selectedItem ? selectedItem.nombreMostrar : ""}
         itemType="tipo de recompensa"
       />
-    </Container>
+    </Box>
   );
 };

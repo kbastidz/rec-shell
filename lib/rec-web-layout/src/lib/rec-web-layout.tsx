@@ -352,6 +352,8 @@ export function AdminTemplate({
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
             {/* Header del contenido */}
+            
+            {/*}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">
@@ -363,8 +365,10 @@ export function AdminTemplate({
                 {activeTab}
               </div>
             </div>
+             <hr className="border-gray-200 mb-8" />
+            */}
 
-            <hr className="border-gray-200 mb-8" />
+           
 
             {/* Contenido dinámico */}
             {renderContent()}

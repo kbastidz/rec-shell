@@ -208,7 +208,7 @@ export const LogrosAdmin: React.FC = () => {
   };
 
   return (
-    <Container size="xl" py="md">
+    <Box p="md">
       <Stack gap="lg">
         {/* Header */}
         <Group justify="space-between">
@@ -503,6 +503,6 @@ export const LogrosAdmin: React.FC = () => {
           itemType="logro"
         />
       </Stack>
-    </Container>
+    </Box>
   );
 };
