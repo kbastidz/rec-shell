@@ -6,3 +6,5 @@ export * from './lib/UI_TABLA_LIDERES/compoments/TablaLideresAdmin';
 export * from './lib/UI_RECOMPENSA/components/RecompensasAdmin';
 export * from './lib/UI_TIPO_RECOMPENSA/component/TipoRecompensaAdmin';
 export * from './lib/MenuPague';
+
+export * from './lib/UI_PROCESS/UI_PERFIL_USUARIO/components/PerfilAdmin';

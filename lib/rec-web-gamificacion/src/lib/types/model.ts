@@ -10,9 +10,9 @@ export interface PerfilUsuario {
   idioma: string;
   preferenciaTema: string;
   nivelPrivacidad: string;
-  preferenciasNotificaciones: Record<string, any>;
-  enlacesSociales: Record<string, any>;
-  camposPersonalizados: Record<string, any>;
+  preferenciasNotificaciones: string;
+  enlacesSociales: string;
+  camposPersonalizados: string;
   creadoEn: string; 
   actualizadoEn?: string; 
 }
