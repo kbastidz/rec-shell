@@ -19,7 +19,8 @@ import {
   Flex,
   Card,
   Grid,
-  Textarea
+  Textarea,
+  Box
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
@@ -174,7 +175,8 @@ export const CultivosAdmin = () => {
   };
 
   return (
-    <Container size="xl" py="xl">
+    
+    <Box p="md">
       <Stack gap="lg">
         <Grid>
           <Grid.Col span={{ base: 12, md: 8 }}>
@@ -460,6 +462,6 @@ export const CultivosAdmin = () => {
         itemType="registro"
       />
       
-    </Container>
+    </Box>
   );
 };

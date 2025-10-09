@@ -16,6 +16,7 @@ import {
   LoadingOverlay,
   Text,
   Alert,
+  Box,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconEdit, IconTrash, IconPlus, IconAlertCircle } from '@tabler/icons-react';
@@ -101,7 +102,7 @@ export  function TratamientosAdmin() {
   };
 
   return (
-    <Container size="xl" py="xl">
+    <Box p="md">
       <Paper shadow="sm" p="md" radius="md" withBorder>
         <Group justify="space-between" mb="xl">
           <Title order={2}>Gestión de Tratamientos</Title>
@@ -266,6 +267,6 @@ export  function TratamientosAdmin() {
         itemName={deletingTratamiento?.nombreTratamiento || "Registro"}
       />
 
-    </Container>
+    </Box>
   );
 }

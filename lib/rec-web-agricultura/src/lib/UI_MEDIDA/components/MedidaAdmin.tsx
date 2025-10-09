@@ -16,7 +16,8 @@ import {
   Badge,
   Loader,
   Text,
-  Stack
+  Stack,
+  Box
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
@@ -165,7 +166,7 @@ export const MedidaAdmin = () => {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Box p="md">
       <Group justify="space-between" mb="xl">
         <Title order={2}>Medidas Preventivas</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={abrirModalCrear}>
@@ -342,6 +343,6 @@ export const MedidaAdmin = () => {
         itemName={medidaSeleccionada?.titulo || ""}
         itemType="cultivo"
       />
-    </Container>
+    </Box>
   );
 };

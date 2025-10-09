@@ -544,7 +544,7 @@ export const MonitoreoAdmin: React.FC = () => {
   }
 
   return (
-    <Container size="xl" py="md">
+    <Box p="md">
       <Stack gap="md">
         <Flex justify="space-between" align="center">
           <Title order={2}>Parámetros de Monitoreo</Title>
@@ -679,6 +679,6 @@ export const MonitoreoAdmin: React.FC = () => {
         itemName={selectedParametro ? `${selectedParametro.nombreCultivo} - ${selectedParametro.fechaMedicion}` : ""}
         itemType="parámetro de monitoreo"
       />
-    </Container>
+    </Box>
   );
 };

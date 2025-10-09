@@ -3,8 +3,8 @@ import { RoleManagement, UserManagement } from '@rec-shell/rec-web-usuario';
 import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
-import {  MonitoreoAdmin, SeguimientosAdmin, NutrienteAdmin, MedidaAdmin , TratamientosAdmin, CultivosAdmin, } from '@rec-shell/rec-web-agricultura';
-import { TablaLideresAdmin , DesafiosAdmin, MenuPague } from '@rec-shell/rec-web-gamificacion';
+import {  MonitoreoAdmin,MenuPague, SeguimientosAdmin, NutrienteAdmin, MedidaAdmin , TratamientosAdmin, CultivosAdmin, } from '@rec-shell/rec-web-agricultura';
+import {  PerfilAdmin } from '@rec-shell/rec-web-gamificacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',
@@ -16,8 +16,8 @@ const rolePermissions = {
   [ROLES.ADMIN]: {
     UserComponent: UserManagement,
     RoleComponent: RoleManagement,
-    CultivoComponent: MenuPague, //CultivosAdmin,// TratamientosCRUD,//MedidaCRUD,  //NutrienteCRUD, //SeguimientoCRUD, //MonitoreoCRUD, //CultivosManager ,
-    CategoriaComponent: MenuPague// TipoRecompensaAdmin, //RecompensasCRUD, //TiposDesafioCRUD, //TablaLideresCRUD //DesafiosCRUD //CategoriasList //LogrosCRUD
+    CultivoComponent: MenuPague, 
+    CategoriaComponent: PerfilAdmin
   },
   [ROLES.MODERATOR]: {
     UserComponent: UserManagement,
@@ -41,7 +41,6 @@ export function App() {
   }, [refreshToken]);
 
 
-  // Determinar los componentes permitidos según el rol del usuario
   const listMenu = useMemo(() => { 
     const userRole = user?.roles[0].toUpperCase() as UserRole;
     console.log(`Aplicando permisos para rol: ${userRole}`);

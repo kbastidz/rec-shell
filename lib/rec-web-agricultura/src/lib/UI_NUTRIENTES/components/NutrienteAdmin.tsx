@@ -16,7 +16,8 @@ import {
   Stack,
   Card,
   Flex,
-  Text
+  Text,
+  Box
 } from '@mantine/core';
 import {
   IconPlus,
@@ -194,7 +195,7 @@ export const NutrienteAdmin = () => {
   ));
 
   return (
-    <Container size="xl" p="md">
+    <Box p="md">
       <Flex justify="space-between" align="center" mb="lg">
         <Title order={2}>Gestión de Deficiencias de Nutrientes</Title>
         <Button
@@ -374,7 +375,7 @@ export const NutrienteAdmin = () => {
         itemType="cultivo"
       />
      
-    </Container>
+    </Box>
   );
 };
 

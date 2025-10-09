@@ -213,7 +213,7 @@ export const SeguimientosAdmin: React.FC = () => {
   };
 
   return (
-    <Container size="xl" py="md">
+    <Box p="md">
       <Paper p="md" withBorder>
         <Group justify="space-between" mb="md">
           <Title order={2}>Gestión de Actividades de Seguimiento</Title>
@@ -543,6 +543,6 @@ export const SeguimientosAdmin: React.FC = () => {
       itemType="registro"
     />
 
-    </Container>
+    </Box>
   );
 };
