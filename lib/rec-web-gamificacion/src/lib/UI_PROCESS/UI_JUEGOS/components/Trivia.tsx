@@ -1,8 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Center, Paper, ThemeIcon, Alert } from '@mantine/core';
 import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
+import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
+import { ST_GET_USER_ID } from '../../../utils/utilidad';
+import { TipoPunto } from '../../../types/model';
 
-const SUBJECTS = {
+interface Question {
+  q: string;
+  a: string[];
+  correct: number;
+  difficulty: number;
+  explanation: string;
+}
+
+interface SubjectData {
+  name: string;
+  icon: React.ComponentType<{ size?: number }>;
+  color: string;
+  questions: Question[];
+}
+
+interface CurrentQuestion extends Question {
+  subject: string;
+  subjectData: SubjectData;
+}
+
+type SubjectsType = {
+  [key: string]: SubjectData;
+}
+
+const SUBJECTS: SubjectsType = {
   matematicas: {
     name: 'Matemáticas',
     icon: IconBrain,
@@ -73,9 +100,9 @@ const SUBJECTS = {
   }
 };
 
-export  function PerfilAdmin() {
-  const [currentQuestion, setCurrentQuestion] = useState(null);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
+export function Trivia() {
+  const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -84,7 +111,39 @@ export  function PerfilAdmin() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [gameFinished, setGameFinished] = useState(false);
 
-  const getRandomQuestion = () => {
+  const { crearTransaccion, loading: savingPoints, error: errorSavingPoints } = useTransaccionPuntos();
+  // Cuando el juego termina y guardas los puntos
+  const handleSavePoints = async () => {
+   const tipoPunto = { id: '1' };
+
+    const transaccionData = {
+      usuarioId: ST_GET_USER_ID(),
+      tipoPunto: tipoPunto,
+      tipoTransaccion: 'GANAR' as const,
+      cantidad: score,
+      descripcion: `Puntos obtenidos en Trivia Relámpago - ${totalQuestions} preguntas`,
+      tipoOrigen: 'TRIVIA',
+      idOrigen: 1,
+      metadatos: {
+        preguntas_respondidas: totalQuestions,
+        precision: totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0,
+        mejor_racha: streak,
+        fecha_completado: new Date().toISOString()
+      }
+    };
+
+    const result = await crearTransaccion(transaccionData);
+    
+    if (result) {
+      console.log('Puntos guardados exitosamente:', result);
+      // Puedes mostrar una notificación de éxito aquí
+    } else if (errorSavingPoints) {
+      console.error('Error al guardar puntos:', errorSavingPoints);
+      // Puedes mostrar una notificación de error aquí
+    }
+  };
+
+  const getRandomQuestion = (): CurrentQuestion => {
     const subjects = Object.keys(SUBJECTS);
     const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
     const subjectData = SUBJECTS[randomSubject];
@@ -114,7 +173,7 @@ export  function PerfilAdmin() {
   }, []);
 
   useEffect(() => {
-    let interval = null;
+    let interval: NodeJS.Timeout | null = null;
     if (isActive && timeLeft > 0 && !showResult) {
       interval = setInterval(() => {
         setTimeLeft(time => time - 1);
@@ -122,7 +181,9 @@ export  function PerfilAdmin() {
     } else if (timeLeft === 0 && !showResult) {
       handleTimeout();
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isActive, timeLeft, showResult]);
 
   const handleTimeout = () => {
@@ -131,8 +192,8 @@ export  function PerfilAdmin() {
     setStreak(0);
   };
 
-  const handleAnswer = (index) => {
-    if (showResult) return;
+  const handleAnswer = (index: number) => {
+    if (showResult || !currentQuestion) return;
     
     setSelectedAnswer(index);
     setIsActive(false);
@@ -145,10 +206,11 @@ export  function PerfilAdmin() {
       setScore(newScore);
       setStreak(prev => prev + 1);
       
-      // Verificar si alcanzó los 10 puntos
       if (newScore >= 10) {
         setTimeout(() => {
           setGameFinished(true);
+          // Guardar puntos automáticamente al terminar
+          handleSavePoints();
         }, 2000);
       }
     } else {
@@ -174,9 +236,9 @@ export  function PerfilAdmin() {
 
   if (!currentQuestion) return null;
 
-  // Pantalla de victoria
   if (gameFinished) {
     return (
+      
       <div style={{ 
         minHeight: '100vh', 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -187,14 +249,14 @@ export  function PerfilAdmin() {
       }}>
         <Container size="sm">
           <Card shadow="xl" padding="xl" radius="lg" style={{ background: 'white' }}>
-            <Stack spacing="xl" align="center">
+            <Stack gap="xl" align="center">
               <ThemeIcon size={120} radius="xl" color="yellow" variant="light">
                 <IconTrophy size={80} />
               </ThemeIcon>
               
               <div style={{ textAlign: 'center' }}>
                 <Title order={1} c="violet" mb="xs">
-                  🎉 ¡Felicidades! 🎉
+                  <span role="img" aria-label="celebración">🎉</span> ¡Felicidades! <span role="img" aria-label="celebración">🎉</span>
                 </Title>
                 <Text size="xl" fw={500} c="dimmed">
                   ¡Has completado la Trivia Relámpago!
@@ -202,29 +264,29 @@ export  function PerfilAdmin() {
               </div>
 
               <Paper p="xl" radius="md" style={{ background: '#f8f9fa', width: '100%' }}>
-                <Stack spacing="md">
-                  <Group position="apart">
+                <Stack gap="md">
+                  <Group justify="space-between">
                     <Text size="lg" fw={600}>Puntuación Final:</Text>
                     <Badge size="xl" color="violet" variant="filled">
                       {score} puntos
                     </Badge>
                   </Group>
                   
-                  <Group position="apart">
+                  <Group justify="space-between">
                     <Text size="lg" fw={600}>Preguntas Respondidas:</Text>
                     <Badge size="xl" color="blue" variant="light">
                       {totalQuestions}
                     </Badge>
                   </Group>
                   
-                  <Group position="apart">
+                  <Group justify="space-between">
                     <Text size="lg" fw={600}>Mejor Racha:</Text>
                     <Badge size="xl" color="orange" variant="light">
-                      {streak} 🔥
+                      {streak} <span role="img" aria-label="fuego">🔥</span>
                     </Badge>
                   </Group>
 
-                  <Group position="apart">
+                  <Group justify="space-between">
                     <Text size="lg" fw={600}>Precisión:</Text>
                     <Badge size="xl" color="green" variant="light">
                       {totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0}%
@@ -233,12 +295,30 @@ export  function PerfilAdmin() {
                 </Stack>
               </Paper>
 
-              <Alert color="green" variant="light" style={{ width: '100%' }}>
-                <Text size="sm" ta="center">
-                  ¡Excelente trabajo! Has demostrado tus conocimientos en diferentes materias escolares. 
-                  Sigue practicando para mejorar tus habilidades.
-                </Text>
-              </Alert>
+              {savingPoints && (
+                <Alert color="blue" variant="light" style={{ width: '100%' }}>
+                  <Text size="sm" ta="center">
+                    Guardando tus puntos...
+                  </Text>
+                </Alert>
+              )}
+
+              {errorSavingPoints && (
+                <Alert color="red" variant="light" style={{ width: '100%' }}>
+                  <Text size="sm" ta="center">
+                    Error al guardar puntos: {errorSavingPoints}
+                  </Text>
+                </Alert>
+              )}
+
+              {!savingPoints && !errorSavingPoints && (
+                <Alert color="green" variant="light" style={{ width: '100%' }}>
+                  <Text size="sm" ta="center">
+                    ¡Puntos guardados exitosamente! Has demostrado tus conocimientos en diferentes materias escolares. 
+                    Sigue practicando para mejorar tus habilidades.
+                  </Text>
+                </Alert>
+              )}           
 
               <Button 
                 size="xl" 
@@ -269,9 +349,8 @@ export  function PerfilAdmin() {
       padding: '20px'
     }}>
       <Container size="sm" style={{ paddingTop: '40px' }}>
-        {/* Header con puntuación */}
         <Paper shadow="xl" p="xl" mb="xl" radius="lg" style={{ background: 'rgba(255, 255, 255, 0.95)' }}>
-          <Group position="apart" mb="md">
+          <Group justify="space-between" mb="md">
             <Group>
               <ThemeIcon size={50} radius="xl" color="violet" variant="light">
                 <IconTrophy size={30} />
@@ -283,7 +362,7 @@ export  function PerfilAdmin() {
             </Group>
             <div style={{ textAlign: 'right' }}>
               <Text size="xs" c="dimmed" fw={600}>RACHA</Text>
-              <Group spacing={5} position="right">
+              <Group gap={5} justify="flex-end">
                 <IconSparkles size={20} color="#f59e0b" />
                 <Title order={2} c="orange">{streak}</Title>
               </Group>
@@ -291,17 +370,15 @@ export  function PerfilAdmin() {
           </Group>
           
           {streak >= 3 && (
-            <Alert color="orange" variant="light" title="¡Racha de fuego! 🔥">
+            <Alert color="orange" variant="light" title={<>¡Racha de fuego! <span role="img" aria-label="fuego">🔥</span></>}>
               ¡Llevas {streak} respuestas correctas seguidas!
             </Alert>
           )}
         </Paper>
 
-        {/* Pregunta */}
         <Card shadow="xl" padding="xl" radius="lg" style={{ background: 'white' }}>
-          <Stack spacing="md">
-            {/* Materia */}
-            <Group position="apart">
+          <Stack gap="md">
+            <Group justify="space-between">
               <Badge 
                 size="lg" 
                 leftSection={<Icon size={16} />}
@@ -311,16 +388,19 @@ export  function PerfilAdmin() {
                 {currentQuestion.subjectData.name}
               </Badge>
               <Badge size="lg" color="gray" variant="light">
-                {currentQuestion.difficulty === 1 ? '⭐ Fácil (1pt)' : 
-                 currentQuestion.difficulty === 2 ? '⭐⭐ Media (2pts)' : 
-                 '⭐⭐⭐ Difícil (3pts)'}
+                {currentQuestion.difficulty === 1 ? (
+                  <><span role="img" aria-label="estrella">⭐</span> Fácil (1pt)</>
+                ) : currentQuestion.difficulty === 2 ? (
+                  <><span role="img" aria-label="estrellas">⭐⭐</span> Media (2pts)</>
+                ) : (
+                  <><span role="img" aria-label="estrellas">⭐⭐⭐</span> Difícil (3pts)</>
+                )}
               </Badge>
             </Group>
 
-            {/* Timer */}
             {!showResult && (
               <div>
-                <Group position="apart" mb={5}>
+                <Group justify="space-between" mb={5}>
                   <Text size="sm" fw={600} c="dimmed">
                     <IconClock size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                     Tiempo restante: {timeLeft}s
@@ -336,18 +416,16 @@ export  function PerfilAdmin() {
               </div>
             )}
 
-            {/* Pregunta */}
             <Paper p="md" radius="md" style={{ background: '#f8f9fa' }}>
-              <Title order={3} align="center" style={{ lineHeight: 1.4 }}>
+              <Title order={3} ta="center" style={{ lineHeight: 1.4 }}>
                 {currentQuestion.q}
               </Title>
             </Paper>
 
-            {/* Opciones */}
-            <Stack spacing="xs">
+            <Stack gap="xs">
               {currentQuestion.a.map((answer, index) => {
                 let color = currentQuestion.subjectData.color;
-                let variant = 'light';
+                let variant: 'light' | 'filled' = 'light';
                 let icon = null;
 
                 if (showResult) {
@@ -386,13 +464,17 @@ export  function PerfilAdmin() {
               })}
             </Stack>
 
-            {/* Resultado */}
             {showResult && (
               <Alert 
                 color={timeLeft === 0 ? 'orange' : isCorrect ? 'green' : 'red'} 
                 title={
-                  timeLeft === 0 ? '⏰ ¡Se acabó el tiempo!' :
-                  isCorrect ? '🎉 ¡Correcto!' : '❌ Incorrecto'
+                  timeLeft === 0 ? (
+                    <><span role="img" aria-label="reloj">⏰</span> ¡Se acabó el tiempo!</>
+                  ) : isCorrect ? (
+                    <><span role="img" aria-label="celebración">🎉</span> ¡Correcto!</>
+                  ) : (
+                    <><span role="img" aria-label="x">❌</span> Incorrecto</>
+                  )
                 }
                 variant="filled"
               >
@@ -407,7 +489,6 @@ export  function PerfilAdmin() {
               </Alert>
             )}
 
-            {/* Botón siguiente */}
             {showResult && (
               <Button 
                 size="lg" 
@@ -422,7 +503,6 @@ export  function PerfilAdmin() {
           </Stack>
         </Card>
 
-        {/* Stats */}
         <Center mt="xl">
           <Text size="sm" c="white" fw={500}>
             Preguntas respondidas: {totalQuestions} • Mejor racha: {streak}

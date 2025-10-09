@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Text, Badge, Stack, Group, Title, Container, Paper, rem } from '@mantine/core';
+import { Button, Card, Text, Badge, Stack, Group, Title, Container, Paper } from '@mantine/core';
 
-const MATERIAS = [
+interface Actividad {
+  texto: string;
+  puntos: number;
+}
+
+interface Materia {
+  id: number;
+  nombre: string;
+  emoji: string;
+  color: string;
+  actividades: Actividad[];
+}
+
+interface ResultadoType {
+  materia: Materia;
+  actividad: Actividad;
+}
+
+const MATERIAS: Materia[] = [
   { 
     id: 1, 
     nombre: 'Matemáticas', 
@@ -76,11 +94,11 @@ const MATERIAS = [
   },
 ];
 
-export default function RuletaDelSaber() {
+export function Ruleta() {
   const [girando, setGirando] = useState(false);
-  const [resultado, setResultado] = useState(null);
+  const [resultado, setResultado] = useState<ResultadoType | null>(null);
   const [rotacion, setRotacion] = useState(0);
-  const [ultimoGiro, setUltimoGiro] = useState(null);
+  const [ultimoGiro, setUltimoGiro] = useState<Date | null>(null);
   const [puntosTotal, setPuntosTotal] = useState(0);
   const [yaGiro, setYaGiro] = useState(false);
 
@@ -143,9 +161,11 @@ export default function RuletaDelSaber() {
       <Stack gap="lg">
         <Paper p="md" radius="md" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
           <Group justify="space-between" align="center">
-            <Title order={2} c="white">🎡 ¡Gira la Ruleta del Saber!</Title>
+            <Title order={2} c="white">
+              <span role="img" aria-label="rueda de la fortuna">🎡</span> ¡Gira la Ruleta del Saber!
+            </Title>
             <Badge size="xl" variant="white" color="violet">
-              ⭐ {puntosTotal} puntos
+              <span role="img" aria-label="estrella">⭐</span> {puntosTotal} puntos
             </Badge>
           </Group>
         </Paper>
@@ -166,7 +186,7 @@ export default function RuletaDelSaber() {
                 fontSize: 40,
                 zIndex: 10
               }}>
-                👇
+                <span role="img" aria-label="apuntando abajo">👇</span>
               </div>
               
               <div style={{
@@ -200,7 +220,7 @@ export default function RuletaDelSaber() {
                       padding: 8
                     }}
                   >
-                    <div>{materia.emoji}</div>
+                    <span role="img" aria-label={materia.nombre}>{materia.emoji}</span>
                     <Text size="xs" c="white" ta="center" mt={4} style={{ fontSize: 10 }}>
                       {materia.nombre}
                     </Text>
@@ -222,12 +242,18 @@ export default function RuletaDelSaber() {
                 paddingRight: 40
               }}
             >
-              {yaGiro ? '✅ Ya giraste hoy' : girando ? '🎪 Girando...' : '🎯 ¡GIRAR RULETA!'}
+              {yaGiro ? (
+                <><span role="img" aria-label="check">✅</span> Ya giraste hoy</>
+              ) : girando ? (
+                <><span role="img" aria-label="carpa">🎪</span> Girando...</>
+              ) : (
+                <><span role="img" aria-label="diana">🎯</span> ¡GIRAR RULETA!</>
+              )}
             </Button>
 
             {yaGiro && !resultado && (
               <Text size="sm" c="dimmed">
-                Vuelve mañana para un nuevo reto 🌟
+                Vuelve mañana para un nuevo reto <span role="img" aria-label="estrella brillante">🌟</span>
               </Text>
             )}
           </Stack>
@@ -240,7 +266,9 @@ export default function RuletaDelSaber() {
           }}>
             <Stack gap="md">
               <Group>
-                <Text size="48px">{resultado.materia.emoji}</Text>
+                <Text size="48px">
+                  <span role="img" aria-label={resultado.materia.nombre}>{resultado.materia.emoji}</span>
+                </Text>
                 <div>
                   <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Materia</Text>
                   <Title order={3} c={resultado.materia.color}>{resultado.materia.nombre}</Title>
@@ -249,7 +277,7 @@ export default function RuletaDelSaber() {
 
               <Paper p="md" radius="md" bg="white">
                 <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={8}>
-                  💬 Tu reto de hoy
+                  <span role="img" aria-label="mensaje">💬</span> Tu reto de hoy
                 </Text>
                 <Text size="lg" fw={500} style={{ lineHeight: 1.6 }}>
                   {resultado.actividad.texto}
@@ -257,7 +285,7 @@ export default function RuletaDelSaber() {
               </Paper>
 
               <Group justify="space-between" align="center">
-                <Badge size="xl" variant="filled" color="yellow" leftSection="⭐">
+                <Badge size="xl" variant="filled" color="yellow" leftSection={<span role="img" aria-label="estrella">⭐</span>}>
                   +{resultado.actividad.puntos} puntos ganados
                 </Badge>
                 <Button 
@@ -266,13 +294,13 @@ export default function RuletaDelSaber() {
                   onClick={resetearDia}
                   size="sm"
                 >
-                  🔄 Simular nuevo día
+                  <span role="img" aria-label="recargar">🔄</span> Simular nuevo día
                 </Button>
               </Group>
 
               <Paper p="sm" radius="md" bg="rgba(255,255,255,0.5)">
                 <Text size="sm" c="dimmed" ta="center">
-                  💡 <strong>Tip:</strong> Completa tu actividad y compártela en el muro del aula para sumar tus puntos
+                  <span role="img" aria-label="bombilla">💡</span> <strong>Tip:</strong> Completa tu actividad y compártela en el muro del aula para sumar tus puntos
                 </Text>
               </Paper>
             </Stack>
@@ -281,7 +309,9 @@ export default function RuletaDelSaber() {
 
         <Card shadow="sm" padding="md" radius="md" bg="gray.0">
           <Stack gap="xs">
-            <Text size="sm" fw={700}>📋 Materias disponibles:</Text>
+            <Text size="sm" fw={700}>
+              <span role="img" aria-label="portapapeles">📋</span> Materias disponibles:
+            </Text>
             <Group gap="xs">
               {MATERIAS.map(materia => (
                 <Badge 
@@ -289,7 +319,7 @@ export default function RuletaDelSaber() {
                   variant="light" 
                   style={{ background: `${materia.color}22`, color: materia.color }}
                 >
-                  {materia.emoji} {materia.nombre}
+                  <span role="img" aria-label={materia.nombre}>{materia.emoji}</span> {materia.nombre}
                 </Badge>
               ))}
             </Group>

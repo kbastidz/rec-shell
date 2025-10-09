@@ -1,155 +1,42 @@
 import { useState } from 'react';
-import { PerfilUsuario } from '../../../types/model';
+import { CrearTransaccionDTO } from '../../../types/dto';
+import { TransaccionPuntos } from '../../../types/model';
 import { service } from '../service/gamificacion.service';
 
-
-interface CrearPerfilDefectoRequest {
-  usuarioId: number;
+interface UseTransaccionPuntosResult {
+  crearTransaccion: (data: CrearTransaccionDTO) => Promise<TransaccionPuntos | null>;
+  loading: boolean;
+  error: string | null;
+  transaccion: TransaccionPuntos | null;
 }
 
-interface CambiarPrivacidadRequest {
-  nivelPrivacidad: string;
-}
-
-interface ActualizarNotificacionesRequest {
-  preferenciasNotificaciones: string;
-}
-
-export const usePerfilUsuario = () => {
+export const useTransaccionPuntos = (): UseTransaccionPuntosResult => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [perfil, setPerfil] = useState<PerfilUsuario | null>(null);
-  const [perfiles, setPerfiles] = useState<PerfilUsuario[]>([]);
+  const [transaccion, setTransaccion] = useState<TransaccionPuntos | null>(null);
 
-  const crearPerfilPorDefecto = async (request: PerfilUsuario) => {
+  const crearTransaccion = async (data: CrearTransaccionDTO): Promise<TransaccionPuntos | null> => {
     setLoading(true);
     setError(null);
+    
     try {
-      const resultado = await service.crearPerfilPorDefecto(request);
-      setPerfil(resultado);
-      return resultado;
-    } catch (err: any) {
-      setError(err.message || 'Error al crear perfil por defecto');
-      throw err;
+      const response = await service.POST(data);
+      setTransaccion(response);
+      return response;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al crear transacción';
+      setError(errorMessage);
+      console.error('Error creando transacción de puntos:', err);
+      return null;
     } finally {
       setLoading(false);
     }
   };
-
-  const obtenerPerfilPorUsuario = async (usuarioId: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resultado = await service.obtenerPerfilPorUsuario(usuarioId);
-      setPerfil(resultado);
-      return resultado;
-    } catch (err: any) {
-      setError(err.message || 'Error al obtener perfil');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const actualizarPerfil = async (usuarioId: number, perfilActualizado: Partial<PerfilUsuario>) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resultado = await service.actualizarPerfil(usuarioId, perfilActualizado);
-      setPerfil(resultado);
-      return resultado;
-    } catch (err: any) {
-      setError(err.message || 'Error al actualizar perfil');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const obtenerPerfilesPublicos = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resultado = await service.obtenerPerfilesPublicos();
-      setPerfiles(resultado);
-      return resultado;
-    } catch (err: any) {
-      setError(err.message || 'Error al obtener perfiles públicos');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const buscarPorUbicacion = async (ubicacion: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resultado = await service.buscarPorUbicacion(ubicacion);
-      setPerfiles(resultado);
-      return resultado;
-    } catch (err: any) {
-      setError(err.message || 'Error al buscar por ubicación');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const cambiarPrivacidad = async (usuarioId: number, request: CambiarPrivacidadRequest) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resultado = await service.cambiarPrivacidad(usuarioId, request);
-      setPerfil(resultado);
-      return resultado;
-    } catch (err: any) {
-      setError(err.message || 'Error al cambiar privacidad');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const actualizarPreferenciasNotificaciones = async (
-    usuarioId: number,
-    request: ActualizarNotificacionesRequest
-  ) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resultado = await service.actualizarPreferenciasNotificaciones(
-        usuarioId,
-        request
-      );
-      setPerfil(resultado);
-      return resultado;
-    } catch (err: any) {
-      setError(err.message || 'Error al actualizar preferencias de notificaciones');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetError = () => setError(null);
-  const resetPerfil = () => setPerfil(null);
-  const resetPerfiles = () => setPerfiles([]);
 
   return {
+    crearTransaccion,
     loading,
     error,
-    perfil,
-    perfiles,
-    crearPerfilPorDefecto,
-    obtenerPerfilPorUsuario,
-    actualizarPerfil,
-    obtenerPerfilesPublicos,
-    buscarPorUbicacion,
-    cambiarPrivacidad,
-    actualizarPreferenciasNotificaciones,
-    resetError,
-    resetPerfil,
-    resetPerfiles,
+    transaccion
   };
 };

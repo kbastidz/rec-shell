@@ -1,67 +1,31 @@
 import { InvokeApi } from '@rec-shell/rec-web-shared';
-import { PerfilUsuario } from '../../../types/model';
+import { TransaccionPuntos } from '../../../types/model';
+import { CrearTransaccionDTO } from '../../../types/dto';
 
-const API_URL = `/perfil-usuario`;
+const API_URL = `/gamificacion/transacciones-puntos`;
 
-interface CrearPerfilDefectoRequest {
-  usuarioId: number;
-}
 
-interface CambiarPrivacidadRequest {
-  nivelPrivacidad: string;
-}
+export class ConexionService extends InvokeApi {
 
-interface ActualizarNotificacionesRequest {
-  preferenciasNotificaciones: string;
-}
-
-export class PerfilUsuarioService extends InvokeApi {
-
-  async crearPerfilPorDefecto(request: PerfilUsuario): Promise<PerfilUsuario> {
-    const response = await this.post<PerfilUsuario>(`${API_URL}/crear-defecto`, request);
+  async GET(): Promise<TransaccionPuntos[]> {
+    const response = await this.get<TransaccionPuntos[]>(API_URL);
     return response;
   }
 
-  async obtenerPerfilPorUsuario(usuarioId: number): Promise<PerfilUsuario> {
-    const response = await this.get<PerfilUsuario>(`${API_URL}/usuario/${usuarioId}`);
+  async GET_ID(id: string): Promise<TransaccionPuntos> {
+    const response = await this.getById<TransaccionPuntos>(API_URL, id);
     return response;
   }
 
-  async actualizarPerfil(usuarioId: number, perfilActualizado: Partial<PerfilUsuario>): Promise<PerfilUsuario> {
-    const response = await this.put<PerfilUsuario>(`${API_URL}/usuario/${usuarioId}`, perfilActualizado);
+  async POST(transaccion: CrearTransaccionDTO): Promise<TransaccionPuntos> {
+    const response = await this.post<TransaccionPuntos>(API_URL, transaccion);
     return response;
   }
 
-  async obtenerPerfilesPublicos(): Promise<PerfilUsuario[]> {
-    const response = await this.get<PerfilUsuario[]>(`${API_URL}/publicos`);
-    return response;
-  }
-
-  async buscarPorUbicacion(ubicacion: string): Promise<PerfilUsuario[]> {
-    const response = await this.get<PerfilUsuario[]>(
-      `${API_URL}/buscar/ubicacion?ubicacion=${encodeURIComponent(ubicacion)}`
-    );
-    return response;
-  }
-
-  async cambiarPrivacidad(usuarioId: number, request: CambiarPrivacidadRequest): Promise<PerfilUsuario> {
-    const response = await this.put<PerfilUsuario>(
-      `${API_URL}/usuario/${usuarioId}/privacidad`,
-      request
-    );
-    return response;
-  }
-
-  async actualizarPreferenciasNotificaciones(
-    usuarioId: number,
-    request: ActualizarNotificacionesRequest
-  ): Promise<PerfilUsuario> {
-    const response = await this.put<PerfilUsuario>(
-      `${API_URL}/usuario/${usuarioId}/notificaciones`,
-      request
-    );
+  async GET_BY_USUARIO(usuarioId: string): Promise<TransaccionPuntos[]> {
+    const response = await this.get<TransaccionPuntos[]>(`${API_URL}/usuario/${usuarioId}`);
     return response;
   }
 }
 
-export const service = new PerfilUsuarioService();
+export const service = new ConexionService();

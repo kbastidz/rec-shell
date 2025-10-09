@@ -1,8 +1,49 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Container, Title, Text, Card, Group, Stack, Badge, Button, Progress, Modal, Grid, ThemeIcon, Paper, TextInput, Tabs, Divider, Center, Box, Avatar, RingProgress } from '@mantine/core';
+import { Container, Title, Text, Card, Group, Stack, Badge, Button, Progress, Modal, Grid, ThemeIcon, Paper, TextInput, Tabs, Divider, Center, Box, RingProgress } from '@mantine/core';
+
+interface Mission {
+  id: number;
+  question: string;
+  answer: string;
+  points: number;
+}
+
+interface Subject {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  missions: Mission[];
+}
+
+interface RewardType {
+  type: string;
+  name: string;
+  emoji: string;
+  probability: number;
+  minPoints: number;
+  maxPoints: number;
+  color: string;
+}
+
+interface Reward {
+  rarity: RewardType;
+  points: number;
+  badge: string | null;
+  subjectId: string;
+}
+
+interface NotificationType {
+  type: 'success' | 'error';
+  message: string;
+}
+
+interface UnlockedCard extends Reward {
+  timestamp: number;
+}
 
 // Definición de materias con sus misiones
-const subjects = [
+const subjects: Subject[] = [
   { 
     id: 'math', 
     name: 'Matemáticas', 
@@ -61,14 +102,14 @@ const subjects = [
 ];
 
 // Tipos de recompensas
-const rewardTypes = [
+const rewardTypes: RewardType[] = [
   { type: 'common', name: 'Común', emoji: '🎁', probability: 0.6, minPoints: 5, maxPoints: 10, color: 'gray' },
   { type: 'rare', name: 'Raro', emoji: '💎', probability: 0.3, minPoints: 10, maxPoints: 20, color: 'violet' },
   { type: 'epic', name: 'Épico', emoji: '🏆', probability: 0.1, minPoints: 20, maxPoints: 50, color: 'yellow' }
 ];
 
 // Insignias por materia
-const badges = {
+const badges: Record<string, string[]> = {
   math: ['🧮 Calculador', '🎯 Preciso', '⚡ Rápido', '🧠 Genio'],
   language: ['📖 Lector', '✍️ Escritor', '🗣️ Orador', '📝 Poeta'],
   social: ['🗺️ Explorador', '🏛️ Historiador', '🌍 Viajero', '📚 Sabio'],
@@ -76,8 +117,13 @@ const badges = {
   art: ['🖌️ Artista', '🎭 Creativo', '🌈 Colorista', '✨ Maestro']
 };
 
-function ScratchCard({ reward, onComplete }) {
-  const canvasRef = useRef(null);
+interface ScratchCardProps {
+  reward: Reward;
+  onComplete: () => void;
+}
+
+function ScratchCard({ reward, onComplete }: ScratchCardProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
 
@@ -86,6 +132,8 @@ function ScratchCard({ reward, onComplete }) {
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     const rect = canvas.getBoundingClientRect();
     
     // Fondo plateado con textura
@@ -103,18 +151,22 @@ function ScratchCard({ reward, onComplete }) {
     ctx.fillText('¡RASCA AQUÍ!', rect.width / 2, rect.height / 2);
   }, []);
 
-  const scratch = (e) => {
+  const scratch = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     const rect = canvas.getBoundingClientRect();
     
-    let x, y;
-    if (e.type.includes('mouse')) {
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
-    } else {
+    let x: number, y: number;
+    if ('touches' in e) {
       x = e.touches[0].clientX - rect.left;
       y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
     }
     
     ctx.globalCompositeOperation = 'destination-out';
@@ -206,48 +258,19 @@ function ScratchCard({ reward, onComplete }) {
   );
 }
 
-const checkAnswer = () => {
-    if (!selectedSubject) return;
-    
-    const currentMission = selectedSubject.missions.find(
-      m => !completedMissions[`${selectedSubject.id}-${m.id}`]
-    );
-    
-    if (!currentMission) return;
-    
-    const isCorrect = userAnswer.toLowerCase().trim() === currentMission.answer.toLowerCase().trim();
-    
-    if (isCorrect) {
-      const missionKey = `${selectedSubject.id}-${currentMission.id}`;
-      setCompletedMissions(prev => ({ ...prev, [missionKey]: true }));
-      
-      const reward = generateReward(selectedSubject.id);
-      setCurrentReward(reward);
-      setUnlockedCards(prev => [...prev, { ...reward, timestamp: Date.now() }]);
-      setShowCard(true);
-      setUserAnswer('');
-      
-      setNotification({ type: 'success', message: '¡Respuesta correcta! 🎉 Tarjeta desbloqueada' });
-      setTimeout(() => setNotification(null), 3000);
-    } else {
-      setNotification({ type: 'error', message: 'Respuesta incorrecta. ¡Intenta de nuevo! 💪' });
-      setTimeout(() => setNotification(null), 3000);
-    }
-  };
-
-export  function PerfilAdmin() {
+export  function RaspaGana() {
   const [totalPoints, setTotalPoints] = useState(0);
-  const [completedMissions, setCompletedMissions] = useState({});
-  const [unlockedCards, setUnlockedCards] = useState([]);
-  const [collectedBadges, setCollectedBadges] = useState([]);
-  const [activeTab, setActiveTab] = useState('missions');
-  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [completedMissions, setCompletedMissions] = useState<Record<string, boolean>>({});
+  const [unlockedCards, setUnlockedCards] = useState<UnlockedCard[]>([]);
+  const [collectedBadges, setCollectedBadges] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string | null>('missions');
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [showCard, setShowCard] = useState(false);
-  const [currentReward, setCurrentReward] = useState(null);
-  const [notification, setNotification] = useState(null);
+  const [currentReward, setCurrentReward] = useState<Reward | null>(null);
+  const [notification, setNotification] = useState<NotificationType | null>(null);
 
-  const generateReward = (subjectId) => {
+  const generateReward = (subjectId: string): Reward => {
     const rand = Math.random();
     let cumulative = 0;
     let selectedRarity = rewardTypes[0];
@@ -306,29 +329,32 @@ export  function PerfilAdmin() {
 
   const handleCardComplete = () => {
     if (currentReward) {
-    setTotalPoints(prev => prev + currentReward.points);
+      setTotalPoints(prev => prev + currentReward.points);
 
-    setCollectedBadges(prev => {
-      if (currentReward.badge && !prev.includes(currentReward.badge)) {
-        return [...prev, currentReward.badge];
+      if (currentReward.badge) {
+        setCollectedBadges(prev => {
+          if (!prev.includes(currentReward.badge!)) {
+            return [...prev, currentReward.badge!];
+          }
+          return prev;
+        });
       }
-      return prev;
-    });
-  }
+    }
 
-  setTimeout(() => {
-    setShowCard(false);
-    setCurrentReward(null);
-  }, 2000);
+    setTimeout(() => {
+      setShowCard(false);
+      setCurrentReward(null);
+    }, 2000);
   };
 
-  const getSubjectProgress = (subjectId) => {
+  const getSubjectProgress = (subjectId: string) => {
     const subject = subjects.find(s => s.id === subjectId);
+    if (!subject) return 0;
     const completed = subject.missions.filter(m => completedMissions[`${subjectId}-${m.id}`]).length;
     return (completed / subject.missions.length) * 100;
   };
 
-  const getCurrentMission = (subject) => {
+  const getCurrentMission = (subject: Subject): Mission | undefined => {
     return subject.missions.find(m => !completedMissions[`${subject.id}-${m.id}`]);
   };
 
@@ -339,13 +365,15 @@ export  function PerfilAdmin() {
         <Paper p="xl" withBorder style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
           <Group justify="space-between" align="flex-start">
             <div>
-              <Title order={1} c="white" mb="xs">🎓 Misiones Educativas</Title>
+              <Title order={1} ta="center">
+                  Misiones Educativas <span role="img" aria-label="celebración">🎓</span>
+                </Title>
               <Text c="white" opacity={0.9}>Completa misiones y desbloquea tarjetas sorpresa</Text>
             </div>
             <Stack gap="xs" align="flex-end">
               <Group gap="xs">
                 <ThemeIcon size="xl" radius="xl" color="yellow" variant="light">
-                  <Text size="xl">⭐</Text>
+                  <Text size="xl"><span role="img" aria-label="celebración">⭐</span></Text>
                 </ThemeIcon>
                 <div>
                   <Text size="xs" c="white" opacity={0.8}>Puntos totales</Text>
@@ -404,7 +432,7 @@ export  function PerfilAdmin() {
                               </Text>
                             </div>
                           </Group>
-                          {isComplete && <Text size="25px">✅</Text>}
+                          {isComplete && <Text size="25px"><span role="img" aria-label="celebración">✅</span></Text>}
                         </Group>
                         
                         <Progress value={progress} color={subject.color} size="sm" />
@@ -419,7 +447,8 @@ export  function PerfilAdmin() {
                           </Button>
                         ) : (
                           <Badge color="green" size="lg" fullWidth>
-                            ¡Todas completadas! 🎉
+                            ¡Todas completadas! 
+                            <span role="img" aria-label="celebración">🎉</span>
                           </Badge>
                         )}
                       </Stack>
@@ -435,7 +464,9 @@ export  function PerfilAdmin() {
             <Stack gap="xl">
               {/* Insignias */}
               <div>
-                <Title order={3} mb="md">🏅 Mis Insignias</Title>
+                <Title order={3} ta="center">
+                  Mis Insignias <span role="img" aria-label="celebración">🏅</span>
+                </Title>
                 {collectedBadges.length > 0 ? (
                   <Group gap="xs">
                     {collectedBadges.map((badge, i) => (
@@ -455,7 +486,9 @@ export  function PerfilAdmin() {
 
               {/* Tarjetas desbloqueadas */}
               <div>
-                <Title order={3} mb="md">🎴 Tarjetas Desbloqueadas</Title>
+                <Title order={3} ta="center">
+                  ¡Tarjeta Desbloqueada! <span role="img" aria-label="celebración">🎴</span>
+                </Title>
                 {unlockedCards.length > 0 ? (
                   <Grid>
                     {unlockedCards.map((card, i) => (
@@ -584,7 +617,8 @@ export  function PerfilAdmin() {
               </Stack>
             ) : (
               <Text ta="center" c="dimmed" py="xl">
-                ¡Has completado todas las misiones de esta materia! 🎉
+                ¡Has completado todas las misiones de esta materia! 
+                <span role="img" aria-label="celebración">🎉</span>
               </Text>
             );
           })()}
@@ -593,13 +627,16 @@ export  function PerfilAdmin() {
         {/* Modal de Tarjeta Rasca y Gana */}
         <Modal
           opened={showCard}
-          onClose={() => {}}
+          onClose={() => setShowCard(false)}
           withCloseButton={false}
           size="lg"
           centered
         >
           <Stack gap="lg">
-            <Title order={2} ta="center">¡Tarjeta Desbloqueada! 🎉</Title>
+            <Title order={2} ta="center">
+              ¡Tarjeta Desbloqueada! <span role="img" aria-label="celebración">🎉</span>
+            </Title>
+
             <Text ta="center" c="dimmed">Rasca la tarjeta para revelar tu recompensa</Text>
             {currentReward && (
               <ScratchCard reward={currentReward} onComplete={handleCardComplete} />

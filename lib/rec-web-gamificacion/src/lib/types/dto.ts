@@ -1,4 +1,5 @@
-import { Dificultad, PeriodoTiempo } from "../enums/Enums";
+import { Dificultad, PeriodoTiempo, TipoTransaccion } from "../enums/Enums";
+import { TipoPunto } from "./model";
 
 export interface TipoRecompensaForm {
   nombre: string;
@@ -50,4 +51,16 @@ export interface TablaFormData {
   maxEntradas: number;
   estaActivo: boolean;
   periodoTiempo?: PeriodoTiempo;
+}
+
+export interface CrearTransaccionDTO {
+  usuarioId: string;
+  tipoPunto: TipoPunto;
+  tipoTransaccion: TipoTransaccion;//'GANAR' | 'GASTAR' | 'BONUS' | 'PENALIZACION' | 'TRANSFERIR';
+  cantidad: number;
+  descripcion?: string;
+  tipoOrigen?: string;
+  idOrigen?: string;
+  metadatos?: Record<string, any>;
+  expiraEn?: string; // ISO date string
 }

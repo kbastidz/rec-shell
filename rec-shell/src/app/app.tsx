@@ -3,8 +3,8 @@ import { RoleManagement, UserManagement } from '@rec-shell/rec-web-usuario';
 import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
-import {  MonitoreoAdmin,MenuPague, SeguimientosAdmin, NutrienteAdmin, MedidaAdmin , TratamientosAdmin, CultivosAdmin, } from '@rec-shell/rec-web-agricultura';
-import {  PerfilAdmin } from '@rec-shell/rec-web-gamificacion';
+import {  MenuPague } from '@rec-shell/rec-web-agricultura';
+import {  Juegos } from '@rec-shell/rec-web-gamificacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',
@@ -17,11 +17,11 @@ const rolePermissions = {
     UserComponent: UserManagement,
     RoleComponent: RoleManagement,
     CultivoComponent: MenuPague, 
-    CategoriaComponent: PerfilAdmin
+    CategoriaComponent: Juegos
   },
   [ROLES.MODERATOR]: {
     UserComponent: UserManagement,
-    RoleComponent: undefined,     // Sin acceso a gestión de roles
+    RoleComponent: undefined,
     CultivoComponent: undefined,
     CategoriaComponent: undefined
   }

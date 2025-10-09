@@ -13,11 +13,36 @@ import {
   Stack,
   Progress,
   Card,
-  ThemeIcon,
   Notification,
   FileButton,
-  ActionIcon
 } from '@mantine/core';
+
+type MateriaKey = 'ESPANOL' | 'MATEMATICAS' | 'CIENCIAS' | 'SOCIALES' | 'ARTES';
+
+interface Evidencia {
+  texto?: string;
+  archivo?: File | null;
+}
+
+interface Casilla {
+  id: number;
+  materia: MateriaKey;
+  accion: string;
+  completada: boolean;
+  evidencia: Evidencia | null;
+}
+
+interface Linea {
+  tipo: 'fila' | 'columna' | 'diagonal';
+  index: number;
+  casillas: number[];
+}
+
+interface Notificacion {
+  mensaje: string;
+  color: string;
+}
+
 
 const MATERIAS = {
   ESPANOL: { nombre: 'Español', color: '#e74c3c', icon: '📚' },
@@ -80,10 +105,9 @@ const ACCIONES_BASE = {
   ]
 };
 
-function generarTablero() {
-  const tablero = [];
-  const materiasKeys = Object.keys(ACCIONES_BASE);
-  
+function generarTablero(): Casilla[] {
+  const tablero: Casilla[] = [];
+  const materiasKeys = Object.keys(ACCIONES_BASE) as MateriaKey[];
   for (let i = 0; i < 25; i++) {
     const materiaKey = materiasKeys[Math.floor(Math.random() * materiasKeys.length)];
     const acciones = ACCIONES_BASE[materiaKey];
@@ -101,8 +125,8 @@ function generarTablero() {
   return tablero;
 }
 
-function detectarLineasCompletadas(tablero) {
-  const lineas = [];
+function detectarLineasCompletadas(tablero: Casilla[]): Linea[] {
+   const lineas: Linea[] = [];
   
   // Filas
   for (let i = 0; i < 5; i++) {
@@ -134,16 +158,16 @@ function detectarLineasCompletadas(tablero) {
   return lineas;
 }
 
-export  function PerfilAdmin() {
-  const [tablero, setTablero] = useState(() => generarTablero());
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [casillaSeleccionada, setCasillaSeleccionada] = useState(null);
-  const [evidenciaTexto, setEvidenciaTexto] = useState('');
-  const [archivo, setArchivo] = useState(null);
-  const [puntos, setPuntos] = useState(0);
-  const [lineasCompletadas, setLineasCompletadas] = useState([]);
-  const [notificacion, setNotificacion] = useState(null);
-  const [insignias, setInsignias] = useState([]);
+export  function Bingo() {
+  const [tablero, setTablero] = useState<Casilla[]>(() => generarTablero());
+  const [modalAbierto, setModalAbierto] = useState<boolean>(false);
+  const [casillaSeleccionada, setCasillaSeleccionada] = useState<Casilla | null>(null);
+  const [evidenciaTexto, setEvidenciaTexto] = useState<string>('');
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const [puntos, setPuntos] = useState<number>(0);
+  const [lineasCompletadas, setLineasCompletadas] = useState<Linea[]>([]);
+  const [notificacion, setNotificacion] = useState<Notificacion | null>(null);
+  const [insignias, setInsignias] = useState<string[]>([]);
 
   useEffect(() => {
     const lineas = detectarLineasCompletadas(tablero);
@@ -175,9 +199,9 @@ export  function PerfilAdmin() {
         color: 'yellow'
       });
     }
-  }, [tablero]);
+  }, [tablero, lineasCompletadas, insignias]);
 
-  const abrirModal = (casilla) => {
+  const abrirModal = (casilla: Casilla) => {
     setCasillaSeleccionada(casilla);
     setModalAbierto(true);
     setEvidenciaTexto('');
@@ -185,6 +209,8 @@ export  function PerfilAdmin() {
   };
 
   const completarCasilla = () => {
+    if (!casillaSeleccionada) return;
+
     if (!evidenciaTexto && !archivo) {
       alert('Por favor agrega una evidencia (texto o archivo)');
       return;
@@ -218,18 +244,22 @@ export  function PerfilAdmin() {
         <Paper shadow="sm" p="md" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
           <Group justify="space-between" align="center">
             <div>
-              <Title order={1} c="white">🎲 Bingo Educativo Semanal</Title>
+              <Title order={1} c="white">
+                <span role="img" aria-label="dado">🎲</span> Bingo Educativo Semanal
+              </Title>
+
               <Text c="white" size="sm" mt={5}>Completa acciones de cada materia para ganar puntos</Text>
             </div>
             <Stack gap="xs" align="end">
-              <Badge size="xl" variant="filled" color="yellow" style={{ fontSize: '1.2rem' }}>
-                ⭐ {puntos} pts
+             <Badge size="xl" variant="filled" color="yellow" style={{ fontSize: '1.2rem' }}>
+              <span role="img" aria-label="estrella">⭐</span> {puntos} pts
+            </Badge>
+
+            {insignias.includes('bingo_completo') && (
+              <Badge size="lg" variant="filled" color="orange">
+                <span role="img" aria-label="trofeo">🏆</span> Bingo Completo
               </Badge>
-              {insignias.includes('bingo_completo') && (
-                <Badge size="lg" variant="filled" color="orange">
-                  🏆 Bingo Completo
-                </Badge>
-              )}
+            )}
             </Stack>
           </Group>
         </Paper>
@@ -248,7 +278,7 @@ export  function PerfilAdmin() {
           <Group justify="space-between" mb="md">
             <Text fw={600}>Progreso: {completadas}/25 casillas</Text>
             <Button onClick={reiniciarBingo} variant="light" color="grape">
-              🔄 Nuevo Tablero Semanal
+              <span role="img" aria-label="recargar">🔄</span> Nuevo Tablero Semanal
             </Button>
           </Group>
           <Progress value={progreso} size="lg" radius="xl" 
@@ -307,7 +337,7 @@ export  function PerfilAdmin() {
                         right: 5,
                         fontSize: '2rem'
                       }}>
-                        ✅
+                        <span role="img" aria-label="completada">✅</span>
                       </div>
                     )}
                   </Stack>
@@ -318,7 +348,9 @@ export  function PerfilAdmin() {
         </Grid>
 
         <Card shadow="sm" padding="lg">
-          <Title order={3} mb="md">📊 Estadísticas</Title>
+          <Title order={3} mb="md">
+           <span role="img" aria-label="gráfica">📊</span> Estadísticas
+          </Title>
           <Grid>
             <Grid.Col span={6}>
               <Text c="dimmed" size="sm">Líneas completadas</Text>
@@ -367,8 +399,9 @@ export  function PerfilAdmin() {
               <FileButton onChange={setArchivo} accept="image/*,application/pdf">
                 {(props) => (
                   <Button {...props} variant="light" fullWidth>
-                    📎 {archivo ? archivo.name : 'Subir foto o documento'}
+                    <span role="img" aria-label="clip">📎</span> {archivo ? archivo.name : 'Subir foto o documento'}
                   </Button>
+
                 )}
               </FileButton>
             </div>
@@ -380,8 +413,9 @@ export  function PerfilAdmin() {
               gradient={{ from: 'teal', to: 'blue', deg: 90 }}
               variant="gradient"
             >
-              ✅ Marcar como completada
+              <span role="img" aria-label="completada">✅</span> Marcar como completada
             </Button>
+
           </Stack>
         )}
       </Modal>
