@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Text, Badge, Stack, Group, Title, Container, Paper } from '@mantine/core';
+import { Button, Card, Text, Badge, Stack, Group, Title, Container, Paper, Alert } from '@mantine/core';
+import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
+import { ST_GET_USER_ID } from '../../../utils/utilidad';
+
 
 interface Actividad {
   texto: string;
@@ -94,32 +97,39 @@ const MATERIAS: Materia[] = [
   },
 ];
 
-export function Ruleta() {
+interface RuletaProps {
+  usuarioId: number;
+  idTipoPunto?: number; // ID del tipo de punto (por defecto puede ser 1)
+}
+
+export function Ruleta({ usuarioId, idTipoPunto = 1 }: RuletaProps) {
   const [girando, setGirando] = useState(false);
   const [resultado, setResultado] = useState<ResultadoType | null>(null);
   const [rotacion, setRotacion] = useState(0);
-  const [ultimoGiro, setUltimoGiro] = useState<Date | null>(null);
-  const [puntosTotal, setPuntosTotal] = useState(0);
   const [yaGiro, setYaGiro] = useState(false);
+  const [puntosTotal, setPuntosTotal] = useState(0);
+  
+  const { crearTransaccion, loading, error } = useTransaccionPuntos();
 
   useEffect(() => {
-    const lastSpin = localStorage.getItem('ultimoGiro');
-    const puntos = localStorage.getItem('puntosTotal');
+    // Verificar si ya giró hoy (usando memoria en lugar de localStorage)
+    const lastSpin = sessionStorage.getItem(`ultimoGiro_${usuarioId}`);
+    const puntos = sessionStorage.getItem(`puntosTotal_${usuarioId}`);
     
     if (lastSpin) {
       const lastDate = new Date(lastSpin);
       const today = new Date();
       if (lastDate.toDateString() === today.toDateString()) {
-        setYaGiro(true);
+        setYaGiro(false); // Permitir múltiples giros para pruebas
       }
     }
     
     if (puntos) {
       setPuntosTotal(parseInt(puntos));
     }
-  }, []);
+  }, [usuarioId]);
 
-  const girarRuleta = () => {
+  const girarRuleta = async () => {
     if (girando || yaGiro) return;
 
     setGirando(true);
@@ -133,27 +143,58 @@ export function Ruleta() {
     
     setRotacion(prev => prev + anguloFinal);
 
-    setTimeout(() => {
-      setResultado({
+    setTimeout(async () => {
+      const resultadoFinal = {
         materia: materiaSeleccionada,
         actividad: actividadSeleccionada
-      });
+      };
+      
+      setResultado(resultadoFinal);
       setGirando(false);
       setYaGiro(true);
-      
-      const nuevosPuntos = puntosTotal + actividadSeleccionada.puntos;
-      setPuntosTotal(nuevosPuntos);
-      
-      const now = new Date();
-      localStorage.setItem('ultimoGiro', now.toISOString());
-      localStorage.setItem('puntosTotal', nuevosPuntos.toString());
-      setUltimoGiro(now);
+
+      // Crear transacción de puntos en la base de datos
+      try {
+        const nuevoBalance = puntosTotal + actividadSeleccionada.puntos;
+         const tipoPunto = { id: '1' };
+
+        const transaccionData = {
+          usuarioId: ST_GET_USER_ID(),
+          //id_tipo_punto: idTipoPunto,
+          tipoPunto: tipoPunto,
+          tipoTransaccion: 'GANAR',
+          cantidad: actividadSeleccionada.puntos,
+          balanceDespues: nuevoBalance,
+          descripcion: `Ruleta del Saber - ${materiaSeleccionada.nombre}`,
+          tipoOrigen: 'RULETA',
+          idOrigen: materiaSeleccionada.id,
+          metadatos: {
+            materia: materiaSeleccionada.nombre,
+            actividad: actividadSeleccionada.texto.substring(0, 100),
+            emoji: materiaSeleccionada.emoji,
+            fecha_giro: new Date().toISOString()
+          },
+          expiraEn: null
+        };
+
+        await crearTransaccion(transaccionData);
+
+        setPuntosTotal(nuevoBalance);
+        
+        // Guardar en sessionStorage para la sesión actual
+        const now = new Date();
+        sessionStorage.setItem(`ultimoGiro_${usuarioId}`, now.toISOString());
+        sessionStorage.setItem(`puntosTotal_${usuarioId}`, nuevoBalance.toString());
+      } catch (err) {
+        console.error('Error al registrar puntos:', err);
+      }
     }, 3000);
   };
 
   const resetearDia = () => {
     setYaGiro(false);
     setResultado(null);
+    sessionStorage.removeItem(`ultimoGiro_${usuarioId}`);
   };
 
   return (
@@ -169,6 +210,12 @@ export function Ruleta() {
             </Badge>
           </Group>
         </Paper>
+
+        {error && (
+          <Alert color="red" title="Error al registrar puntos">
+            {error}
+          </Alert>
+        )}
 
         <Card shadow="md" padding="xl" radius="md">
           <Stack align="center" gap="xl">
@@ -232,7 +279,7 @@ export function Ruleta() {
             <Button
               size="xl"
               radius="xl"
-              disabled={girando || yaGiro}
+              disabled={girando || yaGiro || loading}
               onClick={girarRuleta}
               style={{
                 background: yaGiro ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -242,7 +289,9 @@ export function Ruleta() {
                 paddingRight: 40
               }}
             >
-              {yaGiro ? (
+              {loading ? (
+                <><span role="img" aria-label="guardando">💾</span> Guardando...</>
+              ) : yaGiro ? (
                 <><span role="img" aria-label="check">✅</span> Ya giraste hoy</>
               ) : girando ? (
                 <><span role="img" aria-label="carpa">🎪</span> Girando...</>
