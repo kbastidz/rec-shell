@@ -1,5 +1,5 @@
 import { Dificultad, PeriodoTiempo, TipoTransaccion } from "../enums/Enums";
-import { TipoPunto } from "./model";
+
 
 export interface TipoRecompensaForm {
   nombre: string;
@@ -60,7 +60,12 @@ export interface CrearTransaccionDTO {
   cantidad: number;
   descripcion?: string;
   tipoOrigen?: string;
-  idOrigen?: string;
+  idOrigen?: number;
   metadatos?: Record<string, any>;
   expiraEn?: string; // ISO date string
+  balanceDespues?: number;
+}
+
+export interface TipoPunto {
+  id: string;
 }

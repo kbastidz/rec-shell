@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Container, Title, Text, Card, Group, Stack, Badge, Button, Progress, Modal, Grid, ThemeIcon, Paper, TextInput, Tabs, Divider, Center, Box, RingProgress } from '@mantine/core';
 import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
+import { CrearTransaccionDTO } from '../../../types/dto';
+import { TipoTransaccion } from '../../../enums/Enums';
 
 interface Mission {
   id: number;
@@ -122,6 +124,7 @@ const badges: Record<string, string[]> = {
 interface ScratchCardProps {
   reward: Reward;
   onComplete: () => void;
+  onScratchComplete?: () => void;
 }
 
 function ScratchCard({ reward, onComplete, onScratchComplete }: ScratchCardProps) {
@@ -344,22 +347,21 @@ export  function RaspaGana() {
     }
   };
 
-  // En el componente principal, modificar handleCardComplete
-  // Mantener handleCardComplete simple
-const handleCardComplete = () => {
-  if (currentReward) {
-    setTotalPoints(prev => prev + currentReward.points);
 
-    if (currentReward.badge && !collectedBadges.includes(currentReward.badge)) {
-      setCollectedBadges(prev => [...prev, currentReward.badge!]);
+  const handleCardComplete = () => {
+    if (currentReward) {
+      setTotalPoints(prev => prev + currentReward.points);
+
+      if (currentReward.badge && !collectedBadges.includes(currentReward.badge)) {
+        setCollectedBadges(prev => [...prev, currentReward.badge!]);
+      }
     }
-  }
 
-  setTimeout(() => {
-    setShowCard(false);
-    setCurrentReward(null);
-  }, 2000);
-};
+    setTimeout(() => {
+      setShowCard(false);
+      setCurrentReward(null);
+    }, 2000);
+  };
 
   
 useEffect(() => {
@@ -395,10 +397,10 @@ useEffect(() => {
       }));
       
       const tipoPunto = { id: '1' };
-        const transaccionData = {
+        const transaccionData : CrearTransaccionDTO = {
           usuarioId: ST_GET_USER_ID(),
           tipoPunto: tipoPunto,
-          tipoTransaccion: 'GANAR',
+          tipoTransaccion: TipoTransaccion.GANAR,
           cantidad: totalPuntosMateria,
           descripcion: `¡Completó todas las misiones de ${subject.name}!`,
           tipoOrigen: 'MATERIA_COMPLETA',

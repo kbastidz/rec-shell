@@ -19,6 +19,7 @@ import {
 import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
 import { CrearTransaccionDTO } from '../../../types/dto';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
+import { TipoTransaccion } from '../../../enums/Enums';
 
 type MateriaKey = 'ESPANOL' | 'MATEMATICAS' | 'CIENCIAS' | 'SOCIALES' | 'ARTES';
 
@@ -187,21 +188,20 @@ export  function Bingo() {
       setPuntos(p => p + puntosNuevos);
       setLineasCompletadas(lineas);
       
-      // 🟢 AGREGAR ESTA SECCIÓN:
-      // Registrar puntos por líneas completadas
-      nuevasLineas.forEach(async (linea) => {
+        const tipoPunto = { id: '1' };
+        nuevasLineas.forEach(async (linea) => {
         const transaccionData: CrearTransaccionDTO = {
-          usuario_id: usuarioId,
-          id_tipo_punto: idTipoPunto,
-          tipo_transaccion: 'GANAR',
-          cantidad: 5,
-          descripcion: `Completó ${linea.tipo} ${linea.index + 1} del Bingo`,
-          tipo_origen: 'BINGO_LINEA',
-          id_origen: linea.index,
-          metadatos: {
-            tipo_linea: linea.tipo,
-            casillas: linea.casillas
-          }
+            usuarioId: ST_GET_USER_ID(),
+            tipoPunto: tipoPunto,
+            tipoTransaccion: TipoTransaccion.GANAR,
+            cantidad: 1,
+            descripcion: `Completó ${linea.tipo} ${linea.index + 1} del Bingo`,
+            tipoOrigen: 'BINGO_LINEA',
+            idOrigen: linea.index,
+            metadatos: {
+              tipo_linea: linea.tipo,
+              casillas: linea.casillas
+            }
         };
         
         await crearTransaccion(transaccionData);
@@ -224,11 +224,11 @@ export  function Bingo() {
       const transaccionData: CrearTransaccionDTO = {
         usuarioId: ST_GET_USER_ID(),
         tipoPunto: tipoPunto,
-        tipo_transaccion: 'GANAR',
-        cantidad: 15,
+        tipoTransaccion: TipoTransaccion.GANAR,
+        cantidad: 1,
         descripcion: '¡Bingo completo! Bonus especial',
-        tipo_origen: 'BINGO_COMPLETO',
-        id_origen: 0,
+        tipoOrigen: 'BINGO_COMPLETO',
+        idOrigen: 1,
         metadatos: {
           achievement: 'bingo_completo',
           total_casillas: 25
@@ -271,11 +271,11 @@ export  function Bingo() {
     const transaccionData: CrearTransaccionDTO = {
       usuarioId: ST_GET_USER_ID(),
       tipoPunto: tipoPunto,
-      tipoTransaccion: 'GANAR',
+      tipoTransaccion: TipoTransaccion.GANAR,
       cantidad: 1,
       descripcion: `Completó acción: ${casillaSeleccionada.accion}`,
       tipoOrigen: 'BINGO',
-      idOrigen: casillaSeleccionada.id + "",
+      idOrigen: casillaSeleccionada.id,
       metadatos: {
         materia: casillaSeleccionada.materia,
         accion: casillaSeleccionada.accion,

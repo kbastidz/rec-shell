@@ -3,7 +3,8 @@ import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Ce
 import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
 import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
-import { TipoPunto } from '../../../types/model';
+import { TipoTransaccion } from '../../../enums/Enums';
+import { CrearTransaccionDTO } from '../../../types/dto';
 
 interface Question {
   q: string;
@@ -116,10 +117,10 @@ export function Trivia() {
   const handleSavePoints = async () => {
    const tipoPunto = { id: '1' };
 
-    const transaccionData = {
+      const transaccionData: CrearTransaccionDTO = {
       usuarioId: ST_GET_USER_ID(),
       tipoPunto: tipoPunto,
-      tipoTransaccion: 'GANAR' as const,
+      tipoTransaccion: TipoTransaccion.GANAR,
       cantidad: score,
       descripcion: `Puntos obtenidos en Trivia Relámpago - ${totalQuestions} preguntas`,
       tipoOrigen: 'TRIVIA',

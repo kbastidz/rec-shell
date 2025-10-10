@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Card, Text, Badge, Stack, Group, Title, Container, Paper, Alert } from '@mantine/core';
 import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
+import { TipoTransaccion } from '../../../enums/Enums';
+import { CrearTransaccionDTO } from '../../../types/dto';
 
 
 interface Actividad {
@@ -97,18 +99,15 @@ const MATERIAS: Materia[] = [
   },
 ];
 
-interface RuletaProps {
-  usuarioId: number;
-  idTipoPunto?: number; // ID del tipo de punto (por defecto puede ser 1)
-}
 
-export function Ruleta({ usuarioId, idTipoPunto = 1 }: RuletaProps) {
+
+export function Ruleta() {
   const [girando, setGirando] = useState(false);
   const [resultado, setResultado] = useState<ResultadoType | null>(null);
   const [rotacion, setRotacion] = useState(0);
   const [yaGiro, setYaGiro] = useState(false);
   const [puntosTotal, setPuntosTotal] = useState(0);
-  
+  const usuarioId = ST_GET_USER_ID();
   const { crearTransaccion, loading, error } = useTransaccionPuntos();
 
   useEffect(() => {
@@ -158,11 +157,10 @@ export function Ruleta({ usuarioId, idTipoPunto = 1 }: RuletaProps) {
         const nuevoBalance = puntosTotal + actividadSeleccionada.puntos;
         const tipoPunto = { id: '1' };
 
-        const transaccionData = {
+        const transaccionData: CrearTransaccionDTO = {
           usuarioId: ST_GET_USER_ID(),
-          //id_tipo_punto: idTipoPunto,
           tipoPunto: tipoPunto,
-          tipoTransaccion: 'GANAR',
+          tipoTransaccion: TipoTransaccion.GANAR,
           cantidad: actividadSeleccionada.puntos,
           balanceDespues: nuevoBalance,
           descripcion: `Ruleta del Saber - ${materiaSeleccionada.nombre}`,
@@ -173,8 +171,7 @@ export function Ruleta({ usuarioId, idTipoPunto = 1 }: RuletaProps) {
             actividad: actividadSeleccionada.texto.substring(0, 100),
             emoji: materiaSeleccionada.emoji,
             fecha_giro: new Date().toISOString()
-          },
-          expiraEn: null
+          }
         };
 
         await crearTransaccion(transaccionData);
