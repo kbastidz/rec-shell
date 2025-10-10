@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Container, Title, Text, Card, Group, Stack, Badge, Button, Progress, Modal, Grid, ThemeIcon, Paper, TextInput, Tabs, Divider, Center, Box, RingProgress } from '@mantine/core';
+import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
+import { ST_GET_USER_ID } from '../../../utils/utilidad';
 
 interface Mission {
   id: number;
@@ -122,10 +124,11 @@ interface ScratchCardProps {
   onComplete: () => void;
 }
 
-function ScratchCard({ reward, onComplete }: ScratchCardProps) {
+function ScratchCard({ reward, onComplete, onScratchComplete }: ScratchCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
+  const scratchCompleteCalledRef = useRef(false); 
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -186,8 +189,14 @@ function ScratchCard({ reward, onComplete }: ScratchCardProps) {
     const progress = (transparent / (pixels.length / 4)) * 100;
     setScratchProgress(progress);
     
-    if (progress > 70 && onComplete) {
-      setTimeout(() => onComplete(), 500);
+    if (progress > 70 && !scratchCompleteCalledRef.current) {
+      scratchCompleteCalledRef.current = true; // Marcar como llamado
+      if (onScratchComplete) {
+        onScratchComplete(); // Llamar callback antes de onComplete
+      }
+      if (onComplete) {
+        setTimeout(() => onComplete(), 500);
+      }
     }
   };
 
@@ -269,6 +278,9 @@ export  function RaspaGana() {
   const [showCard, setShowCard] = useState(false);
   const [currentReward, setCurrentReward] = useState<Reward | null>(null);
   const [notification, setNotification] = useState<NotificationType | null>(null);
+  const { crearTransaccion, loading } = useTransaccionPuntos();
+  const [materiasCompletadas, setMateriasCompletadas] = useState<Set<string>>(new Set());
+
 
   const generateReward = (subjectId: string): Reward => {
     const rand = Math.random();
@@ -298,7 +310,7 @@ export  function RaspaGana() {
     };
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     if (!selectedSubject) return;
     
     const currentMission = selectedSubject.missions.find(
@@ -311,11 +323,16 @@ export  function RaspaGana() {
     
     if (isCorrect) {
       const missionKey = `${selectedSubject.id}-${currentMission.id}`;
-      setCompletedMissions(prev => ({ ...prev, [missionKey]: true }));
+      const newCompletedMissions = { ...completedMissions, [missionKey]: true };
+      setCompletedMissions(newCompletedMissions);
       
       const reward = generateReward(selectedSubject.id);
       setCurrentReward(reward);
-      setUnlockedCards(prev => [...prev, { ...reward, timestamp: Date.now() }]);
+      
+      // Agregar la nueva tarjeta a las desbloqueadas
+      const newUnlockedCards = [...unlockedCards, { ...reward, timestamp: Date.now() }];
+      setUnlockedCards(newUnlockedCards);
+      
       setShowCard(true);
       setUserAnswer('');
       
@@ -327,25 +344,91 @@ export  function RaspaGana() {
     }
   };
 
-  const handleCardComplete = () => {
-    if (currentReward) {
-      setTotalPoints(prev => prev + currentReward.points);
+  // En el componente principal, modificar handleCardComplete
+  // Mantener handleCardComplete simple
+const handleCardComplete = () => {
+  if (currentReward) {
+    setTotalPoints(prev => prev + currentReward.points);
 
-      if (currentReward.badge) {
-        setCollectedBadges(prev => {
-          if (!prev.includes(currentReward.badge!)) {
-            return [...prev, currentReward.badge!];
-          }
-          return prev;
-        });
-      }
+    if (currentReward.badge && !collectedBadges.includes(currentReward.badge)) {
+      setCollectedBadges(prev => [...prev, currentReward.badge!]);
     }
+  }
 
-    setTimeout(() => {
-      setShowCard(false);
-      setCurrentReward(null);
-    }, 2000);
-  };
+  setTimeout(() => {
+    setShowCard(false);
+    setCurrentReward(null);
+  }, 2000);
+};
+
+  
+useEffect(() => {
+  // Verificar si alguna materia se acaba de completar
+  subjects.forEach(async (subject) => {
+    const allMissionsCompleted = subject.missions.every(
+      m => completedMissions[`${subject.id}-${m.id}`]
+    );
+    
+    // Si la materia está completa y NO se ha guardado antes
+    if (allMissionsCompleted && !materiasCompletadas.has(subject.id)) {
+      // Marcar como completada
+      setMateriasCompletadas(prev => new Set(prev).add(subject.id));
+      
+      const totalPuntosMateria = subject.missions.reduce(
+        (sum, mission) => sum + mission.points, 
+        0
+      );
+      
+      const progresoGeneral = Math.round(
+        subjects.reduce((acc, s) => {
+          const progress = (s.missions.filter(m => completedMissions[`${s.id}-${m.id}`]).length / s.missions.length) * 100;
+          return acc + progress;
+        }, 0) / subjects.length
+      );
+
+      const progresoMaterias = subjects.map(s => ({
+        materia_id: s.id,
+        materia_nombre: s.name,
+        progreso: Math.round((s.missions.filter(m => completedMissions[`${s.id}-${m.id}`]).length / s.missions.length) * 100),
+        misiones_completadas: s.missions.filter(m => completedMissions[`${s.id}-${m.id}`]).length,
+        total_misiones: s.missions.length
+      }));
+      
+      const tipoPunto = { id: '1' };
+        const transaccionData = {
+          usuarioId: ST_GET_USER_ID(),
+          tipoPunto: tipoPunto,
+          tipoTransaccion: 'GANAR',
+          cantidad: totalPuntosMateria,
+          descripcion: `¡Completó todas las misiones de ${subject.name}!`,
+          tipoOrigen: 'MATERIA_COMPLETA',
+          idOrigen: 1,
+          metadatos: {
+            materia: subject.name,
+            materia_id: subject.id,
+            total_misiones: subject.missions.length,
+            puntos_materia: totalPuntosMateria,
+            progreso_materia: 100,
+            progreso_general: progresoGeneral,
+            progreso_por_materia: progresoMaterias,
+            insignias_totales: collectedBadges.length,
+            insignias_obtenidas: collectedBadges,
+            tarjetas_desbloqueadas: unlockedCards.length,
+            tarjetas_detalle: unlockedCards.map(card => ({
+              rareza: card.rarity.name,
+              puntos: card.points,
+              insignia: card.badge
+            })),
+            puntos_totales_acumulados: totalPoints,
+            misiones_completadas_total: Object.keys(completedMissions).length
+          }
+        }
+      await crearTransaccion(transaccionData);
+    }
+  });
+}, [completedMissions, collectedBadges, unlockedCards, totalPoints]);
+
+
 
   const getSubjectProgress = (subjectId: string) => {
     const subject = subjects.find(s => s.id === subjectId);
@@ -639,7 +722,10 @@ export  function RaspaGana() {
 
             <Text ta="center" c="dimmed">Rasca la tarjeta para revelar tu recompensa</Text>
             {currentReward && (
-              <ScratchCard reward={currentReward} onComplete={handleCardComplete} />
+              <ScratchCard 
+                reward={currentReward} 
+                onComplete={handleCardComplete}
+              />
             )}
           </Stack>
         </Modal>

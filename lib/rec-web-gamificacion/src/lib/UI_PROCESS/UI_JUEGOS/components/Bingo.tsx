@@ -16,6 +16,9 @@ import {
   Notification,
   FileButton,
 } from '@mantine/core';
+import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
+import { CrearTransaccionDTO } from '../../../types/dto';
+import { ST_GET_USER_ID } from '../../../utils/utilidad';
 
 type MateriaKey = 'ESPANOL' | 'MATEMATICAS' | 'CIENCIAS' | 'SOCIALES' | 'ARTES';
 
@@ -168,6 +171,8 @@ export  function Bingo() {
   const [lineasCompletadas, setLineasCompletadas] = useState<Linea[]>([]);
   const [notificacion, setNotificacion] = useState<Notificacion | null>(null);
   const [insignias, setInsignias] = useState<string[]>([]);
+  const { crearTransaccion, loading: loadingTransaccion } = useTransaccionPuntos();
+
 
   useEffect(() => {
     const lineas = detectarLineasCompletadas(tablero);
@@ -182,6 +187,26 @@ export  function Bingo() {
       setPuntos(p => p + puntosNuevos);
       setLineasCompletadas(lineas);
       
+      // 🟢 AGREGAR ESTA SECCIÓN:
+      // Registrar puntos por líneas completadas
+      nuevasLineas.forEach(async (linea) => {
+        const transaccionData: CrearTransaccionDTO = {
+          usuario_id: usuarioId,
+          id_tipo_punto: idTipoPunto,
+          tipo_transaccion: 'GANAR',
+          cantidad: 5,
+          descripcion: `Completó ${linea.tipo} ${linea.index + 1} del Bingo`,
+          tipo_origen: 'BINGO_LINEA',
+          id_origen: linea.index,
+          metadatos: {
+            tipo_linea: linea.tipo,
+            casillas: linea.casillas
+          }
+        };
+        
+        await crearTransaccion(transaccionData);
+      });
+      
       setNotificacion({
         mensaje: `¡${nuevasLineas.length} línea(s) completada(s)! +${puntosNuevos} pts`,
         color: 'green'
@@ -194,12 +219,31 @@ export  function Bingo() {
     if (tablero.every(c => c.completada) && !insignias.includes('bingo_completo')) {
       setPuntos(p => p + 15);
       setInsignias([...insignias, 'bingo_completo']);
+      
+       const tipoPunto = { id: '1' };
+      const transaccionData: CrearTransaccionDTO = {
+        usuarioId: ST_GET_USER_ID(),
+        tipoPunto: tipoPunto,
+        tipo_transaccion: 'GANAR',
+        cantidad: 15,
+        descripcion: '¡Bingo completo! Bonus especial',
+        tipo_origen: 'BINGO_COMPLETO',
+        id_origen: 0,
+        metadatos: {
+          achievement: 'bingo_completo',
+          total_casillas: 25
+        }
+      };
+      
+      crearTransaccion(transaccionData);
+      
       setNotificacion({
         mensaje: '🏆 ¡BINGO COMPLETO! +15 pts bonus',
         color: 'yellow'
       });
     }
-  }, [tablero, lineasCompletadas, insignias]);
+  }, [tablero, lineasCompletadas, insignias, crearTransaccion]);
+
 
   const abrirModal = (casilla: Casilla) => {
     setCasillaSeleccionada(casilla);
@@ -208,21 +252,40 @@ export  function Bingo() {
     setArchivo(null);
   };
 
-  const completarCasilla = () => {
-    if (!casillaSeleccionada) return;
+  const completarCasilla = async () => {
+  if (!casillaSeleccionada) return;
 
-    if (!evidenciaTexto && !archivo) {
-      alert('Por favor agrega una evidencia (texto o archivo)');
-      return;
-    }
+  if (!evidenciaTexto && !archivo) {
+    alert('Por favor agrega una evidencia (texto o archivo)');
+    return;
+  }
+  
+  const nuevoTablero = tablero.map(c => 
+    c.id === casillaSeleccionada.id 
+      ? { ...c, completada: true, evidencia: { texto: evidenciaTexto, archivo } }
+      : c
+  );
+  
+  setTablero(nuevoTablero);
+     const tipoPunto = { id: '1' };
+    const transaccionData: CrearTransaccionDTO = {
+      usuarioId: ST_GET_USER_ID(),
+      tipoPunto: tipoPunto,
+      tipoTransaccion: 'GANAR',
+      cantidad: 1,
+      descripcion: `Completó acción: ${casillaSeleccionada.accion}`,
+      tipoOrigen: 'BINGO',
+      idOrigen: casillaSeleccionada.id + "",
+      metadatos: {
+        materia: casillaSeleccionada.materia,
+        accion: casillaSeleccionada.accion,
+        evidencia: evidenciaTexto,
+        archivo_nombre: archivo?.name || null
+      }
+    };
+  
+    await crearTransaccion(transaccionData);
     
-    const nuevoTablero = tablero.map(c => 
-      c.id === casillaSeleccionada.id 
-        ? { ...c, completada: true, evidencia: { texto: evidenciaTexto, archivo } }
-        : c
-    );
-    
-    setTablero(nuevoTablero);
     setModalAbierto(false);
   };
 
@@ -412,6 +475,8 @@ export  function Bingo() {
               size="md"
               gradient={{ from: 'teal', to: 'blue', deg: 90 }}
               variant="gradient"
+              loading={loadingTransaccion}
+              disabled={loadingTransaccion}
             >
               <span role="img" aria-label="completada">✅</span> Marcar como completada
             </Button>

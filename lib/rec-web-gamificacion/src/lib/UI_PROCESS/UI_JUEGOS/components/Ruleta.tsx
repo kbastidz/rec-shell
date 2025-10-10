@@ -156,7 +156,7 @@ export function Ruleta({ usuarioId, idTipoPunto = 1 }: RuletaProps) {
       // Crear transacción de puntos en la base de datos
       try {
         const nuevoBalance = puntosTotal + actividadSeleccionada.puntos;
-         const tipoPunto = { id: '1' };
+        const tipoPunto = { id: '1' };
 
         const transaccionData = {
           usuarioId: ST_GET_USER_ID(),
