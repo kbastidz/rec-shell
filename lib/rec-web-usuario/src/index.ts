@@ -27,3 +27,4 @@ export { CreateRoleModal } from './lib/components/role/POST/CreateRoleModal';
 export { RoleManagement } from './lib/components/role/POST/RoleManagement';
 
 export * from './lib/types/auth.types';
+export { MenuUser } from './lib/components/MenuUser';

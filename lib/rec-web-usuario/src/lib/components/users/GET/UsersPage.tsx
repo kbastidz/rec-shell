@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Container,
   Title,
-  Button,
   Group,
-  Stack
+  Stack,
+  Box,
+  Tooltip,
+  ActionIcon
 } from '@mantine/core';
 import {
   IconRefresh,
@@ -13,7 +14,7 @@ import {
 import { useUsers } from '../../../hooks/useUsers';
 import { User } from '../../../types/users.types';
 import { RoleManagementModal } from '../ROLE/RoleManagementModal';
-import { DataSummary, ErrorAlert, LoadingScreen } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DataSummary, ErrorAlert, LoadingScreen } from '@rec-shell/rec-web-shared';
 import { UsersFilters } from './UsersFilters';
 import { UsersTable } from './UsersTable';
 import { EditUserModal } from '../PUT/EditUserModal';
@@ -81,7 +82,7 @@ export const UsersPage: React.FC = () => {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Box p="md">
       <Stack gap="lg">
         {/* Header */}
         <Group justify="space-between" align="center">
@@ -91,13 +92,10 @@ export const UsersPage: React.FC = () => {
               Gestión de Usuarios
             </Group>
           </Title>
-          <Button
-            leftSection={<IconRefresh size={16} />}
+          <ActionButtons.Refresh 
             onClick={refreshUsers}
-            loading={loading}
-          >
-            Actualizar
-          </Button>
+            loading={loading} 
+          />
         </Group>
 
         {/* Error Alert */}
@@ -144,6 +142,6 @@ export const UsersPage: React.FC = () => {
           itemName="usuarios"
         />
       </Stack>
-    </Container>
+    </Box>
   );
 };

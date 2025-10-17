@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Title,
-  Button,
   Table,
   ActionIcon,
   Modal,
@@ -20,7 +18,6 @@ import {
   Box
 } from '@mantine/core';
 import {
-  IconPlus,
   IconEdit,
   IconTrash,
   IconEye,
@@ -28,10 +25,10 @@ import {
   IconX,
   IconExclamationMark
 } from '@tabler/icons-react';
-import { useDeficienciaNutriente } from '../hooks/useAgricultura';
 import { DeficienciaNutriente } from '../../types/model';
 import { DeficienciaNutrienteInput } from '../../types/dto';
-import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { useAgricultura } from '../hooks/useAgricultura';
 
 export const NutrienteAdmin = () => {
   const {
@@ -45,14 +42,14 @@ export const NutrienteAdmin = () => {
     activar,
     desactivar,
     clearError
-  } = useDeficienciaNutriente();
+  } = useAgricultura();
 
- 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalDetalle, setModalDetalle] = useState(false);
   const [modalELIMINAR, setModalELIMINAR] = useState(false);
   const [deficienciaSeleccionada, setDeficienciaSeleccionada] = useState<DeficienciaNutriente | null>(null);
   const [editando, setEditando] = useState(false);
+  const notifications = useNotifications();
   
   const [formulario, setFormulario] = useState<DeficienciaNutrienteInput>({
     codigo: '',
@@ -63,7 +60,6 @@ export const NutrienteAdmin = () => {
     activo: true
   });
 
-  
   useEffect(() => {
     BUSCAR();
   }, []);
@@ -108,17 +104,14 @@ export const NutrienteAdmin = () => {
   };
 
   const handlerSubmit = async () => {
-    
     if (editando && deficienciaSeleccionada) {
-      const resultado = await ACTUALIZAR(deficienciaSeleccionada.id.toString(), formulario);
-      if (resultado) {
-        cerrarModal();
-      }
+      await ACTUALIZAR(deficienciaSeleccionada.id.toString(), formulario);
+      notifications.success();
+      cerrarModal();
     } else {
-      const resultado = await CREAR(formulario);
-      if (resultado) {
-        cerrarModal();
-      }
+      await CREAR(formulario);
+      notifications.success();
+      cerrarModal();
     }
   };
 
@@ -126,17 +119,47 @@ export const NutrienteAdmin = () => {
     if (deficienciaSeleccionada) {
       const exito = await ELIMINAR(deficienciaSeleccionada.id.toString());
       if (exito) {
+        notifications.show({
+          title: 'Éxito',
+          message: 'Registro eliminado correctamente',
+          color: 'green',
+          icon: <IconCheck size={16} />
+        });
         setModalELIMINAR(false);
         setDeficienciaSeleccionada(null);
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: error || 'No se pudo eliminar el registro',
+          color: 'red',
+          icon: <IconX size={16} />
+        });
       }
     }
   };
 
   const cambiarEstado = async (deficiencia: DeficienciaNutriente) => {
+    let resultado;
     if (deficiencia.activo) {
-      await desactivar(deficiencia.id.toString());
+      resultado = await desactivar(deficiencia.id.toString());
     } else {
-      await activar(deficiencia.id.toString());
+      resultado = await activar(deficiencia.id.toString());
+    }
+    
+    if (resultado) {
+      notifications.show({
+        title: 'Éxito',
+        message: `Registro ${deficiencia.activo ? 'desactivado' : 'activado'} correctamente`,
+        color: 'green',
+        icon: <IconCheck size={16} />
+      });
+    } else {
+      notifications.show({
+        title: 'Error',
+        message: error || 'No se pudo cambiar el estado',
+        color: 'red',
+        icon: <IconX size={16} />
+      });
     }
   };
 
@@ -198,12 +221,10 @@ export const NutrienteAdmin = () => {
     <Box p="md">
       <Flex justify="space-between" align="center" mb="lg">
         <Title order={2}>Gestión de Deficiencias de Nutrientes</Title>
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={() => abrirModal()}
-        >
-          Registrar
-        </Button>
+        
+        <ActionButtons.Modal 
+          onClick={() => abrirModal()}               
+        />
       </Flex>
 
       {error && (
@@ -298,19 +319,15 @@ export const NutrienteAdmin = () => {
               onChange={(e) => setFormulario(prev => ({ ...prev, nutrienteDeficiente: e.target.value }))}
             />
             
-           <Switch
-            label="Activo"
-            checked={formulario.activo}
-            onChange={(e) => setFormulario(prev => ({ ...prev, activo: e.target.checked }))}
+            <Switch
+              label="Activo"
+              checked={formulario.activo}
+              onChange={(e) => setFormulario(prev => ({ ...prev, activo: e.target.checked }))}
             />
 
-            <Group justify="flex-end" mt="md">
-              <Button variant="light" onClick={cerrarModal}>
-                Cancelar
-              </Button>
-              <Button onClick={handlerSubmit} loading={loading}>
-                {editando ? 'ACTUALIZAR' : 'Crear'}
-              </Button>
+            <Group justify="center" mt="md">
+              <ActionButtons.Cancel onClick={cerrarModal} />
+              <ActionButtons.Save onClick={handlerSubmit} loading={loading} />
             </Group>
           </Stack>
         </div>
@@ -374,8 +391,6 @@ export const NutrienteAdmin = () => {
         itemName={deficienciaSeleccionada?.nombre || ""}
         itemType="cultivo"
       />
-     
     </Box>
   );
 };
-

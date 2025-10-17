@@ -12,6 +12,7 @@ import {
 import { useForm } from '@mantine/form';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { Permission } from '../../../types/role.types';
+import { ActionButtons } from '@rec-shell/rec-web-shared';
 
 interface CreateRoleModalProps {
   opened: boolean;
@@ -32,7 +33,7 @@ export const CreateRoleModal = ({
   onSubmit,
   loading = false,
   availablePermissions = [],
-  permissionsLoading = false
+  permissionsLoading = false,
 }: CreateRoleModalProps) => {
   const [error, setError] = useState<string | null>(null);
 
@@ -83,59 +84,57 @@ export const CreateRoleModal = ({
       title="Crear nuevo rol"
       size="md"
     >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          {error && (
-            <Alert
-              icon={<IconAlertCircle size="1rem" />}
-              title="Error"
-              color="red"
-              variant="light"
-            >
-              {error}
-            </Alert>
-          )}
+      <Stack gap="md">
+        {error && (
+          <Alert
+            icon={<IconAlertCircle size="1rem" />}
+            title="Error"
+            color="red"
+            variant="light"
+          >
+            {error}
+          </Alert>
+        )}
 
-          <TextInput
-            label="Nombre del rol"
-            placeholder="Introduzca el nombre del rol (e.g., MODERATOR, ADMIN)"
-            required
-            {...form.getInputProps('name')}
+        <TextInput
+          label="Nombre del rol"
+          placeholder="Introduzca el nombre del rol (e.g., MODERATOR, ADMIN)"
+          required
+          {...form.getInputProps('name')}
+        />
+
+        <Textarea
+          label="Descripción"
+          placeholder="Ingrese la descripción del rol"
+          required
+          rows={3}
+          {...form.getInputProps('description')}
+        />
+
+        <MultiSelect
+          label="Permisos"
+          placeholder={
+            permissionsLoading
+              ? 'Cargando permisos...'
+              : 'Select permisos (opcional)'
+          }
+          data={permissionOptions}
+          {...form.getInputProps('permissionIds')}
+          searchable
+          clearable
+          disabled={permissionsLoading}
+          description="Seleccione uno o más permisos para este rol"
+        />
+
+        <Group justify="center" mt="md">
+          <ActionButtons.Cancel onClick={handleClose} disabled={loading} />
+
+          <ActionButtons.Save
+            onClick={() => form.onSubmit(handleSubmit)()}
+            disabled={loading}
           />
-
-          <Textarea
-            label="Descripción"
-            placeholder="Ingrese la descripción del rol"
-            required
-            rows={3}
-            {...form.getInputProps('description')}
-          />
-
-          <MultiSelect
-            label="Permisos"
-            placeholder={
-              permissionsLoading
-                ? 'Cargando permisos...'
-                : 'Select permisos (opcional)'
-            }
-            data={permissionOptions}
-            {...form.getInputProps('permissionIds')}
-            searchable
-            clearable
-            disabled={permissionsLoading}
-            description="Seleccione uno o más permisos para este rol"
-          />
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="light" onClick={handleClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={loading}>
-              Registrar
-            </Button>
-          </Group>
-        </Stack>
-      </form>
+        </Group>
+      </Stack>
     </Modal>
   );
 };

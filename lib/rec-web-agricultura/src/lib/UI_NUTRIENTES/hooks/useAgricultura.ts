@@ -1,18 +1,19 @@
 import { useState } from 'react';
-
 import { DeficienciaNutriente } from '../../types/model';
 import { service } from '../services/agricultura.service';
 import { DeficienciaNutrienteInput } from '../../types/dto';
 import { GET_ERROR } from '../../utils/utils';
 
-export const useDeficienciaNutriente = () => {
+export const useAgricultura = () => {
   const [deficiencias, setDeficiencias] = useState<DeficienciaNutriente[]>([]);
   const [deficiencia, setDeficiencia] = useState<DeficienciaNutriente | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  
   const handleError = (err: unknown) => {
-    setError(GET_ERROR(error));
+    setError(GET_ERROR(err));
+    console.error('Error en operación:', err);
   };
 
   const clearError = () => setError(null);
@@ -21,9 +22,14 @@ export const useDeficienciaNutriente = () => {
     try {
       setLoading(true);
       clearError();
+      
       const nuevaDeficiencia = await service.POST(data);
-      setDeficiencias(prev => [...prev, nuevaDeficiencia]);
-      return nuevaDeficiencia;
+      
+      if (nuevaDeficiencia) {
+        setDeficiencias(prev => [...prev, nuevaDeficiencia]);
+        return nuevaDeficiencia;
+      }
+      return null;
     } catch (err) {
       handleError(err);
       return null;
@@ -32,7 +38,6 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  
   const BUSCAR_ID = async (id: string): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);
@@ -48,7 +53,6 @@ export const useDeficienciaNutriente = () => {
     }
   };
 
-  
   const buscarPorCodigo = async (codigo: string): Promise<DeficienciaNutriente | null> => {
     try {
       setLoading(true);

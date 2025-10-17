@@ -238,7 +238,7 @@ export function AdminTemplate({
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">Admin Panel</h1>
+            <h1 className="text-xl font-bold text-blue-600">Panel Administrativo</h1>
           </div>
 
           {/* Menú horizontal - visible en pantallas medianas y grandes */}

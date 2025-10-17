@@ -1,10 +1,10 @@
 import { AdminTemplate } from '@rec-shell/rec-web-layout';
-import { RoleManagement, UserManagement } from '@rec-shell/rec-web-usuario';
+import { MenuUser, RoleManagement, UserManagement } from '@rec-shell/rec-web-usuario';
 import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
-import {  MenuPague } from '@rec-shell/rec-web-agricultura';
-import {  Juegos } from '@rec-shell/rec-web-gamificacion';
+//import {  MenuPague } from '@rec-shell/rec-web-agricultura';
+import { MenuPague } from '@rec-shell/rec-web-gamificacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',
@@ -15,9 +15,9 @@ type UserRole = typeof ROLES[keyof typeof ROLES];
 const rolePermissions = {
   [ROLES.ADMIN]: {
     UserComponent: UserManagement,
-    RoleComponent: RoleManagement,
-    CultivoComponent: MenuPague, 
-    CategoriaComponent: Juegos
+    RoleComponent: MenuPague,
+    CultivoComponent: MenuUser, 
+    CategoriaComponent: MenuPague
   },
   [ROLES.MODERATOR]: {
     UserComponent: UserManagement,

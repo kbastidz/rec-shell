@@ -11,16 +11,10 @@ import {
   Box,
   Button,
 } from '@mantine/core';
+import { RoleManagement } from './role/POST/RoleManagement';
+import { UsersPage } from './users/GET/UsersPage';
+import { UserManagement } from './users/POST/UserManagement';
 
-
-import { MonitoreoAdmin } from './UI_MONITOREO/components/MonitoreoAdmin';
-import { CultivosAdmin } from './UI_CULTIVO/components/CultivosAdmin';
-import { MedidaAdmin } from './UI_MEDIDA/components/MedidaAdmin';
-import { NutrienteAdmin } from './UI_NUTRIENTES/components/NutrienteAdmin';
-import { SeguimientosAdmin } from './UI_SEGUIMIENTO/components/SeguimientosAdmin';
-import { TratamientosAdmin } from './UI_TRATANIENTO/components/TratamientosAdmin';
-import { Listar } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Listar';
-import { Analisis } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -28,72 +22,32 @@ interface ComponentWithNavigation {
 
 const menuItems = [
   { 
-    icon: '🌱', 
-    label: 'Cultivos', 
-    value: 'cultivos',
-    color: 'green',
-    description: 'Gestiona los cultivos del sistema',
-    component: CultivosAdmin
-  },
-  { 
-    icon: '💧', 
-    label: 'Nutrientes', 
-    value: 'nutrientes',
+    icon: '👤', 
+    label: 'Registrar Usuario', 
+    value: 'registrar-usuario',
     color: 'blue',
-    description: 'Administra nutrientes y fertilizantes',
-    component: NutrienteAdmin
+    description: 'Registra nuevos usuarios en el sistema',
+    component: UserManagement
   },
   { 
-    icon: '💊', 
-    label: 'Tratamientos', 
-    value: 'tratamientos',
-    color: 'violet',
-    description: 'Configura tratamientos y aplicaciones',
-    component: TratamientosAdmin
-  },
-  { 
-    icon: '📏', 
-    label: 'Medidas', 
-    value: 'medidas',
+    icon: '👥', 
+    label: 'Consultar Usuarios', 
+    value: 'consultar-usuarios',
     color: 'cyan',
-    description: 'Define unidades de medida',
-    component: MedidaAdmin
+    description: 'Visualiza y gestiona usuarios existentes',
+    component: UsersPage
   },
   { 
-    icon: '📋', 
-    label: 'Seguimientos', 
-    value: 'seguimientos',
-    color: 'orange',
-    description: 'Rastrea el progreso de cultivos',
-    component: SeguimientosAdmin
-  },
-  { 
-    icon: '📊', 
-    label: 'Monitoreo', 
-    value: 'monitoreo',
-    color: 'teal',
-    description: 'Visualiza datos y estadísticas',
-    component: MonitoreoAdmin
-  },
-  { 
-    icon: '🧪', 
-    label: 'Análisis', 
-    value: 'analisis',
-    color: 'purple',
-    description: 'Analiza el estado de las hojas de cacao (detección de enfermedades)',
-    component: Analisis
-  },
-  { 
-    icon: '📋', 
-    label: 'Consultas de Análisis', 
-    value: 'listar',
-    color: 'blue',
-    description: 'Consulta los resultados de los análisis realizados',
-    component: Listar
+    icon: '🔐', 
+    label: 'Gestión de Roles', 
+    value: 'roles',
+    color: 'grape',
+    description: 'Administra roles y permisos del sistema',
+    component: RoleManagement
   }
 ];
 
-export function MenuPague({ onNavigate }: ComponentWithNavigation) {
+export function MenuUser({ onNavigate }: ComponentWithNavigation) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   if (activeSection) {
@@ -122,14 +76,14 @@ export function MenuPague({ onNavigate }: ComponentWithNavigation) {
       <Stack gap="xl">
         <Box>
           <Title order={1} mb="xs">
-            Sistema de Gestión Agrícola
+            Administración de Usuarios
           </Title>
           <Text c="dimmed" size="lg">
-            Bienvenido al panel de administración. Selecciona una sección para comenzar.
+            Gestiona usuarios, roles y permisos del sistema.
           </Text>
         </Box>
 
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 3 }} spacing="xl">
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
           {menuItems.map((item) => (
             <Card
               key={item.value}
@@ -178,12 +132,7 @@ export function MenuPague({ onNavigate }: ComponentWithNavigation) {
 }
 
 export {
-  NutrienteAdmin,
-  TratamientosAdmin,
-  MedidaAdmin,
-  CultivosAdmin,
-  SeguimientosAdmin,
-  MonitoreoAdmin,
-  Analisis,
-  Listar
+  UserManagement,
+  UsersPage,
+  RoleManagement
 };

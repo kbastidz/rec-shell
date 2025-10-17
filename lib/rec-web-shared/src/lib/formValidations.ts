@@ -26,7 +26,7 @@ export const signUpValidations = {
       : null,
   
   phoneNumber: (value: string) =>
-    !/^\+?[1-9]\d{1,14}$/.test(value)
+    !/^\+?[0-9]\d{1,14}$/.test(value)
       ? 'Número de teléfono inválido'
       : null,
 };

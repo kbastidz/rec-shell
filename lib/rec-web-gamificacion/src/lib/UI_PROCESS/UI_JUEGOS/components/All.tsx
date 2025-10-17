@@ -34,7 +34,7 @@ import {
   IconX,
   IconStar
 } from '@tabler/icons-react';
-
+/*
 export const PerfilAdmin = () => {
   const [userPoints, setUserPoints] = useState(2500);
   const [activeGame, setActiveGame] = useState(null);
@@ -276,6 +276,8 @@ export const PerfilAdmin = () => {
     <Container size="xl" py="xl">
       <Stack gap="xl">
         {/* Header */}
+
+        /*
         <Group justify="space-between" align="center">
           <div>
             <Title order={1}>🎮 Mini-Juegos</Title>
@@ -294,6 +296,8 @@ export const PerfilAdmin = () => {
 
         <Tabs defaultValue="wheel">
           {/* RULETA DIARIA */}
+
+          /*
           <Tabs.List>
             <Tabs.Tab value="wheel" leftSection={<IconDice size={16} />}>
               Ruleta Diaria
@@ -409,6 +413,8 @@ export const PerfilAdmin = () => {
           </Tabs.Panel>
 
           {/* RASCA Y GANA */}
+
+          /*
           <Tabs.Panel value="scratch" pt="xl">
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
               {scratchCards.map(card => (
@@ -487,6 +493,8 @@ export const PerfilAdmin = () => {
           </Tabs.Panel>
 
           {/* TRIVIA */}
+
+          /*
           <Tabs.Panel value="trivia" pt="xl">
             <Card shadow="sm" padding="xl" radius="md" withBorder maw={600} mx="auto">
               {!triviaQuestion ? (
@@ -553,6 +561,8 @@ export const PerfilAdmin = () => {
           </Tabs.Panel>
 
           {/* ADIVINA EL NÚMERO */}
+
+          /*
           <Tabs.Panel value="guess" pt="xl">
             <Grid>
               <Grid.Col span={{ base: 12, md: 6 }}>
@@ -617,6 +627,7 @@ export const PerfilAdmin = () => {
           </Tabs.Panel>
 
           {/* BINGO */}
+          /*
           <Tabs.Panel value="bingo" pt="xl">
             <Card shadow="sm" padding="xl" radius="md" withBorder maw={600} mx="auto">
               <Stack>
@@ -669,3 +680,4 @@ export const PerfilAdmin = () => {
     </Container>
   );
 };
+*/

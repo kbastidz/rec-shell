@@ -16,10 +16,11 @@ import {
   Notification,
   FileButton,
 } from '@mantine/core';
-import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
+
 import { CrearTransaccionDTO } from '../../../types/dto';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
+import { useTransaccionPuntos } from '../hooks/useGamificacion';
 
 type MateriaKey = 'ESPANOL' | 'MATEMATICAS' | 'CIENCIAS' | 'SOCIALES' | 'ARTES';
 

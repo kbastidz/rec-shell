@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Container,
   Title,
   Button,
   Table,
@@ -17,20 +16,35 @@ import {
   Text,
   Alert,
   Box,
+  Divider,
+  Badge,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconEdit, IconTrash, IconPlus, IconAlertCircle } from '@tabler/icons-react';
+import {
+  IconEdit,
+  IconTrash,
+  IconAlertCircle,
+  IconDeviceFloppy,
+  IconX,
+  IconCurrencyDollar,
+  IconAlignLeft,
+  IconCalendar,
+  IconClock,
+  IconDroplet,
+  IconFlask,
+  IconPlant,
+} from '@tabler/icons-react';
 import { useTratamientos } from '../hooks/useAgricultura';
 import { Tratamiento } from '../../types/model';
-import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
-
-export  function TratamientosAdmin() {
-  const { tratamientos, loading, error, CREAR, ACTUALIZAR, ELIMINAR, BUSCAR } = useTratamientos();
+export function TratamientosAdmin() {
+  const { tratamientos, loading, error, CREAR, ACTUALIZAR, ELIMINAR, BUSCAR } =
+    useTratamientos();
   const [modalOpened, setModalOpened] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [deletingTratamiento, setDeletingTratamiento] = useState<Tratamiento | null>(null);
-  
+  const [deletingTratamiento, setDeletingTratamiento] =
+    useState<Tratamiento | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -106,12 +120,7 @@ export  function TratamientosAdmin() {
       <Paper shadow="sm" p="md" radius="md" withBorder>
         <Group justify="space-between" mb="xl">
           <Title order={2}>Gestión de Tratamientos</Title>
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={() => handleOpenModal()}
-          >
-            Registrar
-          </Button>
+          <ActionButtons.Modal onClick={() => handleOpenModal()} />
         </Group>
 
         {error && (
@@ -122,7 +131,7 @@ export  function TratamientosAdmin() {
 
         <div style={{ position: 'relative' }}>
           <LoadingOverlay visible={loading} />
-          
+
           <Table striped highlightOnHover withTableBorder withColumnBorders>
             <Table.Thead>
               <Table.Tr>
@@ -143,8 +152,13 @@ export  function TratamientosAdmin() {
                   <Table.Td>{tratamiento.tipoTratamiento || '-'}</Table.Td>
                   <Table.Td>{tratamiento.dosisRecomendada}</Table.Td>
                   <Table.Td>{tratamiento.frecuenciaAplicacion || '-'}</Table.Td>
-                  <Table.Td>{tratamiento.tiempoEfectividadDias || '-'}</Table.Td>
-                  <Table.Td>${tratamiento.costoEstimadoPorHectarea?.toFixed(2) || '0.00'}</Table.Td>
+                  <Table.Td>
+                    {tratamiento.tiempoEfectividadDias || '-'}
+                  </Table.Td>
+                  <Table.Td>
+                    $
+                    {tratamiento.costoEstimadoPorHectarea?.toFixed(2) || '0.00'}
+                  </Table.Td>
                   <Table.Td>
                     <Text c={tratamiento.activo ? 'green' : 'red'} fw={500}>
                       {tratamiento.activo ? 'Activo' : 'Inactivo'}
@@ -185,72 +199,245 @@ export  function TratamientosAdmin() {
       <Modal
         opened={modalOpened}
         onClose={handleCloseModal}
-        title={editingId ? 'Editar Registro' : 'Nuevo Registro'}
+        title={
+          <Group gap="xs">
+            <IconPlant size={24} stroke={1.5} style={{ color: '#40c057' }} />
+            <span style={{ fontSize: '1.2rem', fontWeight: 600 }}>
+              {editingId ? 'Editar Registro' : 'Nuevo Registro'}
+            </span>
+            {editingId && (
+              <Badge color="blue" variant="light">
+                Editando
+              </Badge>
+            )}
+          </Group>
+        }
         size="lg"
+        radius="md"
+        padding="xl"
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        transitionProps={{ transition: 'fade', duration: 200 }}
       >
-        <Stack gap="md">
-          <TextInput
-            label="Nombre del Tratamiento"
-            placeholder="Ej: Fertilizante NPK"
-            required
-            {...form.getInputProps('nombreTratamiento')}
-          />
+        <Stack gap="lg">
+          {/* Sección: Información Básica */}
+          <div>
+            <Group gap="xs" mb="md">
+              <div
+                style={{
+                  width: 4,
+                  height: 20,
+                  backgroundColor: '#40c057',
+                  borderRadius: 2,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  color: '#495057',
+                }}
+              >
+                Información Básica
+              </span>
+            </Group>
 
-          <TextInput
-            label="Tipo de Tratamiento"
-            placeholder="Ej: Fertilizante, Fungicida"
-            {...form.getInputProps('tipoTratamiento')}
-          />
+            <Stack gap="md">
+              <TextInput
+                label="Nombre del Tratamiento"
+                placeholder="Ej: Fertilizante NPK"
+                required
+                leftSection={<IconPlant size={18} stroke={1.5} />}
+                styles={{
+                  input: {
+                    borderRadius: '8px',
+                    '&:focus': {
+                      borderColor: '#40c057',
+                    },
+                  },
+                }}
+                {...form.getInputProps('nombreTratamiento')}
+              />
 
-          <Textarea
-            label="Descripción"
-            placeholder="Describe el tratamiento..."
-            minRows={3}
-            {...form.getInputProps('descripcion')}
-          />
+              <TextInput
+                label="Tipo de Tratamiento"
+                placeholder="Ej: Fertilizante, Fungicida"
+                leftSection={<IconFlask size={18} stroke={1.5} />}
+                styles={{
+                  input: {
+                    borderRadius: '8px',
+                    '&:focus': {
+                      borderColor: '#40c057',
+                    },
+                  },
+                }}
+                {...form.getInputProps('tipoTratamiento')}
+              />
 
-          <TextInput
-            label="Dosis Recomendada"
-            placeholder="Ej: 200 kg/ha"
-            required
-            {...form.getInputProps('dosisRecomendada')}
-          />
+              <Textarea
+                label="Descripción"
+                placeholder="Describe el tratamiento y sus beneficios..."
+                minRows={3}
+                leftSection={<IconAlignLeft size={18} stroke={1.5} />}
+                styles={{
+                  input: {
+                    borderRadius: '8px',
+                    '&:focus': {
+                      borderColor: '#40c057',
+                    },
+                  },
+                }}
+                {...form.getInputProps('descripcion')}
+              />
+            </Stack>
+          </div>
 
-          <TextInput
-            label="Frecuencia de Aplicación"
-            placeholder="Ej: Cada 30 días"
-            {...form.getInputProps('frecuenciaAplicacion')}
-          />
+          <Divider />
 
-          <NumberInput
-            label="Tiempo de Efectividad (días)"
-            placeholder="30"
-            min={0}
-            {...form.getInputProps('tiempoEfectividadDias')}
-          />
+          {/* Sección: Dosificación y Frecuencia */}
+          <div>
+            <Group gap="xs" mb="md">
+              <div
+                style={{
+                  width: 4,
+                  height: 20,
+                  backgroundColor: '#228be6',
+                  borderRadius: 2,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  color: '#495057',
+                }}
+              >
+                Dosificación y Aplicación
+              </span>
+            </Group>
 
-          <NumberInput
-            label="Costo Estimado por Hectárea"
-            placeholder="0.00"
-            min={0}
-            decimalScale={2}
-            fixedDecimalScale
-            prefix="$ "
-            {...form.getInputProps('costoEstimadoPorHectarea')}
-          />
+            <Stack gap="md">
+              <TextInput
+                label="Dosis Recomendada"
+                placeholder="Ej: 200 kg/ha"
+                required
+                leftSection={<IconDroplet size={18} stroke={1.5} />}
+                styles={{
+                  input: {
+                    borderRadius: '8px',
+                    '&:focus': {
+                      borderColor: '#228be6',
+                    },
+                  },
+                }}
+                {...form.getInputProps('dosisRecomendada')}
+              />
 
-          <Switch
-            label="Tratamiento Activo"
-            {...form.getInputProps('activo', { type: 'checkbox' })}
-          />
+              <TextInput
+                label="Frecuencia de Aplicación"
+                placeholder="Ej: Cada 30 días"
+                leftSection={<IconCalendar size={18} stroke={1.5} />}
+                styles={{
+                  input: {
+                    borderRadius: '8px',
+                    '&:focus': {
+                      borderColor: '#228be6',
+                    },
+                  },
+                }}
+                {...form.getInputProps('frecuenciaAplicacion')}
+              />
 
-          <Group justify="flex-end" mt="md">
-            <Button variant="light" onClick={handleCloseModal}>
-              Cancelar
-            </Button>
-            <Button onClick={() => handleSubmit(form.values)} loading={loading}>
-              {editingId ? 'Actualizar' : 'Crear'}
-            </Button>
+              <NumberInput
+                label="Tiempo de Efectividad (días)"
+                placeholder="30"
+                min={0}
+                leftSection={<IconClock size={18} stroke={1.5} />}
+                styles={{
+                  input: {
+                    borderRadius: '8px',
+                    '&:focus': {
+                      borderColor: '#228be6',
+                    },
+                  },
+                }}
+                {...form.getInputProps('tiempoEfectividadDias')}
+              />
+            </Stack>
+          </div>
+
+          <Divider />
+
+          {/* Sección: Información Financiera */}
+          <div>
+            <Group gap="xs" mb="md">
+              <div
+                style={{
+                  width: 4,
+                  height: 20,
+                  backgroundColor: '#fd7e14',
+                  borderRadius: 2,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  color: '#495057',
+                }}
+              >
+                Información Financiera
+              </span>
+            </Group>
+
+            <NumberInput
+              label="Costo Estimado por Hectárea"
+              placeholder="0.00"
+              min={0}
+              decimalScale={2}
+              fixedDecimalScale
+              prefix="$ "
+              leftSection={<IconCurrencyDollar size={18} stroke={1.5} />}
+              styles={{
+                input: {
+                  borderRadius: '8px',
+                  fontWeight: 500,
+                  '&:focus': {
+                    borderColor: '#fd7e14',
+                  },
+                },
+              }}
+              {...form.getInputProps('costoEstimadoPorHectarea')}
+            />
+          </div>
+
+          <Divider />
+
+          <div
+            style={{
+              backgroundColor: '#f8f9fa',
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e9ecef',
+            }}
+          >
+            <Switch
+              label="Tratamiento Activo"
+              description="Indica si este tratamiento está disponible para uso"
+              size="md"
+              color="teal"
+              {...form.getInputProps('activo', { type: 'checkbox' })}
+            />
+          </div>
+
+          <Group justify="center" mt="md" gap="sm">
+            <ActionButtons.Cancel onClick={handleCloseModal} />
+            <ActionButtons.Save
+              onClick={() => handleSubmit(form.values)}
+              loading={loading}
+            />
           </Group>
         </Stack>
       </Modal>
@@ -264,9 +451,8 @@ export  function TratamientosAdmin() {
             await handleDelete(deletingTratamiento.id);
           }
         }}
-        itemName={deletingTratamiento?.nombreTratamiento || "Registro"}
+        itemName={deletingTratamiento?.nombreTratamiento || 'Registro'}
       />
-
     </Box>
   );
 }

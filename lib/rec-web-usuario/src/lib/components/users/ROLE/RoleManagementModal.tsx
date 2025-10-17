@@ -4,7 +4,6 @@ import {
   Title,
   Stack,
   Group,
-  Button,
   Text,
   Alert,
   Loader,
@@ -14,7 +13,6 @@ import {
   ScrollArea,
 } from '@mantine/core';
 import {
-  IconPlus,
   IconAlertCircle,
   IconUser,
   IconShield,
@@ -25,6 +23,7 @@ import { User } from '../../../types/users.types';
 import {
   useNotifications,
   NOTIFICATION_MESSAGES,
+  ActionButtons,
 } from '@rec-shell/rec-web-shared';
 import { UserRolesList } from './UserRolesList';
 import { RoleSelector } from './RoleSelector';
@@ -199,15 +198,11 @@ export const RoleManagementModal = ({
                   />
 
                   <Group justify="flex-end">
-                    <Button
-                      leftSection={<IconPlus size={16} />}
-                      onClick={handleAssignRole}
+                    <ActionButtons.Add 
+                      onClick={handleAssignRole} 
                       disabled={!selectedRoleId}
                       loading={assigningRole}
-                      variant="filled"
-                    >
-                      Asignar Rol
-                    </Button>
+                    />
                   </Group>
                 </Stack>
               )}
@@ -216,10 +211,11 @@ export const RoleManagementModal = ({
         )}
 
         {/* Actions */}
-        <Group justify="flex-end" mt="md">
-          <Button variant="subtle" onClick={onClose}>
-            Cerrar
-          </Button>
+        <Group justify="center" mt="md">
+          <ActionButtons.Cancel 
+            onClick={onClose} 
+            disabled={loading} 
+          />
         </Group>
       </Stack>
     </Modal>

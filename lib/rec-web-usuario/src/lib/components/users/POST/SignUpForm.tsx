@@ -4,7 +4,6 @@ import {
   Title,
   TextInput,
   PasswordInput,
-  Button,
   Group,
   Stack,
   Box,
@@ -12,11 +11,11 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconCheck, IconMail, IconUser, IconPhone } from '@tabler/icons-react';
-import { Search } from 'lucide-react';
-import { NOTIFICATION_MESSAGES, SignUpFormValues, signUpValidations, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, NOTIFICATION_MESSAGES, SignUpFormValues, signUpValidations, useNotifications } from '@rec-shell/rec-web-shared';
 import { useSignUp } from '../../../hooks/useSignUp';
 import { SignUpFormProps } from '../../../types/auth.types';
 import { FormErrorAlert } from '../../common/FormErrorAlert';
+
 
 interface ExtendedSignUpFormProps extends SignUpFormProps {
   onNavigateToUsers?: () => void;
@@ -71,9 +70,11 @@ export const SignUpForm: React.FC<ExtendedSignUpFormProps> = ({
 
         <Group justify="space-between" align="center" mb="md">
           <Title>Crear Cuenta</Title>
-          <Button loading={loading} onClick={() => form.onSubmit(handleSubmit)()}>
-            Registrarse
-          </Button>
+          
+          <ActionButtons.Save 
+            onClick={() => form.onSubmit(handleSubmit)()} 
+            loading={loading} 
+          />
         </Group>
 
         <FormErrorAlert error={error} onClose={() => setError('')} />
@@ -136,8 +137,15 @@ export const SignUpForm: React.FC<ExtendedSignUpFormProps> = ({
                 {...form.getInputProps('confirmPassword')}
               />
             </Group>
+          </Stack>
+        </Box>
+      </Paper>
+    </div>
+  );
+};
 
-            {onNavigateToUsers && (
+/*
+{onNavigateToUsers && (
           <Group justify="center" mt="lg">
             <Button 
               variant="light" 
@@ -148,10 +156,4 @@ export const SignUpForm: React.FC<ExtendedSignUpFormProps> = ({
             </Button>
           </Group>
         )}
-
-          </Stack>
-        </Box>
-      </Paper>
-    </div>
-  );
-};
+*/

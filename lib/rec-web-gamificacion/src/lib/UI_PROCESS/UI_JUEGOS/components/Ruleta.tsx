@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Text, Badge, Stack, Group, Title, Container, Paper, Alert } from '@mantine/core';
-import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
+
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
 import { CrearTransaccionDTO } from '../../../types/dto';
+import { useTransaccionPuntos } from '../hooks/useGamificacion';
 
 
 interface Actividad {

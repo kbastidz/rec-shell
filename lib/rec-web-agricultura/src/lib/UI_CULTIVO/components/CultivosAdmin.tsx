@@ -20,21 +20,21 @@ import {
   Card,
   Grid,
   Textarea,
-  Box
+  Box,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { 
-  IconPlus, 
-  IconSearch, 
-  IconEdit, 
-  IconTrash, 
+import {
+  IconPlus,
+  IconSearch,
+  IconEdit,
+  IconTrash,
   IconAlertCircle,
   IconLeaf,
-  IconMapPin
+  IconMapPin,
 } from '@tabler/icons-react';
 import { useCultivos } from '../hooks/useAgricultura';
 import { CultivoFormData } from '../../types/dto';
-import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
 export const CultivosAdmin = () => {
   const [opened, { open, close }] = useDisclosure(false);
@@ -56,7 +56,7 @@ export const CultivosAdmin = () => {
     tipoSuelo: '',
     sistemaRiego: '',
     estadoCultivo: 'ACTIVO',
-    notas: ''
+    notas: '',
   });
 
   const {
@@ -69,7 +69,7 @@ export const CultivosAdmin = () => {
     ELIMINAR,
     BUSCAR,
     fetchAreaTotalActiva,
-    clearError
+    clearError,
   } = useCultivos();
 
   useEffect(() => {
@@ -79,10 +79,11 @@ export const CultivosAdmin = () => {
     }
   }, []);
 
-  const cultivosFiltrados = cultivos.filter(c =>
-    c.nombreCultivo?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    c.variedadCacao?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    c.ubicacionNombre?.toLowerCase().includes(busqueda.toLowerCase())
+  const cultivosFiltrados = cultivos.filter(
+    (c) =>
+      c.nombreCultivo?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      c.variedadCacao?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      c.ubicacionNombre?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const handleNuevo = () => {
@@ -100,7 +101,7 @@ export const CultivosAdmin = () => {
       tipoSuelo: '',
       sistemaRiego: '',
       estadoCultivo: 'ACTIVO',
-      notas: ''
+      notas: '',
     });
     open();
   };
@@ -120,7 +121,7 @@ export const CultivosAdmin = () => {
       tipoSuelo: cultivo.tipoSuelo || '',
       sistemaRiego: cultivo.sistemaRiego || '',
       estadoCultivo: cultivo.estadoCultivo || 'ACTIVO',
-      notas: cultivo.notas || ''
+      notas: cultivo.notas || '',
     });
     open();
   };
@@ -169,13 +170,12 @@ export const CultivosAdmin = () => {
       ACTIVO: 'green',
       INACTIVO: 'gray',
       COSECHADO: 'blue',
-      SUSPENDIDO: 'red'
+      SUSPENDIDO: 'red',
     };
     return <Badge color={colores[estado] || 'gray'}>{estado}</Badge>;
   };
 
   return (
-    
     <Box p="md">
       <Stack gap="lg">
         <Grid>
@@ -189,7 +189,9 @@ export const CultivosAdmin = () => {
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Card withBorder>
-              <Text size="sm" c="dimmed">Área Total Activa</Text>
+              <Text size="sm" c="dimmed">
+                Área Total Activa
+              </Text>
               <Text size="xl" fw={700}>
                 {areaTotalActiva ? areaTotalActiva.toFixed(2) : '0.00'} ha
               </Text>
@@ -198,9 +200,9 @@ export const CultivosAdmin = () => {
         </Grid>
 
         {error && (
-          <Alert 
-            icon={<IconAlertCircle size={16} />} 
-            title="Error" 
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            title="Error"
             color="red"
             withCloseButton
             onClose={clearError}
@@ -223,12 +225,7 @@ export const CultivosAdmin = () => {
               onChange={(e) => setBusqueda(e.currentTarget.value)}
               style={{ flex: 1, minWidth: 200 }}
             />
-            <Button 
-              leftSection={<IconPlus size={16} />}
-              onClick={handleNuevo}
-            >
-              Registrar
-            </Button>
+            <ActionButtons.Modal onClick={handleNuevo} loading={loading} />
           </Flex>
         </Paper>
 
@@ -262,19 +259,27 @@ export const CultivosAdmin = () => {
                         <Text fw={500}>{cultivo.nombreCultivo}</Text>
                       </Table.Td>
                       <Table.Td>{cultivo.variedadCacao || '-'}</Table.Td>
-                      <Table.Td>{cultivo.areaHectareas?.toFixed(2) || '0.00'}</Table.Td>
+                      <Table.Td>
+                        {cultivo.areaHectareas?.toFixed(2) || '0.00'}
+                      </Table.Td>
                       <Table.Td>
                         {cultivo.ubicacionNombre ? (
                           <Group gap="xs">
                             <IconMapPin size={14} />
                             <Text size="sm">{cultivo.ubicacionNombre}</Text>
                           </Group>
-                        ) : '-'}
+                        ) : (
+                          '-'
+                        )}
                       </Table.Td>
                       <Table.Td>
-                        {cultivo.fechaSiembra ? new Date(cultivo.fechaSiembra).toLocaleDateString() : '-'}
+                        {cultivo.fechaSiembra
+                          ? new Date(cultivo.fechaSiembra).toLocaleDateString()
+                          : '-'}
                       </Table.Td>
-                      <Table.Td>{getEstadoBadge(cultivo.estadoCultivo)}</Table.Td>
+                      <Table.Td>
+                        {getEstadoBadge(cultivo.estadoCultivo)}
+                      </Table.Td>
                       <Table.Td>
                         <Group gap="xs">
                           <ActionIcon
@@ -307,148 +312,230 @@ export const CultivosAdmin = () => {
         opened={opened}
         onClose={close}
         title={modoEdicion ? 'Editar Registro' : 'Nuevo Registro'}
-        size="lg"
+        size="90%"
       >
         <Stack gap="md">
-          <TextInput
-            label="Nombre del Cultivo"
-            placeholder="Ej: Cacao Nacional"
-            required
-            value={formData.nombreCultivo}
-            onChange={(e) => setFormData({ ...formData, nombreCultivo: e.currentTarget.value })}
-          />
-          
-          <TextInput
-            label="Variedad de Cacao"
-            placeholder="Ej: CCN-51, Nacional Fino"
-            value={formData.variedadCacao}
-            onChange={(e) => setFormData({ ...formData, variedadCacao: e.currentTarget.value })}
-          />
+          {/* Sección: Información Básica */}
+          <Paper p="md" withBorder>
+            <Text size="sm" fw={600} mb="sm" c="dimmed">
+              INFORMACIÓN BÁSICA
+            </Text>
+            
+            <Stack gap="sm">
+              <Grid>
+                <Grid.Col span={{ base: 12, sm: 6 }}>
+                  <TextInput
+                    label="Nombre del Cultivo"
+                    placeholder="Ej: Cacao Nacional"
+                    required
+                    value={formData.nombreCultivo}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        nombreCultivo: e.currentTarget.value,
+                      })
+                    }
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 6 }}>
+                  <TextInput
+                    label="Variedad de Cacao"
+                    placeholder="Ej: CCN-51, Nacional Fino"
+                    value={formData.variedadCacao}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        variedadCacao: e.currentTarget.value,
+                      })
+                    }
+                  />
+                </Grid.Col>
+              </Grid>
 
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Área (hectáreas)"
-                placeholder="0.0"
-                required
-                min={0}
-                step={0.1}
-                decimalScale={2}
-                value={formData.areaHectareas}
-                onChange={(val) => setFormData({ ...formData, areaHectareas: typeof val === 'number' ? val : 0 })}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
+              <Grid>
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <NumberInput
+                    label="Área (hectáreas)"
+                    placeholder="0.0"
+                    required
+                    min={0}
+                    step={0.1}
+                    decimalScale={2}
+                    value={formData.areaHectareas}
+                    onChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        areaHectareas: typeof val === 'number' ? val : 0,
+                      })
+                    }
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <TextInput
+                    label="Fecha de Siembra"
+                    type="date"
+                    required
+                    value={formData.fechaSiembra}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        fechaSiembra: e.currentTarget.value,
+                      })
+                    }
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <Select
+                    label="Estado del Cultivo"
+                    required
+                    value={formData.estadoCultivo}
+                    onChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        estadoCultivo: val || 'ACTIVO',
+                      })
+                    }
+                    data={[
+                      { value: 'ACTIVO', label: 'Activo' },
+                      { value: 'INACTIVO', label: 'Inactivo' },
+                      { value: 'COSECHADO', label: 'Cosechado' },
+                    ]}
+                  />
+                </Grid.Col>
+              </Grid>
+            </Stack>
+          </Paper>
+
+          {/* Sección: Ubicación */}
+          <Paper p="md" withBorder>
+            <Text size="sm" fw={600} mb="sm" c="dimmed">
+              UBICACIÓN
+            </Text>
+            <Stack gap="sm">
               <TextInput
-                label="Fecha de Siembra"
-                type="date"
-                required
-                value={formData.fechaSiembra}
-                onChange={(e) => setFormData({ ...formData, fechaSiembra: e.currentTarget.value })}
+                label="Nombre de Ubicación"
+                placeholder="Ej: Parcela Norte, Lote 5"
+                value={formData.ubicacionNombre}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    ubicacionNombre: e.currentTarget.value,
+                  })
+                }
               />
-            </Grid.Col>
-          </Grid>
 
-          <TextInput
-            label="Nombre de Ubicación"
-            placeholder="Ej: Parcela Norte, Lote 5"
-            value={formData.ubicacionNombre}
-            onChange={(e) => setFormData({ ...formData, ubicacionNombre: e.currentTarget.value })}
-          />
+              <Grid>
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <NumberInput
+                    label="Latitud"
+                    placeholder="-2.1234"
+                    step={0.000001}
+                    decimalScale={6}
+                    value={formData.latitud}
+                    onChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        latitud: typeof val === 'number' ? val : 0,
+                      })
+                    }
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <NumberInput
+                    label="Longitud"
+                    placeholder="-79.1234"
+                    step={0.000001}
+                    decimalScale={6}
+                    value={formData.longitud}
+                    onChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        longitud: typeof val === 'number' ? val : 0,
+                      })
+                    }
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <NumberInput
+                    label="Altitud (m)"
+                    placeholder="500"
+                    min={0}
+                    value={formData.altitud}
+                    onChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        altitud: typeof val === 'number' ? val : undefined,
+                      })
+                    }
+                  />
+                </Grid.Col>
+              </Grid>
+            </Stack>
+          </Paper>
 
-          <Grid>
-            <Grid.Col span={4}>
-              <NumberInput
-                label="Latitud"
-                placeholder="-2.1234"
-                step={0.000001}
-                decimalScale={6}
-                value={formData.latitud}
-                onChange={(val) => setFormData({ ...formData, latitud: typeof val === 'number' ? val : 0 })}
-              />
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <NumberInput
-                label="Longitud"
-                placeholder="-79.1234"
-                step={0.000001}
-                decimalScale={6}
-                value={formData.longitud}
-                onChange={(val) => setFormData({ ...formData, longitud: typeof val === 'number' ? val : 0 })}
-              />
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <NumberInput
-                label="Altitud (m)"
-                placeholder="500"
-                min={0}
-                value={formData.altitud}
-                onChange={(val) => setFormData({ ...formData, altitud: typeof val === 'number' ? val : undefined })}
-              />
-            </Grid.Col>
-          </Grid>
+          {/* Sección: Características del Terreno */}
+          <Paper p="md" withBorder>
+            <Text size="sm" fw={600} mb="sm" c="dimmed">
+              CARACTERÍSTICAS DEL TERRENO
+            </Text>
+            <Grid>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Select
+                  label="Tipo de Suelo"
+                  placeholder="Seleccione tipo de suelo"
+                  value={formData.tipoSuelo}
+                  onChange={(val) =>
+                    setFormData({ ...formData, tipoSuelo: val || '' })
+                  }
+                  data={[
+                    { value: 'ARCILLOSO', label: 'Arcilloso' },
+                    { value: 'ARENOSO', label: 'Arenoso' },
+                    { value: 'LIMOSO', label: 'Limoso' },
+                    { value: 'FRANCO', label: 'Franco' },
+                    { value: 'HUMIFERO', label: 'Humífero' },
+                  ]}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Select
+                  label="Sistema de Riego"
+                  placeholder="Seleccione sistema"
+                  value={formData.sistemaRiego}
+                  onChange={(val) =>
+                    setFormData({ ...formData, sistemaRiego: val || '' })
+                  }
+                  data={[
+                    { value: 'GOTEO', label: 'Goteo' },
+                    { value: 'ASPERSION', label: 'Aspersión' },
+                    { value: 'GRAVEDAD', label: 'Gravedad' },
+                    { value: 'MICROASPERSION', label: 'Microaspersión' },
+                    { value: 'NATURAL', label: 'Natural (lluvia)' },
+                  ]}
+                />
+              </Grid.Col>
+            </Grid>
+          </Paper>
 
-          <Grid>
-            <Grid.Col span={6}>
-              <Select
-                label="Tipo de Suelo"
-                placeholder="Seleccione tipo de suelo"
-                value={formData.tipoSuelo}
-                onChange={(val) => setFormData({ ...formData, tipoSuelo: val || '' })}
-                data={[
-                  { value: 'ARCILLOSO', label: 'Arcilloso' },
-                  { value: 'ARENOSO', label: 'Arenoso' },
-                  { value: 'LIMOSO', label: 'Limoso' },
-                  { value: 'FRANCO', label: 'Franco' },
-                  { value: 'HUMIFERO', label: 'Humífero' }
-                ]}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Select
-                label="Sistema de Riego"
-                placeholder="Seleccione sistema"
-                value={formData.sistemaRiego}
-                onChange={(val) => setFormData({ ...formData, sistemaRiego: val || '' })}
-                data={[
-                  { value: 'GOTEO', label: 'Goteo' },
-                  { value: 'ASPERSION', label: 'Aspersión' },
-                  { value: 'GRAVEDAD', label: 'Gravedad' },
-                  { value: 'MICROASPERSION', label: 'Microaspersión' },
-                  { value: 'NATURAL', label: 'Natural (lluvia)' }
-                ]}
-              />
-            </Grid.Col>
-          </Grid>
+          {/* Sección: Observaciones */}
+          <Paper p="md" withBorder>
+            <Text size="sm" fw={600} mb="sm" c="dimmed">
+              OBSERVACIONES
+            </Text>
+            <Textarea
+              label="Notas"
+              placeholder="Observaciones adicionales sobre el cultivo..."
+              minRows={3}
+              value={formData.notas}
+              onChange={(e) =>
+                setFormData({ ...formData, notas: e.currentTarget.value })
+              }
+            />
+          </Paper>
 
-          <Select
-            label="Estado del Cultivo"
-            required
-            value={formData.estadoCultivo}
-            onChange={(val) => setFormData({ ...formData, estadoCultivo: val || 'ACTIVO' })}
-            data={[
-              { value: 'ACTIVO', label: 'Activo' },
-              { value: 'INACTIVO', label: 'Inactivo' },
-              { value: 'COSECHADO', label: 'Cosechado' },
-              { value: 'SUSPENDIDO', label: 'Suspendido' }
-            ]}
-          />
-
-          <Textarea
-            label="Notas"
-            placeholder="Observaciones adicionales sobre el cultivo..."
-            minRows={3}
-            value={formData.notas}
-            onChange={(e) => setFormData({ ...formData, notas: e.currentTarget.value })}
-          />
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={close}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSubmit}>
-              {modoEdicion ? 'Actualizar' : 'Crear'}
-            </Button>
+          {/* Botones de Acción */}
+          <Group justify="center" mt="md">
+            <ActionButtons.Cancel onClick={close} />
+            <ActionButtons.Save onClick={handleSubmit} loading={loading} />
           </Group>
         </Stack>
       </Modal>
@@ -461,7 +548,6 @@ export const CultivosAdmin = () => {
         itemName={cultivoAEliminar?.nombreCultivo || ''}
         itemType="registro"
       />
-      
     </Box>
   );
 };

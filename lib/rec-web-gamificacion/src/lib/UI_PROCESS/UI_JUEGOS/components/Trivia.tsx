@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Center, Paper, ThemeIcon, Alert } from '@mantine/core';
 import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
-import { useTransaccionPuntos } from '../../UI_PERFIL_USUARIO/hooks/useGamificacion';
+
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
 import { CrearTransaccionDTO } from '../../../types/dto';
+import { useTransaccionPuntos } from '../hooks/useGamificacion';
 
 interface Question {
   q: string;

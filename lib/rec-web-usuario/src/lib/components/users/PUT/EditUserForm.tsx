@@ -10,6 +10,8 @@ import {
   Box,
   LoadingOverlay,
   Select,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
@@ -22,6 +24,7 @@ import {
 
 
 import {
+  ActionButtons,
   NOTIFICATION_MESSAGES,
   useNotifications,
 } from '@rec-shell/rec-web-shared';
@@ -157,23 +160,17 @@ export const EditUserForm: React.FC<EditUserFormProps> = ({
 
         <Group justify="space-between" align="center" mb="md">
           <Title order={2}>Editar Usuario</Title>
-          <Group>
-            <Button
-              variant="light"
-              leftSection={<IconArrowLeft size={16} />}
-              onClick={onCancel}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              loading={loading}
-              onClick={() => form.onSubmit(handleSubmit)()}
-              leftSection={<IconCheck size={16} />}
-            >
-              Guardar Cambios
-            </Button>
-          </Group>
+          <Group gap="sm">
+          
+          <ActionButtons.Cancel 
+            onClick={onCancel} 
+            disabled={loading} 
+          />
+          <ActionButtons.Update 
+            onClick={() => form.onSubmit(handleSubmit)()} 
+            loading={loading} 
+          />
+        </Group>
         </Group>
 
         <FormErrorAlert error={error} onClose={() => onClearError?.()} />

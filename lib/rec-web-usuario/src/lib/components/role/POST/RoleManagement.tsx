@@ -13,6 +13,7 @@ import { usePermissions } from '../../../hooks/usePermissions';
 import { useRoles } from '../../../hooks/useRoles';
 import { RoleList } from '../GET/RoleList';
 import { CreateRoleModal } from './CreateRoleModal';
+import { ActionButtons } from '@rec-shell/rec-web-shared';
 
 export const RoleManagement = () => {
   const { roles, loading, error, fetchRoles, createRole } = useRoles();
@@ -38,21 +39,15 @@ export const RoleManagement = () => {
           </div>
           
           <Group>
-            <ActionIcon
-              variant="light"
-              size="lg"
-              onClick={fetchRoles}
-              loading={loading}
-            >
-              <IconRefresh size="1.1rem" />
-            </ActionIcon>
             
-            <Button
-              leftSection={<IconPlus size="1rem" />}
-              onClick={() => setCreateModalOpened(true)}
-            >
-              Crear Rol
-            </Button>
+            <ActionButtons.Refresh 
+              onClick={fetchRoles}
+              loading={loading}               
+            />
+            
+            <ActionButtons.Modal 
+              onClick={() => setCreateModalOpened(true)}               
+            />
           </Group>
         </Group>
 
