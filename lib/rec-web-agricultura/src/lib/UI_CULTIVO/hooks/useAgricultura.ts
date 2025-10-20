@@ -10,6 +10,7 @@ import { ST_GET_USER_ID } from '../../utils/utils';
 
 interface UseCultivosActions {
   BUSCAR: (filtros?: CultivoFilters) => Promise<void>;
+  LISTAR: () => Promise<void>;
   BUSCAR_ID: (id: string) => Promise<void>;
   fetchAreaTotalActiva: () => Promise<void>;
   isExistencia: (id: string) => Promise<boolean>;
@@ -37,6 +38,7 @@ export const useCultivos = (filtrosIniciales?: CultivoFilters): UseCultivosState
   const notifications = useNotifications();
   const handleError = useHandleError<UseCultivosState>();
   
+  
   const BUSCAR = useCallback(async (filtros?: CultivoFilters) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
@@ -49,6 +51,16 @@ export const useCultivos = (filtrosIniciales?: CultivoFilters): UseCultivosState
       handleError(error, setState);
     }
   }, [currentFilters, handleError]);
+
+  const LISTAR = useCallback(async () => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      const data = await service.GET();
+      setState(prev => ({ ...prev, cultivos: Array.isArray(data) ? data : []  , loading: false }));
+    } catch (error: unknown) {
+      handleError(error, setState);
+    }
+  }, [handleError]);
 
   const BUSCAR_ID = useCallback(async (id: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
@@ -179,6 +191,7 @@ export const useCultivos = (filtrosIniciales?: CultivoFilters): UseCultivosState
 
   return {
     ...state,
+    LISTAR,
     BUSCAR,
     BUSCAR_ID,
     fetchAreaTotalActiva,

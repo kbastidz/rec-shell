@@ -20,13 +20,15 @@ import {
   Flex,
   Text,
   Tooltip,
-  Box
+  Box,
+  Divider
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconPlus, IconEdit, IconTrash, IconEye, IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 import { ParametroMonitoreo } from '../../types/model';
 import { useParametrosMonitoreo, useParametrosMonitoreoCRUD } from '../hooks/useAgricultura';
-import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { useCultivos } from '../../UI_CULTIVO/hooks/useAgricultura';
 
 const ParametroModal: React.FC<{
   opened: boolean;
@@ -39,7 +41,8 @@ const ParametroModal: React.FC<{
   const form = useForm({
     initialValues: {
       cultivoId: '',
-      fechaMedicion: new Date(),
+      //fechaMedicion: new Date(),
+      fechaMedicion: new Date().toISOString().split('T')[0],
       humedadSuelo: 0,
       humedadAmbiente: 0,
       temperatura: 0,
@@ -84,8 +87,11 @@ const ParametroModal: React.FC<{
     if (opened) {
       if (parametro) {
         form.setValues({
-          cultivoId: parametro.cultivoId || '',
-          fechaMedicion: parametro.fechaMedicion ? new Date(parametro.fechaMedicion) : new Date(),
+          cultivoId: parametro.cultivoId ? parametro.cultivoId.toString() : '',
+          //fechaMedicion: parametro.fechaMedicion ? new Date(parametro.fechaMedicion) : new Date(),
+          fechaMedicion: parametro.fechaMedicion 
+          ? parametro.fechaMedicion.split('T')[0] 
+          : new Date().toISOString().split('T')[0],
           humedadSuelo: parametro.humedadSuelo,
           humedadAmbiente: parametro.humedadAmbiente,
           temperatura: parametro.temperatura,
@@ -111,18 +117,23 @@ const ParametroModal: React.FC<{
     onSubmit(formData);
   };
 
-  const cultivosOptions = useMemo(() => [
-    { value: '1', label: 'Cacao Trinitario - Finca San Miguel' },
-    { value: '2', label: 'Cacao Nacional - Finca El Dorado' },
-    { value: '3', label: 'Cacao CCN-51 - Finca La Esperanza' }
-  ], []);
-
   const fuentesOptions = useMemo(() => [
     { value: 'Sensor Automático', label: 'Sensor Automático' },
     { value: 'Medición Manual', label: 'Medición Manual' },
     { value: 'Estación Meteorológica', label: 'Estación Meteorológica' },
     { value: 'Satelital', label: 'Satelital' }
   ], []);
+
+  //Ref 1 Consumir hook para combo v1
+  const { cultivos, LISTAR } = useCultivos();
+  useEffect(() => {
+    LISTAR();
+  }, []);
+  const listCultivos = cultivos.map(cultivo => ({
+    value: cultivo.id.toString(), 
+    label: `${cultivo.nombreCultivo} - ${cultivo.variedadCacao}` 
+  }));
+  //Ref 1 Consumir hook para combo v1
 
   return (
     <Modal
@@ -133,131 +144,144 @@ const ParametroModal: React.FC<{
       centered
     >
       <LoadingOverlay visible={loading} />
-      <Box component="form" onSubmit={form.onSubmit(handleSubmit)}>
+      <Box component="form">
         <Stack gap="md">
-          <Grid>
-            <Grid.Col span={6}>
-              <Select
-                label="Cultivo"
-                placeholder="Seleccionar cultivo"
-                data={cultivosOptions}
-                searchable
-                required
-                {...form.getInputProps('cultivoId')}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <TextInput
-                label="Fecha Medición"
-                type="date"
-                {...form.getInputProps('fechaMedicion')}
-                required
-              />
-            </Grid.Col>
-          </Grid>
+          {/* Información General */}
+          <div>
+            <Text size="sm" fw={600} mb="xs" c="dimmed">Información General</Text>
+            <Grid>
+              <Grid.Col span={6}>
+                <Select
+                  label="Cultivo"
+                  placeholder="Seleccione un cultivo"
+                  data={listCultivos}
+                  {...form.getInputProps('cultivoId')}
+                  required
+                  searchable
+                />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <TextInput
+                  label="Fecha de Medición"
+                  type="date"
+                  {...form.getInputProps('fechaMedicion')}
+                  required
+                />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <Select
+                  label="Fuente de Datos"
+                  placeholder="Seleccionar fuente"
+                  data={fuentesOptions}
+                  required
+                  {...form.getInputProps('fuenteDatos')}
+                />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <TextInput
+                  label="Coordenadas GPS"
+                  placeholder="lat,lng (ej: -2.1894,-79.8965)"
+                  {...form.getInputProps('coordenadasGps')}
+                />
+              </Grid.Col>
+            </Grid>
+          </div>
 
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Humedad del Suelo (%)"
-                placeholder="0-100"
-                min={0}
-                max={100}
-                decimalScale={1}
-                {...form.getInputProps('humedadSuelo')}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Humedad Ambiente (%)"
-                placeholder="0-100"
-                min={0}
-                max={100}
-                decimalScale={1}
-                {...form.getInputProps('humedadAmbiente')}
-              />
-            </Grid.Col>
-          </Grid>
+          <Divider />
 
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Temperatura (°C)"
-                placeholder="-50 a 60"
-                min={-50}
-                max={60}
-                decimalScale={1}
-                {...form.getInputProps('temperatura')}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="pH del Suelo"
-                placeholder="0-14"
-                min={0}
-                max={14}
-                decimalScale={1}
-                {...form.getInputProps('phSuelo')}
-              />
-            </Grid.Col>
-          </Grid>
+          {/* Condiciones del Suelo */}
+          <div>
+            <Text size="sm" fw={600} mb="xs" c="dimmed">Condiciones del Suelo</Text>
+            <Grid>
+              <Grid.Col span={6}>
+                <NumberInput
+                  label="Humedad del Suelo (%)"
+                  placeholder="0-100"
+                  min={0}
+                  max={100}
+                  decimalScale={1}
+                  {...form.getInputProps('humedadSuelo')}
+                />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <NumberInput
+                  label="pH del Suelo"
+                  placeholder="0-14"
+                  min={0}
+                  max={14}
+                  decimalScale={1}
+                  {...form.getInputProps('phSuelo')}
+                />
+              </Grid.Col>
+            </Grid>
+          </div>
 
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Precipitación (mm)"
-                placeholder="0+"
-                min={0}
-                decimalScale={1}
-                {...form.getInputProps('precipitacionMm')}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Horas de Sol"
-                placeholder="0-24"
-                min={0}
-                max={24}
-                decimalScale={1}
-                {...form.getInputProps('horasSol')}
-              />
-            </Grid.Col>
-          </Grid>
+          <Divider />
 
-          <Grid>
-            <Grid.Col span={6}>
-              <NumberInput
-                label="Velocidad del Viento (km/h)"
-                placeholder="0+"
-                min={0}
-                decimalScale={1}
-                {...form.getInputProps('velocidadVientoKmh')}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Select
-                label="Fuente de Datos"
-                placeholder="Seleccionar fuente"
-                data={fuentesOptions}
-                required
-                {...form.getInputProps('fuenteDatos')}
-              />
-            </Grid.Col>
-          </Grid>
+          {/* Condiciones Ambientales */}
+          <div>
+            <Text size="sm" fw={600} mb="xs" c="dimmed">Condiciones Ambientales</Text>
+            <Grid>
+              <Grid.Col span={6}>
+                <NumberInput
+                  label="Temperatura (°C)"
+                  placeholder="-50 a 60"
+                  min={-50}
+                  max={60}
+                  decimalScale={1}
+                  {...form.getInputProps('temperatura')}
+                />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <NumberInput
+                  label="Humedad Ambiente (%)"
+                  placeholder="0-100"
+                  min={0}
+                  max={100}
+                  decimalScale={1}
+                  {...form.getInputProps('humedadAmbiente')}
+                />
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <NumberInput
+                  label="Precipitación (mm)"
+                  placeholder="0+"
+                  min={0}
+                  decimalScale={1}
+                  {...form.getInputProps('precipitacionMm')}
+                />
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <NumberInput
+                  label="Horas de Sol"
+                  placeholder="0-24"
+                  min={0}
+                  max={24}
+                  decimalScale={1}
+                  {...form.getInputProps('horasSol')}
+                />
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <NumberInput
+                  label="Velocidad del Viento (km/h)"
+                  placeholder="0+"
+                  min={0}
+                  decimalScale={1}
+                  {...form.getInputProps('velocidadVientoKmh')}
+                />
+              </Grid.Col>
+            </Grid>
+          </div>
 
-          <TextInput
-            label="Coordenadas GPS"
-            placeholder="lat,lng (ej: -2.1894,-79.8965)"
-            {...form.getInputProps('coordenadasGps')}
-          />
-
-          <Group justify="flex-end" mt="md">
-            <Button variant="light" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" loading={loading}>
-              {parametro ? 'Actualizar' : 'Crear'}
-            </Button>
+          <Group justify="center" mt="md">
+            <ActionButtons.Cancel 
+              onClick={onClose} 
+              loading={loading} 
+            />
+            <ActionButtons.Save 
+              onClick={() => form.onSubmit(handleSubmit)()} 
+              loading={loading} 
+            />
           </Group>
         </Stack>
       </Box>     
@@ -305,7 +329,7 @@ const DetalleParametroModal: React.FC<{
     <Modal
       opened={opened}
       onClose={onClose}
-      title={<Title order={3}>Detalle del Parámetro</Title>}
+      title={"Detalle del Parámetro"}
       size="lg"
       centered
     >
@@ -549,18 +573,14 @@ export const MonitoreoAdmin: React.FC = () => {
         <Flex justify="space-between" align="center">
           <Title order={2}>Parámetros de Monitoreo</Title>
           <Group>
-            <Tooltip label="Actualizar datos">
-              <Button 
-                variant="light" 
-                leftSection={<IconRefresh size="1rem" />} 
-                onClick={handleRefresh}
-                loading={refreshing}
-                aria-label="Actualizar"
-              />
-            </Tooltip>
-            <Button leftSection={<IconPlus size="1rem" />} onClick={handleCreate}>
-              Registrar
-            </Button>
+            <ActionButtons.Refresh 
+              onClick={handleRefresh}
+              loading={refreshing} 
+            />
+            
+            <ActionButtons.Modal 
+              onClick={handleCreate}             
+            />
           </Group>
         </Flex>
 

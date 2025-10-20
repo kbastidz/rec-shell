@@ -22,13 +22,14 @@ import {
   ThemeIcon
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconPlus, IconEdit, IconTrash, IconEye, IconAlertCircle } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconEye, IconAlertCircle } from '@tabler/icons-react';
 import { EstadoActividad } from '../../enums/Enums';
 import { ActividadSeguimiento, PlanTratamiento } from '../../types/model';
 import { useActividadSeguimiento } from '../hooks/useAgricultura';
 import { estadoColors } from '../../utils/utils';
-import { DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
 import { Activity, ClipboardList, FileText, Bell, Calendar, CheckCircle, Clock, DollarSign, User } from 'lucide-react';
+import { useTratamientos } from '../../UI_TRATANIENTO/hooks/useAgricultura';
 
 const estadoOptions = Object.values(EstadoActividad).map(estado => ({
   value: estado,
@@ -44,6 +45,18 @@ export const SeguimientosAdmin: React.FC = () => {
   const [editingActividad, setEditingActividad] = useState<ActividadSeguimiento | null>(null);
   const [viewingActividad, setViewingActividad] = useState<ActividadSeguimiento | null>(null);
   const notifications = useNotifications();
+
+  //Ref 1 Consumir hook para combo v1
+  const { tratamientos, LISTAR } = useTratamientos();
+   useEffect(() => {
+    LISTAR();
+  }, [LISTAR]);
+  const listTratamientos = tratamientos.map(tratamiento => ({
+    value: tratamiento.id.toString(), 
+    label: `${tratamiento.nombreTratamiento} - ${tratamiento.tipoTratamiento}`
+  }));
+  //Ref 1 Consumir hook para combo v1
+
 
   const {
     actividades,
@@ -217,13 +230,11 @@ export const SeguimientosAdmin: React.FC = () => {
       <Paper p="md" withBorder>
         <Group justify="space-between" mb="md">
           <Title order={2}>Gestión de Actividades de Seguimiento</Title>
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={() => handleOpenModal()}
-            loading={loading}
-          >
-            Registrar
-          </Button>
+          
+          <ActionButtons.Modal 
+            onClick={() => handleOpenModal()} 
+            loading={loading} 
+          />
         </Group>
 
         <Box pos="relative">
@@ -303,17 +314,14 @@ export const SeguimientosAdmin: React.FC = () => {
         opened={modalOpened}
         onClose={handleCloseModal}
         title={editingActividad ? 'Editar Registro' : 'Nuevo Registro'}
-        size="md"
+        size="xl"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
             <Select
               label="Plan de Tratamiento"
               placeholder="Seleccione un plan de tratamiento"
-              data={[
-                { value: '1', label: 'Plan de Fertilización Orgánica 2024' },
-                { value: '2', label: 'Tratamiento foliar con nitrógeno líquido' },
-              ]} // Aquí necesitas cargar los planes de tratamiento disponibles
+              data={listTratamientos}
               {...form.getInputProps('planTratamientoId')}
               required
               searchable

@@ -14,6 +14,7 @@ export const useParametrosMonitoreo = () => {
       setError(null);
       const data = await service.GET();
       setParametros(data);
+      console.log('Parametros:', data);
     } catch (error: unknown) {
       setError(GET_ERROR(error));
     } finally {

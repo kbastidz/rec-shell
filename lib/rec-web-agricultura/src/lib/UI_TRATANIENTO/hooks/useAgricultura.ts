@@ -36,6 +36,18 @@ export const useTratamientos = () => {
     }
   }, []);
 
+  const LISTAR = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await service.GET();
+      setTratamientos(data);
+    } catch (err: unknown) {
+      setError(GET_ERROR(err));
+    } 
+    setLoading(false);
+  }, []);
+
   const obtenerPorDeficiencia = useCallback(async (deficienciaId: number) => {
     setLoading(true);
     setError(null);
@@ -155,5 +167,6 @@ export const useTratamientos = () => {
     CREAR,
     ACTUALIZAR,
     ELIMINAR,
+    LISTAR
   };
 };

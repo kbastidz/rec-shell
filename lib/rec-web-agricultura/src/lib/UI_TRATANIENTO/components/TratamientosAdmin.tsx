@@ -24,8 +24,6 @@ import {
   IconEdit,
   IconTrash,
   IconAlertCircle,
-  IconDeviceFloppy,
-  IconX,
   IconCurrencyDollar,
   IconAlignLeft,
   IconCalendar,
