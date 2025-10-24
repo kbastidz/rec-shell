@@ -152,6 +152,7 @@ export interface Desafio {
   maxParticipantes?: number;
   //criterioCompletado: Record<string, any>;
   //recompensas: Record<string, any>;
+  totalParticipantes: number;
   criterioCompletado: string;
   recompensas: string;
   esDiario: boolean;
@@ -162,6 +163,7 @@ export interface Desafio {
   creadoEn: string; 
   actualizadoEn?: string; 
   participaciones: ParticipacionDesafio[];
+  idTipoDesafio?: string;
 }
 
 export interface ParticipacionDesafio {

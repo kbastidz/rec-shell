@@ -18,12 +18,13 @@ export interface TipoDesafioInput {
 }
 
 export interface DesafioFormData {
+  tipoDesafioId: string; 
   titulo: string;
   descripcion: string;
   dificultad: Dificultad;
   categoria: string;
-  fechaInicio: Date | null;
-  fechaFin: Date | null;
+  fechaInicio: string | null;
+  fechaFin: string | null;
   maxParticipantes: number;
   esDiario: boolean;
   esSemanal: boolean;

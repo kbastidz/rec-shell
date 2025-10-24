@@ -42,7 +42,7 @@ import {
   useEliminar
 } from '../hooks/useGamificacion';
 import { TipoDesafio } from '../../types/model';
-import { DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
 
 interface TipoDesafioFormData {
   nombre: string;
@@ -213,9 +213,9 @@ export const TiposDesafioAdmin: React.FC = () => {
       <Stack gap="md">
         <Flex justify="space-between" align="center">
           <Title order={2}>Gestión de Tipos de Desafío</Title>
-          <Button leftSection={<IconPlus size={16} />} onClick={handleOpenCreate}>
-            Registrar
-          </Button>
+          <ActionButtons.Modal 
+            onClick={handleOpenCreate}             
+          />
         </Flex>
 
         {/* Buscador */}
@@ -279,7 +279,7 @@ export const TiposDesafioAdmin: React.FC = () => {
         title={editingItem ? 'Editar Registro' : 'Nuevo Registro'}
         size="md"
       >
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+        
           <Stack gap="md">
             <TextInput
               label="Nombre"
@@ -307,10 +307,14 @@ export const TiposDesafioAdmin: React.FC = () => {
               <Text size="sm" fw={500}>Tipo de Desafío</Text>
               <Switch
                 label="Individual"
+                color="teal"
+                size="md"
                 {...form.getInputProps('esIndividual', { type: 'checkbox' })}
               />
               <Switch
                 label="Grupal"
+                color="teal"
+                size="md"
                 {...form.getInputProps('esGrupal', { type: 'checkbox' })}
               />
             </Stack>
@@ -321,19 +325,14 @@ export const TiposDesafioAdmin: React.FC = () => {
               </Alert>
             )}
 
-            <Group justify="flex-end">
-              <Button variant="subtle" onClick={close}>
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                loading={creatingLoading || updatingLoading}
-              >
-                {editingItem ? 'Actualizar' : 'Crear'}
-              </Button>
+            <Group justify="center">
+              <ActionButtons.Cancel onClick={close} />
+              <ActionButtons.Save 
+                onClick={form.onSubmit(handleSubmit)} 
+                loading={creatingLoading || updatingLoading} />
             </Group>
           </Stack>
-        </form>
+        
       </Modal>
 
       {/* Modal para Eliminar */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Paper,
@@ -23,10 +23,8 @@ import {
   Text,
   Select
 } from '@mantine/core';
-import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import {
-  IconPlus,
   IconEdit,
   IconTrash,
   IconDotsVertical,
@@ -35,9 +33,10 @@ import {
   IconMinus,
   IconAlertCircle
 } from '@tabler/icons-react';
-import { Recompensa, TipoRecompensa } from '../../types/model';
+import { Recompensa } from '../../types/model';
 import { useCrear, useActualizar, useReducirStock, useRecompensasAdmin, useEliminar, useActivarRecompensa, useDesactivarRecompensa } from '../hooks/useGamificacion';
-import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { useTipoRecompensa } from '../../UI_TIPO_RECOMPENSA/hooks/useGamificacion';
 
 interface RecompensaFormModalProps {
   opened: boolean;
@@ -46,35 +45,7 @@ interface RecompensaFormModalProps {
   onSuccess: () => void;
 }
 
-const mockTiposRecompensa: TipoRecompensa[] = [
-  {
-    id: '1',
-    nombre: 'PRODUCTO_FISICO',
-    nombreMostrar: 'Producto Físico',
-    descripcion: 'Productos tangibles que requieren envío',
-    esFisico: true,
-    esDigital: false,
-    creadoEn: '2025-01-01',
-    recompensas: []
-  }
-];
 
-function useTiposRecompensa() {
-  const [loading, setLoading] = useState(false);
-  
-  /* // Reemplaza esto con tu hook real
-  const { data, isLoading } = useTuApiDeTipos();
-  
-  return {
-    tiposRecompensa: data || [],
-    loading: isLoading
-  };*/
-  
-  return {
-    tiposRecompensa: mockTiposRecompensa,
-    loading
-  };
-}
 
 function RecompensaFormModal({ 
   opened, 
@@ -86,7 +57,18 @@ function RecompensaFormModal({
   const { ACTUALIZAR, loading: actualizando } = useActualizar();
   const loading = creando || actualizando;
   const notifications = useNotifications();
-  const { tiposRecompensa } = useTiposRecompensa();
+  
+
+  //Ref 1 Consumir hook para combo v1
+  const { tipoRecompensas, LISTAR } = useTipoRecompensa();
+  useEffect(() => {
+    LISTAR();
+  }, []);
+  const listTipoRecompensas = tipoRecompensas.map(tipoRecompensa => ({
+    value: tipoRecompensa.id.toString(), 
+    label: `${tipoRecompensa.nombre} - ${tipoRecompensa.nombreMostrar}` 
+  }));
+  //Ref 1 Consumir hook para combo v1
 
   interface FormValues {
     tipoRecompensaId: string;
@@ -98,8 +80,8 @@ function RecompensaFormModal({
     esIlimitado: boolean;
     estaActivo: boolean;
     terminosCondiciones: string;
-    validoDesde: Date | null;
-    validoHasta: Date | null;
+    validoDesde: string | null;
+    validoHasta: string | null;
   }
 
   const form = useForm<FormValues>({
@@ -128,8 +110,8 @@ function RecompensaFormModal({
   React.useEffect(() => {
     if (opened) {
       if (recompensa) {
-        form.setValues({
-          tipoRecompensaId: recompensa.tipoRecompensa?.id || '',
+        form.setValues({         
+          tipoRecompensaId: recompensa.tipoRecompensa?.id?.toString() || '',
           nombre: recompensa.nombre || '',
           descripcion: recompensa.descripcion || '',
           urlImagen: recompensa.urlImagen || '',
@@ -138,14 +120,15 @@ function RecompensaFormModal({
           esIlimitado: recompensa.esIlimitado || false,
           estaActivo: recompensa.estaActivo ?? true,
           terminosCondiciones: recompensa.terminosCondiciones || '',
-          validoDesde: recompensa.validoDesde ? new Date(recompensa.validoDesde) : null,
-          validoHasta: recompensa.validoHasta ? new Date(recompensa.validoHasta) : null
+          validoDesde: recompensa.validoDesde || null,
+          validoHasta: recompensa.validoHasta || null
         });
       } else {
         form.reset();
       }
     }
   }, [opened, recompensa]);
+
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
@@ -192,14 +175,11 @@ function RecompensaFormModal({
         <Select
           label="Tipo de Recompensa"
           placeholder="Seleccione un tipo"
-          required
-          disabled={loading}
-          data={tiposRecompensa.map(tipo => ({
-            value: tipo.id,
-            label: tipo.nombreMostrar
-          }))}
+          data={listTipoRecompensas}
           {...form.getInputProps('tipoRecompensaId')}
-        />
+          required
+          searchable
+        />       
         
         <TextInput
           label="Nombre"
@@ -215,13 +195,6 @@ function RecompensaFormModal({
           minRows={3}
           disabled={loading}
           {...form.getInputProps('descripcion')}
-        />
-
-        <TextInput
-          label="URL de Imagen"
-          placeholder="https://ejemplo.com/imagen.jpg"
-          disabled={loading}
-          {...form.getInputProps('urlImagen')}
         />
 
         <Grid>
@@ -248,12 +221,16 @@ function RecompensaFormModal({
 
         <Switch
           label="Stock Ilimitado"
+          size="md"
+          color="teal"
           disabled={loading}
           {...form.getInputProps('esIlimitado', { type: 'checkbox' })}
         />
 
         <Switch
           label="Activo"
+          size="md"
+          color="teal"
           disabled={loading}
           {...form.getInputProps('estaActivo', { type: 'checkbox' })}
         />
@@ -286,23 +263,19 @@ function RecompensaFormModal({
           {...form.getInputProps('terminosCondiciones')}
         />
 
-        <Group justify="flex-end" mt="md">
-          <Button 
-            variant="subtle" 
+        <Group justify="center" mt="md">
+          <ActionButtons.Cancel 
             onClick={() => {
               form.reset();
               onClose();
             }} 
-            disabled={loading}
-          >
-            Cancelar
-          </Button>
-          <Button 
+            loading={loading} 
+          />
+
+          <ActionButtons.Save 
             onClick={() => form.onSubmit(handleSubmit)()} 
-            loading={loading}
-          >
-            {recompensa ? 'ACTUALIZAR' : 'CREAR'}
-          </Button>
+            loading={loading} 
+          />
         </Group>
       </Stack>
     </Modal>
@@ -367,17 +340,15 @@ function ReducirStockModal({
           disabled={loading}
           required
         />
-        <Group justify="flex-end" mt="md">
-          <Button 
-            variant="subtle" 
+        <Group justify="center" mt="md">
+          <ActionButtons.Cancel 
             onClick={() => {
               setCantidad(1);
               onClose();
             }} 
-            disabled={loading}
-          >
-            Cancelar
-          </Button>
+            loading={loading} 
+          />
+
           <Button 
             onClick={handleReducir} 
             loading={loading} 
@@ -495,12 +466,11 @@ export  function RecompensasAdmin() {
       <Paper shadow="sm" p="md" withBorder>
         <Group justify="space-between" mb="lg">
           <Title order={2}>Gestión de Recompensas</Title>
-          <Button 
-            leftSection={<IconPlus size="1rem" />} 
-            onClick={handleNueva}
-          >
-            Registrar
-          </Button>
+          <ActionButtons.Modal 
+            onClick={handleNueva} 
+            loading={loading} 
+          />
+          
         </Group>
 
         <Box style={{ overflowX: 'auto' }}>

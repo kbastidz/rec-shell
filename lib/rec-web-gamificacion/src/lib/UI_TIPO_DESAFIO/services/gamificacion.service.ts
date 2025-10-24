@@ -27,6 +27,11 @@ export class ConexionService extends InvokeApi {
     return response;
   }
 
+  async GET(): Promise<TipoDesafio[]> {
+    const response = await this.get<TipoDesafio[]>(`${API_URL}/listar`);
+    return response;
+  }
+
   async GET_BY_NAME(nombre: string): Promise<TipoDesafio> {
     const response = await this.get<TipoDesafio>(
       `${API_URL}/buscar?nombre=${encodeURIComponent(nombre)}`

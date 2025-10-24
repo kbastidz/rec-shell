@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { TipoRecompensa } from '../../types/model';
 import { service } from '../services/gamificacion.service';
+import { GET_ERROR } from '../../utils/utilidad';
 
 export const useTipoRecompensa = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tipoRecompensas, setTratamientos] = useState<TipoRecompensa[]>([]);
 
   const CREAR = useCallback(async (tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>) => {
     setLoading(true);
@@ -46,6 +48,19 @@ export const useTipoRecompensa = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+
+  const LISTAR = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await service.GET();
+      setTratamientos(data);
+    } catch (err: unknown) {
+      setError(GET_ERROR(err));
+    } 
+    setLoading(false);
   }, []);
 
   const buscarPorNombre = useCallback(async (nombre: string) => {
@@ -92,10 +107,12 @@ export const useTipoRecompensa = () => {
   return {
     loading,
     error,
+    tipoRecompensas,
     CREAR,
     buscarRecompensasFisicas,
     buscarRecompensasDigitales,
     buscarPorNombre,
+    LISTAR,
     ACTUALIZAR,
     ELIMINAR,
   };

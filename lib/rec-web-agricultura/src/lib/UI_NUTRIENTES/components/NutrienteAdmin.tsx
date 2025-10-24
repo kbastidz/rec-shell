@@ -321,6 +321,8 @@ export const NutrienteAdmin = () => {
             
             <Switch
               label="Activo"
+              size="md"
+              color="teal"
               checked={formulario.activo}
               onChange={(e) => setFormulario(prev => ({ ...prev, activo: e.target.checked }))}
             />

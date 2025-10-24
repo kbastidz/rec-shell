@@ -3,6 +3,31 @@ import { TipoDesafio } from '../../types/model';
 import { service } from '../services/gamificacion.service';
 import { TipoDesafioInput } from '../../types/dto';
 
+export const useListarTiposDesafios = () => {
+  const [data, setData] = useState<TipoDesafio[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const LISTAR = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await service.GET();
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    LISTAR();
+  }, []);
+
+  return { data, loading, error, LISTAR };
+};
+
 export const useTiposIndividuales = () => {
   const [data, setData] = useState<TipoDesafio[]>([]);
   const [loading, setLoading] = useState(false);

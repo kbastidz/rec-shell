@@ -35,7 +35,7 @@ import { useTablaLideres } from '../hooks/useGamificacion';
 import { TablaLideres } from '../../types/model';
 import { TablaFormData } from '../../types/dto';
 import { TIPOS_TABLA } from '../../utils/utilidad';
-import { useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, useNotifications } from '@rec-shell/rec-web-shared';
 import { PeriodoTiempo } from '../../enums/Enums';
 
 const PERIODOS_TIEMPO = [
@@ -269,17 +269,15 @@ export const TablaLideresAdmin: React.FC = () => {
       <Paper shadow="sm" p="md">
         <Group justify="space-between" mb="lg">
           <Title order={2}>Gestión de Tablas de Líderes</Title>
-          <Button
-            leftSection={<IconPlus size={16} />}
+          <ActionButtons.Modal
             onClick={() => {
               form.reset();
               setIsEditing(false);
               setSelectedTable(null);
               open();
             }}
-          >
-            Registrar
-          </Button>
+            loading={loading}
+          />
         </Group>
 
         <Tabs value={activeTab} onChange={setActiveTab}>
@@ -362,16 +360,18 @@ export const TablaLideresAdmin: React.FC = () => {
             
             <Switch
               label="Tabla Activa"
+              size="md"
+              color="teal"
               {...form.getInputProps('estaActivo', { type: 'checkbox' })}
             />
             
-            <Group justify="flex-end" gap="sm">
-              <Button variant="light" onClick={handleCloseModal}>
-                Cancelar
-              </Button>
-              <Button type="submit" loading={loading}>
-                {isEditing ? 'Actualizar' : 'Crear'}
-              </Button>
+            <Group justify="center" gap="sm">
+              <ActionButtons.Cancel onClick={handleCloseModal} />
+              
+              <ActionButtons.Save
+                onClick={form.onSubmit(handleSubmit)}
+                loading={loading}
+              />              
             </Group>
           </Stack>
         </form>

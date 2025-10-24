@@ -14,6 +14,7 @@ export const useRecompensasActivas = () => {
     try {
       const data = await service.GET();
       setRecompensas(data);
+      
     } catch (error: unknown) {
       setError(GET_ERROR(error));
     } finally {

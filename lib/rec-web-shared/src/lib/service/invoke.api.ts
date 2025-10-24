@@ -31,7 +31,7 @@ export class InvokeApi {
     
     // Primero obtener el texto de la respuesta
     const responseText = await response.text();
-    console.log('responseText', responseText);
+    
     
     // Intentar parsear como JSON
     let data: any;

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Title,
-  Button,
   Table,
   TextInput,
   Group,
@@ -14,14 +12,17 @@ import {
   NumberInput,
   Switch,
   Badge,
-  Image,
-  Card,
   Text,
   Loader,
   Alert,
   Pagination,
   Flex,
-  Box
+  Box,
+  Paper,
+  ThemeIcon,
+  Divider,
+  Avatar,
+  Tooltip
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
@@ -33,13 +34,17 @@ import {
   IconEye,
   IconStar,
   IconAward,
-  IconPhoto
+  IconPhoto,
+  IconTrophy,
+  IconLock,
+  IconLockOpen,
+  IconSparkles
 } from '@tabler/icons-react';
 import { useLogros } from '../hooks/useGamificacion';
 import { Rareza } from '../../enums/Enums';
 import { Logro } from '../../types/model';
 import { rarezaColors, rarezaOptions } from '../../utils/utilidad';
-import { DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 
 
 interface LogroFormData {
@@ -109,7 +114,6 @@ export const LogrosAdmin: React.FC = () => {
     }
   }, [error, clearError, notifications]);
 
-  // Filtrar logros por término de búsqueda
   const filteredLogros = logros.filter(logro =>
     logro.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     logro.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
@@ -208,293 +212,421 @@ export const LogrosAdmin: React.FC = () => {
   };
 
   return (
-    <Box p="md">
-      <Stack gap="lg">
-        {/* Header */}
-        <Group justify="space-between">
-          <Title order={2}>Gestión de Logros</Title>
-          <Button leftSection={<IconPlus size={16} />} onClick={handleCreate}>
-            Registrar
-          </Button>
+    <Box size="xl" py="xl">
+      <Stack gap="xl">
+        {/* Header Mejorado */}
+        <Paper shadow="xs" p="lg" radius="md" withBorder>
+          <Group justify="space-between" align="center">
+            <Group gap="md">
+              <ThemeIcon size={50} radius="md" variant="gradient" gradient={{ from: 'blue', to: 'cyan' }}>
+                <IconTrophy size={28} />
+              </ThemeIcon>
+              <div>
+                <Title order={2} fw={700}>Gestión de Logros</Title>
+                <Text size="sm" c="dimmed">Administra los logros y recompensas del sistema</Text>
+              </div>
+            </Group>
+            <ActionButtons.Modal 
+              onClick={handleCreate} 
+              loading={loading} 
+            />
+          </Group>
+        </Paper>
+
+        {/* Estadísticas Rápidas */}
+        <Group grow>
+          <Paper p="md" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Total Logros</Text>
+                <Text size="xl" fw={700}>{logros.length}</Text>
+              </div>
+              <ThemeIcon size={40} radius="md" variant="light" color="blue">
+                <IconTrophy size={24} />
+              </ThemeIcon>
+            </Group>
+          </Paper>
+          
+          <Paper p="md" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Activos</Text>
+                <Text size="xl" fw={700}>{logros.filter(l => l.estaActivo).length}</Text>
+              </div>
+              <ThemeIcon size={40} radius="md" variant="light" color="green">
+                <IconLockOpen size={24} />
+              </ThemeIcon>
+            </Group>
+          </Paper>
+          
+          <Paper p="md" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Secretos</Text>
+                <Text size="xl" fw={700}>{logros.filter(l => l.esSecreto).length}</Text>
+              </div>
+              <ThemeIcon size={40} radius="md" variant="light" color="orange">
+                <IconLock size={24} />
+              </ThemeIcon>
+            </Group>
+          </Paper>
         </Group>
 
-        {/* Búsqueda */}
-        <TextInput
-          placeholder="Buscar logros..."
-          leftSection={<IconSearch size={16} />}
-          value={searchTerm}
-          onChange={(e) => handleSearch(e.target.value)}
-          style={{ maxWidth: 400 }}
-        />
+        {/* Búsqueda Mejorada */}
+        <Paper shadow="xs" p="md" radius="md" withBorder>
+          <TextInput
+            placeholder="Buscar por nombre o descripción..."
+            leftSection={<IconSearch size={18} />}
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            size="md"
+            radius="md"
+          />
+        </Paper>
 
-        {/* Tabla */}
-        <Card withBorder>
+        {/* Tabla Mejorada */}
+        <Paper shadow="sm" radius="md" withBorder>
           {loading ? (
+            <Flex justify="center" align="center" h={300}>
+              <Stack align="center" gap="md">
+                <Loader size="lg" type="dots" />
+                <Text c="dimmed">Cargando logros...</Text>
+              </Stack>
+            </Flex>
+          ) : paginatedLogros.length === 0 ? (
             <Flex justify="center" align="center" h={200}>
-              <Loader />
+              <Stack align="center" gap="md">
+                <ThemeIcon size={60} radius="md" variant="light" color="gray">
+                  <IconTrophy size={30} />
+                </ThemeIcon>
+                <Text c="dimmed" size="lg">No se encontraron logros</Text>
+              </Stack>
             </Flex>
           ) : (
             <>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Imagen</Table.Th>
-                    <Table.Th>Nombre</Table.Th>
-                    <Table.Th>Descripción</Table.Th>
-                    <Table.Th>Rareza</Table.Th>
-                    <Table.Th>Puntos</Table.Th>
-                    <Table.Th>Estado</Table.Th>
-                    <Table.Th>Acciones</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {paginatedLogros.map((logro) => (
-                    <Table.Tr key={logro.id}>
-                      <Table.Td>
-                        {logro.urlImagenInsignia ? (
-                          <Image
-                            src={logro.urlImagenInsignia}
-                            alt={logro.nombre}
-                            w={40}
-                            h={40}
-                            radius="sm"
-                            fallbackSrc="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ccc' d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E"
-                          />
-                        ) : (
-                          <Box w={40} h={40} bg="gray.1" style={{ borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <IconPhoto size={20} color="gray" />
-                          </Box>
-                        )}
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={500}>{logro.nombre}</Text>
-                        {logro.esSecreto && (
-                          <Badge size="xs" color="orange" variant="light">
-                            Secreto
-                          </Badge>
-                        )}
-                      </Table.Td>
-                      <Table.Td>
-                        <Text lineClamp={2} size="sm" c="dimmed">
-                          {logro.descripcion}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge
-                          color={getBadgeColor(logro.rareza)}
-                          variant="light"
-                          leftSection={getRarezaIcon(logro.rareza)}
-                        >
-                          {rarezaOptions.find(r => r.value === logro.rareza)?.label}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text fw={500}>{logro.recompensaPuntos}</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Badge color={logro.estaActivo ? 'green' : 'red'} variant="light">
-                          {logro.estaActivo ? 'Activo' : 'Inactivo'}
-                        </Badge>
-                      </Table.Td>
-                      <Table.Td>
-                        <Group gap="xs">
-                          <ActionIcon
-                            variant="light"
-                            color="blue"
-                            onClick={() => handleView(logro)}
-                          >
-                            <IconEye size={16} />
-                          </ActionIcon>
-                          <ActionIcon
-                            variant="light"
-                            color="yellow"
-                            onClick={() => handleEdit(logro)}
-                          >
-                            <IconEdit size={16} />
-                          </ActionIcon>
-                          <ActionIcon
-                            variant="light"
-                            color="red"
-                            onClick={() => handleDeleteClick(logro)}
-                          >
-                            <IconTrash size={16} />
-                          </ActionIcon>
-                        </Group>
-                      </Table.Td>
+              <Box style={{ overflowX: 'auto' }}>
+                <Table striped highlightOnHover withTableBorder={false}>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Logro</Table.Th>
+                      <Table.Th>Descripción</Table.Th>
+                      <Table.Th>Rareza</Table.Th>
+                      <Table.Th>Puntos</Table.Th>
+                      <Table.Th>Estado</Table.Th>
+                      <Table.Th style={{ textAlign: 'right' }}>Acciones</Table.Th>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {paginatedLogros.map((logro) => (
+                      <Table.Tr key={logro.id}>
+                        <Table.Td>
+                          <Group gap="sm">
+                            <Avatar
+                              src={logro.urlImagenInsignia}
+                              size={50}
+                              radius="md"
+                            >
+                              <IconPhoto size={24} />
+                            </Avatar>
+                            <div>
+                              <Text fw={600} size="sm">{logro.nombre}</Text>
+                              {logro.esSecreto && (
+                                <Badge size="xs" color="orange" variant="light" leftSection={<IconLock size={10} />}>
+                                  Secreto
+                                </Badge>
+                              )}
+                            </div>
+                          </Group>
+                        </Table.Td>
+                        <Table.Td style={{ maxWidth: 300 }}>
+                          <Text lineClamp={2} size="sm" c="dimmed">
+                            {logro.descripcion}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge
+                            color={getBadgeColor(logro.rareza)}
+                            variant="dot"
+                            size="lg"
+                            leftSection={getRarezaIcon(logro.rareza)}
+                          >
+                            {rarezaOptions.find(r => r.value === logro.rareza)?.label}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge variant="light" color="blue" size="lg" leftSection={<IconSparkles size={14} />}>
+                            {logro.recompensaPuntos}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge 
+                            color={logro.estaActivo ? 'green' : 'gray'} 
+                            variant="light"
+                            size="md"
+                          >
+                            {logro.estaActivo ? 'Activo' : 'Inactivo'}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group gap={4} justify="flex-end">
+                            <Tooltip label="Ver detalles">
+                              <ActionIcon
+                                variant="light"
+                                color="blue"
+                                size="lg"
+                                onClick={() => handleView(logro)}
+                              >
+                                <IconEye size={18} />
+                              </ActionIcon>
+                            </Tooltip>
+                            <Tooltip label="Editar">
+                              <ActionIcon
+                                variant="light"
+                                color="yellow"
+                                size="lg"
+                                onClick={() => handleEdit(logro)}
+                              >
+                                <IconEdit size={18} />
+                              </ActionIcon>
+                            </Tooltip>
+                            <Tooltip label="Eliminar">
+                              <ActionIcon
+                                variant="light"
+                                color="red"
+                                size="lg"
+                                onClick={() => handleDeleteClick(logro)}
+                              >
+                                <IconTrash size={18} />
+                              </ActionIcon>
+                            </Tooltip>
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Box>
 
-              {/* Paginación */}
               {totalPages > 1 && (
-                <Group justify="center" mt="md">
-                  <Pagination
-                    value={activePage}
-                    onChange={setActivePage}
-                    total={totalPages}
-                  />
-                </Group>
+                <Box p="md">
+                  <Group justify="center">
+                    <Pagination
+                      value={activePage}
+                      onChange={setActivePage}
+                      total={totalPages}
+                      size="md"
+                      radius="md"
+                    />
+                  </Group>
+                </Box>
               )}
             </>
           )}
-        </Card>
+        </Paper>
 
-        {/* Modal de Creación/Edición */}
+        {/* Modal de Creación/Edición Mejorado */}
         <Modal
           opened={opened}
           onClose={close}
-          title={editingLogro ? 'Editar Registro' : 'Nuevo Registro'}
+          title={
+            <Group gap="sm">
+              <ThemeIcon variant="light" size="lg" radius="md">
+                {editingLogro ? <IconEdit size={20} /> : <IconPlus size={20} />}
+              </ThemeIcon>
+              <Text fw={600} size="lg">
+                {editingLogro ? 'Editar Logro' : 'Nuevo Logro'}
+              </Text>
+            </Group>
+          }
           size="lg"
+          radius="md"
         >
-          <form onSubmit={form.onSubmit(handleSubmit)}>
-            <Stack gap="md">
-              <Group grow>
-                <TextInput
-                  label="Nombre"
-                  placeholder="Nombre del logro"
-                  required
-                  {...form.getInputProps('nombre')}
-                />
-                <Select
-                  label="Rareza"
-                  placeholder="Selecciona rareza"
-                  data={rarezaOptions}
-                  required
-                  {...form.getInputProps('rareza')}
-                />
-              </Group>
-
-              <Textarea
-                label="Descripción"
-                placeholder="Descripción del logro"
-                required
-                rows={3}
-                {...form.getInputProps('descripcion')}
-              />
-
+          <Stack gap="md">
+            <Divider />
+            
+            <Group grow>
               <TextInput
-                label="URL de Imagen"
-                placeholder="https://ejemplo.com/imagen.png"
-                {...form.getInputProps('urlImagenInsignia')}
+                label="Nombre del Logro"
+                placeholder="Ej: Primer Paso"
+                required
+                leftSection={<IconTrophy size={16} />}
+                {...form.getInputProps('nombre')}
               />
+              <Select
+                label="Rareza"
+                placeholder="Selecciona rareza"
+                data={rarezaOptions}
+                required
+                leftSection={<IconStar size={16} />}
+                {...form.getInputProps('rareza')}
+              />
+            </Group>
 
+            <Textarea
+              label="Descripción"
+              placeholder="Describe el logro y cómo conseguirlo..."
+              required
+              rows={3}
+              {...form.getInputProps('descripcion')}
+            />
+
+            <TextInput
+              label="URL de Imagen de Insignia"
+              placeholder="https://ejemplo.com/imagen.png"
+              leftSection={<IconPhoto size={16} />}
+              {...form.getInputProps('urlImagenInsignia')}
+            />
+
+            <NumberInput
+              label="Puntos de Recompensa"
+              placeholder="100"
+              min={0}
+              required
+              leftSection={<IconSparkles size={16} />}
+              {...form.getInputProps('recompensaPuntos')}
+            />
+
+            <Textarea
+              label="Mensaje de Desbloqueo"
+              placeholder="¡Felicitaciones! Has desbloqueado..."
+              rows={2}
+              {...form.getInputProps('mensajeDesbloqueo')}
+            />
+
+            <Textarea
+              label="Criterio de Desbloqueo"
+              placeholder="Define los criterios para obtener este logro..."
+              rows={3}
+              {...form.getInputProps('criterioDesbloqueo')}
+            />
+
+            <Paper p="md" withBorder radius="md" bg="gray.0">
               <Group grow>
-                <NumberInput
-                  label="Puntos de Recompensa"
-                  placeholder="0"
-                  min={0}
-                  required
-                  {...form.getInputProps('recompensaPuntos')}
-                />
-                <div />
-              </Group>
-
-              <Textarea
-                label="Mensaje de Desbloqueo"
-                placeholder="¡Felicitaciones! Has desbloqueado..."
-                rows={2}
-                {...form.getInputProps('mensajeDesbloqueo')}
-              />
-
-              <Textarea
-                label="Criterio de Desbloqueo"
-                placeholder='Criterios'
-                rows={4}
-                {...form.getInputProps('criterioDesbloqueo')}
-              />
-
-              <Group>
                 <Switch
                   label="Es secreto"
+                  description="No visible hasta desbloquear"
+                  size="md"
                   {...form.getInputProps('esSecreto', { type: 'checkbox' })}
                 />
                 <Switch
                   label="Está activo"
+                  description="Puede ser obtenido"
+                  size="md"
                   {...form.getInputProps('estaActivo', { type: 'checkbox' })}
                 />
               </Group>
+            </Paper>
 
-              <Group justify="flex-end" gap="sm">
-                <Button variant="light" onClick={close}>
-                  Cancelar
-                </Button>
-                <Button type="submit" loading={loading}>
-                  {editingLogro ? 'Actualizar' : 'Crear'}
-                </Button>
-              </Group>
-            </Stack>
-          </form>
+            <Group justify="center" gap="sm" mt="md">
+              <ActionButtons.Cancel 
+                onClick={close} 
+                loading={loading} 
+              />
+              <ActionButtons.Save 
+                onClick={form.onSubmit(handleSubmit)} 
+                loading={loading} 
+              />
+            </Group>
+          </Stack>
         </Modal>
 
-        {/* Modal de Detalles */}
+        {/* Modal de Detalles Mejorado */}
         <Modal
           opened={detailsOpened}
           onClose={closeDetails}
-          title="Detalles del Logro"
+          title={
+            <Group gap="sm">
+              <ThemeIcon variant="light" size="lg" radius="md" color="blue">
+                <IconEye size={20} />
+              </ThemeIcon>
+              <Text fw={600} size="lg">Detalles del Logro</Text>
+            </Group>
+          }
           size="md"
+          radius="md"
         >
           {selectedLogro && (
-            <Stack gap="md">
-              {selectedLogro.urlImagenInsignia && (
-                <Group justify="center">
-                  <Image
+            <Stack gap="lg">
+              <Divider />
+              
+              <Paper p="xl" radius="md" bg="gray.0" style={{ textAlign: 'center' }}>
+                <Stack gap="md" align="center">
+                  <Avatar
                     src={selectedLogro.urlImagenInsignia}
-                    alt={selectedLogro.nombre}
-                    w={80}
-                    h={80}
+                    size={120}
                     radius="md"
-                  />
-                </Group>
-              )}
-              
-              <Title order={3} ta="center">{selectedLogro.nombre}</Title>
-              
-              <Group justify="center">
-                <Badge
-                  color={getBadgeColor(selectedLogro.rareza)}
-                  variant="light"
-                  size="lg"
-                  leftSection={getRarezaIcon(selectedLogro.rareza)}
-                >
-                  {rarezaOptions.find(r => r.value === selectedLogro.rareza)?.label}
-                </Badge>
-                <Badge color="blue" variant="light" size="lg">
-                  {selectedLogro.recompensaPuntos} puntos
-                </Badge>
-              </Group>
+                  >
+                    <IconTrophy size={60} />
+                  </Avatar>
+                  
+                  <Title order={3}>{selectedLogro.nombre}</Title>
+                  
+                  <Group justify="center">
+                    <Badge
+                      color={getBadgeColor(selectedLogro.rareza)}
+                      variant="dot"
+                      size="xl"
+                      leftSection={getRarezaIcon(selectedLogro.rareza)}
+                    >
+                      {rarezaOptions.find(r => r.value === selectedLogro.rareza)?.label}
+                    </Badge>
+                    <Badge color="blue" variant="light" size="xl" leftSection={<IconSparkles size={16} />}>
+                      {selectedLogro.recompensaPuntos} puntos
+                    </Badge>
+                  </Group>
+                </Stack>
+              </Paper>
 
-              <Text>{selectedLogro.descripcion}</Text>
+              <Paper p="md" withBorder radius="md">
+                <Text size="sm" c="dimmed" mb={8}>Descripción</Text>
+                <Text>{selectedLogro.descripcion}</Text>
+              </Paper>
 
               {selectedLogro.mensajeDesbloqueo && (
-                <Alert color="green" title="Mensaje de Desbloqueo">
+                <Alert color="green" title="🎉 Mensaje de Desbloqueo" radius="md">
                   {selectedLogro.mensajeDesbloqueo}
                 </Alert>
               )}
 
               <Group>
                 {selectedLogro.esSecreto && (
-                  <Badge color="orange" variant="light">Secreto</Badge>
+                  <Badge color="orange" variant="light" leftSection={<IconLock size={14} />}>
+                    Logro Secreto
+                  </Badge>
                 )}
-                <Badge color={selectedLogro.estaActivo ? 'green' : 'red'} variant="light">
+                <Badge color={selectedLogro.estaActivo ? 'green' : 'gray'} variant="light">
                   {selectedLogro.estaActivo ? 'Activo' : 'Inactivo'}
                 </Badge>
               </Group>
 
-              <Text size="sm" c="dimmed">
-                <strong>Creado:</strong> {new Date(selectedLogro.creadoEn).toLocaleDateString()}
-              </Text>
-              
-              {selectedLogro.actualizadoEn && (
-                <Text size="sm" c="dimmed">
-                  <strong>Actualizado:</strong> {new Date(selectedLogro.actualizadoEn).toLocaleDateString()}
-                </Text>
-              )}
+              <Divider />
+
+              <Group gap="xl">
+                <div>
+                  <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Creado</Text>
+                  <Text size="sm">{new Date(selectedLogro.creadoEn).toLocaleDateString('es-ES', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                  })}</Text>
+                </div>
+                
+                {selectedLogro.actualizadoEn && (
+                  <div>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Actualizado</Text>
+                    <Text size="sm">{new Date(selectedLogro.actualizadoEn).toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}</Text>
+                  </div>
+                )}
+              </Group>
             </Stack>
           )}
         </Modal>
 
-        {/* Modal para Eliminar */}
+        {/* Modal de Confirmación de Eliminación */}
         <DeleteConfirmModal
           opened={deleteModalOpened}
           onClose={closeDeleteModal}

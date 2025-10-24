@@ -3,8 +3,8 @@ import { MenuUser, RoleManagement, UserManagement } from '@rec-shell/rec-web-usu
 import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
-import {  MenuPague } from '@rec-shell/rec-web-agricultura';
-//import { MenuPague } from '@rec-shell/rec-web-gamificacion';
+//import {  MenuPague } from '@rec-shell/rec-web-agricultura';
+import { MenuPague } from '@rec-shell/rec-web-gamificacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',

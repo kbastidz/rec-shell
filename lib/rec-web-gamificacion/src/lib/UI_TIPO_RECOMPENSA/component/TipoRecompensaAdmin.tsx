@@ -33,7 +33,7 @@ import {
 import { TipoRecompensa } from '../../types/model';
 import { useTipoRecompensa } from '../hooks/useGamificacion';
 import { TipoRecompensaForm } from '../../types/dto';
-import { DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
 import { getBadgeColor, getBadgeText } from '../../utils/utilidad';
 
 export const TipoRecompensaAdmin: React.FC = () => {
@@ -215,9 +215,11 @@ export const TipoRecompensaAdmin: React.FC = () => {
       
       <Group justify="space-between" mb="lg">
         <Title order={2}>Gestión de Tipos de Recompensa</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={handleNewItem}>
-          Registrar
-        </Button>
+        <ActionButtons.Modal 
+          onClick={handleNewItem} 
+          loading={loading} 
+        />
+        
       </Group>
 
       {error && (
@@ -287,7 +289,7 @@ export const TipoRecompensaAdmin: React.FC = () => {
         title={editingItem ? 'Editar Registro' : 'Nuevo Registro'}
         size="md"
       >
-        <form onSubmit={form.onSubmit(handleSubmit)}>
+        
           <Stack>
             <TextInput
               label="Nombre"
@@ -312,26 +314,28 @@ export const TipoRecompensaAdmin: React.FC = () => {
 
             <Switch
               label="Es Físico"
+              color="teal"
+              size="md"
               description="Indica si la recompensa es de tipo físico"
               {...form.getInputProps('esFisico', { type: 'checkbox' })}
             />
 
             <Switch
               label="Es Digital"
+              color="teal"
+              size="md"
               description="Indica si la recompensa es de tipo digital"
               {...form.getInputProps('esDigital', { type: 'checkbox' })}
             />
 
-            <Group justify="flex-end" mt="md">
-              <Button variant="light" onClick={handleCloseModal}>
-                Cancelar
-              </Button>
-              <Button type="submit" loading={loading}>
-                {editingItem ? 'Actualizar' : 'Crear'}
-              </Button>
+            <Group justify="center" mt="md">
+              <ActionButtons.Cancel onClick={handleCloseModal} />
+              <ActionButtons.Save 
+                onClick={form.onSubmit(handleSubmit)} 
+                loading={loading} />              
             </Group>
           </Stack>
-        </form>
+       
       </Modal>
 
       {/* Modal genérico de confirmación para Eliminar */}

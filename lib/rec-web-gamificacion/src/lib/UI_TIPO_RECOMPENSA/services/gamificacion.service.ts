@@ -24,6 +24,11 @@ export class ConexionService extends InvokeApi {
     return response;
   }
 
+  async GET(): Promise<TipoRecompensa[]> {
+    const response = await this.get<TipoRecompensa[]>(`${API_URL}/listar`);
+    return response;
+  }
+
   async PUT(id: string, tipoRecompensa: Omit<TipoRecompensa, 'id' | 'creadoEn' | 'recompensas'>): Promise<TipoRecompensa> {
     const response = await this.put<TipoRecompensa>(`${API_URL}/${id}`, tipoRecompensa);
     return response;

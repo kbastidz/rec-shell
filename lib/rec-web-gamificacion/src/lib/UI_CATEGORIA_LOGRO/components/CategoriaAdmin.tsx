@@ -24,7 +24,7 @@ import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { CategoriaInput } from '../../types/dto';
 import { CategoriaLogro } from '../../types/model';
 import { useCategorias } from '../hooks/useGamificacion';
-import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
 export function CategoriaAdmin() {
   const {
@@ -89,8 +89,8 @@ export function CategoriaAdmin() {
     setItemToDelete(null);
   };
 
-  const handleSubmit = async (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+   
     const validacion = form.validate();
     if (validacion.hasErrors) return;
 
@@ -137,13 +137,11 @@ export function CategoriaAdmin() {
     <Box p="md">
       <Paper shadow="sm" p="lg" radius="md">
         <Group justify="space-between" mb="xl">
-          <Title order={2}>Gestión de Categorías</Title>
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={abrirModalCrear}
-          >
-            Registrar
-          </Button>
+          <Title order={2}>Gestión de Categorías</Title>          
+          <ActionButtons.Modal 
+            onClick={abrirModalCrear} 
+            loading={loading} 
+          />
         </Group>
 
         <Table striped highlightOnHover withTableBorder withColumnBorders>
@@ -245,12 +243,6 @@ export function CategoriaAdmin() {
             {...form.getInputProps('descripcion')}
           />
 
-          <TextInput
-            label="URL del Ícono"
-            placeholder="https://ejemplo.com/icono.png"
-            {...form.getInputProps('urlIcono')}
-          />
-
           <ColorInput
             label="Color"
             format="hex"
@@ -266,21 +258,17 @@ export function CategoriaAdmin() {
           />
 
           <Switch
-            label="Estado Activo"
-            {...form.getInputProps('estaActivo', { type: 'checkbox' })}
+              label="Estado Activo"
+              description="Indica si este tratamiento está disponible para uso"
+              size="md"
+              color="teal"
+              {...form.getInputProps('estaActivo', { type: 'checkbox' })}
           />
 
-          <Group justify="flex-end" mt="md">
-            <Button
-              variant="light"
-              onClick={() => setModalAbierto(false)}
-              disabled={procesando}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleSubmit} loading={procesando}>
-              {categoriaEditar ? 'Actualizar' : 'Crear'}
-            </Button>
+          <Group justify="center" mt="md">
+            <ActionButtons.Cancel onClick={() => setModalAbierto(false)} />
+            <ActionButtons.Save onClick={handleSubmit} loading={procesando} />
+            
           </Group>
         </Stack>
       </Modal>

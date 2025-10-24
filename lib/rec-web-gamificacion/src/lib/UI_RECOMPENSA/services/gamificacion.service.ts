@@ -80,6 +80,7 @@ export class ConexionService extends InvokeApi {
 
   async GET_ADMIN(): Promise<Recompensa[]> {
     const response = await this.get<Recompensa[]>(`${API_URL}/admin/todas`);
+    console.log(response);
     return response;
   }
 }
