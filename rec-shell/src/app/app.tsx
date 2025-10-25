@@ -3,8 +3,8 @@ import { MenuUser, RoleManagement, UserManagement } from '@rec-shell/rec-web-usu
 import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
-//import {  MenuPague } from '@rec-shell/rec-web-agricultura';
-import { MenuPague } from '@rec-shell/rec-web-gamificacion';
+import {  MenuPagueM1 } from '@rec-shell/rec-web-agricultura';
+import { MenuPagueM2 } from '@rec-shell/rec-web-gamificacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',
@@ -14,16 +14,14 @@ type UserRole = typeof ROLES[keyof typeof ROLES];
 
 const rolePermissions = {
   [ROLES.ADMIN]: {
-    UserComponent: UserManagement,
-    RoleComponent: MenuPague,
-    CultivoComponent: MenuUser, 
-    CategoriaComponent: MenuPague
+    AgriculturaComponent: MenuPagueM1,
+    GamificacionComponent: MenuPagueM2,
+    AdminUserComponent: MenuUser
   },
   [ROLES.MODERATOR]: {
-    UserComponent: UserManagement,
-    RoleComponent: undefined,
-    CultivoComponent: undefined,
-    CategoriaComponent: undefined
+    AgriculturaComponent: MenuPagueM1,
+    GamificacionComponent: MenuPagueM2,
+    AdminUserComponent: MenuUser
   }
 };
 
@@ -73,10 +71,10 @@ export function App() {
   return (
     <>
       <AdminTemplate 
-        UserComponent={listMenu.UserComponent}
-        RoleComponent={listMenu.RoleComponent}
-        CultivoComponent={listMenu.CultivoComponent}
-        CategoriaComponent={listMenu.CategoriaComponent}
+        AdminUserComponent={listMenu.AdminUserComponent}
+        AgriculturaComponent={listMenu.AgriculturaComponent}
+        GamificacionComponent={listMenu.GamificacionComponent}
+        
         onSignOut={signOut}
         userInfo={userInfo}
       />

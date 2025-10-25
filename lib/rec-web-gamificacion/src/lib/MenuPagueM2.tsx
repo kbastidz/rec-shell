@@ -83,7 +83,7 @@ const menuItems = [
   }
 ];
 
-export function MenuPague({ onNavigate }: ComponentWithNavigation) {
+export function MenuPagueM2({ onNavigate }: ComponentWithNavigation) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   if (activeSection) {
@@ -110,9 +110,12 @@ export function MenuPague({ onNavigate }: ComponentWithNavigation) {
   return (
     <Container fluid p="xl">
       <Stack gap="xl">
-        <Box>         
+        <Box>   
+          <Title order={1} mb="xs">
+            Sistema de Gamificación
+          </Title>
           <Text c="dimmed" size="lg">
-            Bienvenido al centro de control. Selecciona una sección para comenzar.
+            Bienvenido al panel de administración. Selecciona una sección para comenzar.
           </Text>
         </Box>
 

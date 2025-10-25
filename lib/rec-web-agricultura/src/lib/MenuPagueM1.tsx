@@ -93,7 +93,7 @@ const menuItems = [
   }
 ];
 
-export function MenuPague({ onNavigate }: ComponentWithNavigation) {
+export function MenuPagueM1({ onNavigate }: ComponentWithNavigation) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   if (activeSection) {
