@@ -165,3 +165,35 @@ export interface ResultadoDetalle {
   observacionesIa: string;
   fechaResultado: string;
 }
+
+
+export interface GenerarPlanRequest {
+  cultivoId: number;
+  id: number;
+}
+
+export interface ActividadSeguimientoResponse {
+  id: number;
+  fechaProgramada: string;
+  descripcion: string;
+  estado: string;
+  fechaEjecutada: string | null;
+  resultadoActividad: string | null;
+  costoReal: number | null;
+  responsable: string | null;
+  recordatorioEnviado: boolean | null;
+}
+
+export interface PlanGeneradoResponse {
+  id: number;
+  costoEstimado: number;
+  duracionDias: number;
+  fechaInicioSugerida: string;
+  fechaCreacion: string;
+  estado: string;
+  instruccionesDetalladas: string;
+  prioridad: string;
+  resultadoDiagnosticoId: number;
+  tratamientoId: number;
+  actividadesSeguimiento: ActividadSeguimientoResponse[];
+}

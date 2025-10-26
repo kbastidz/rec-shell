@@ -14,7 +14,6 @@ export interface ActividadSeguimiento {
   responsable?: string;
   recordatorioEnviado: boolean;
   fechaCreacion?: string; 
-
   planTratamientoId: string;
 }
 

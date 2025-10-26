@@ -21,6 +21,8 @@ import { SeguimientosAdmin } from './UI_SEGUIMIENTO/components/SeguimientosAdmin
 import { TratamientosAdmin } from './UI_TRATANIENTO/components/TratamientosAdmin';
 import { Listar } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Listar';
 import { Analisis } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis';
+import { ListarAdmin } from './UI_PROCESS/UI_ANALISIS_IMAGEN/components/ListarAdmin';
+import { PlanTratamientoListAdmin } from './UI_PROCESS/UI_ANALISIS_IMAGEN/components/PlanTratamientoListAdmin';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -65,7 +67,7 @@ const menuItems = [
     value: 'seguimientos',
     color: 'orange',
     description: 'Rastrea el progreso de cultivos',
-    component: SeguimientosAdmin
+    component: PlanTratamientoListAdmin //ListarAdmin //SeguimientosAdmin
   },
   { 
     icon: '📊', 
