@@ -1,106 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Center, Paper, ThemeIcon, Alert } from '@mantine/core';
+import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Center, Paper, ThemeIcon, Alert, Box } from '@mantine/core';
 import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
 
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
 import { CrearTransaccionDTO } from '../../../types/dto';
 import { useTransaccionPuntos } from '../hooks/useGamificacion';
+import { handleModelError, handleModelResponse, useGemini } from '@rec-shell/rec-web-shared';
+import { promptTemplate, SUBJECTS } from '../../../utils/CONSTANTE';
 
-interface Question {
-  q: string;
-  a: string[];
-  correct: number;
-  difficulty: number;
-  explanation: string;
-}
 
-interface SubjectData {
-  name: string;
-  icon: React.ComponentType<{ size?: number }>;
-  color: string;
-  questions: Question[];
-}
-
-interface CurrentQuestion extends Question {
-  subject: string;
-  subjectData: SubjectData;
-}
-
-type SubjectsType = {
-  [key: string]: SubjectData;
-}
-
-const SUBJECTS: SubjectsType = {
-  matematicas: {
-    name: 'Matemáticas',
-    icon: IconBrain,
-    color: 'blue',
-    questions: [
-      { q: '¿Cuánto es 15 × 8?', a: ['120', '125', '115', '130'], correct: 0, difficulty: 1, explanation: '15 × 8 = 120' },
-      { q: '¿Cuál es el perímetro de un cuadrado con lado de 7cm?', a: ['28cm', '49cm', '14cm', '21cm'], correct: 0, difficulty: 2, explanation: 'Perímetro = 4 × lado = 4 × 7 = 28cm' },
-      { q: 'Si x + 12 = 20, ¿cuánto vale x?', a: ['8', '32', '12', '10'], correct: 0, difficulty: 1, explanation: 'x = 20 - 12 = 8' },
-      { q: '¿Cuánto es 2³ + 3²?', a: ['17', '15', '19', '13'], correct: 0, difficulty: 2, explanation: '2³ = 8, 3² = 9, entonces 8 + 9 = 17' },
-      { q: '¿Cuál es el área de un círculo con radio 5? (usa π ≈ 3.14)', a: ['78.5', '31.4', '15.7', '157'], correct: 0, difficulty: 3, explanation: 'Área = π × r² = 3.14 × 25 = 78.5' },
-      { q: '¿Cuántos grados tiene un triángulo?', a: ['180°', '360°', '90°', '270°'], correct: 0, difficulty: 1, explanation: 'La suma de ángulos internos de un triángulo siempre es 180°' },
-      { q: '¿Qué fracción es equivalente a 0.75?', a: ['3/4', '2/3', '4/5', '1/2'], correct: 0, difficulty: 2, explanation: '0.75 = 75/100 = 3/4' }
-    ]
-  },
-  lengua: {
-    name: 'Lengua',
-    icon: IconBook,
-    color: 'grape',
-    questions: [
-      { q: '¿Cuál es el sustantivo en "El gato negro duerme"?', a: ['gato', 'negro', 'duerme', 'el'], correct: 0, difficulty: 1, explanation: 'El sustantivo es la palabra que nombra al ser u objeto: "gato"' },
-      { q: '¿Qué tipo de palabra es "rápidamente"?', a: ['Adverbio', 'Adjetivo', 'Verbo', 'Sustantivo'], correct: 0, difficulty: 2, explanation: 'Los adverbios terminados en -mente modifican al verbo' },
-      { q: '¿Cuántas sílabas tiene "murciélago"?', a: ['4', '3', '5', '6'], correct: 0, difficulty: 1, explanation: 'mur-cié-la-go = 4 sílabas' },
-      { q: '¿Cuál es el sinónimo de "feliz"?', a: ['Contento', 'Triste', 'Enojado', 'Cansado'], correct: 0, difficulty: 1, explanation: 'Sinónimos son palabras con significado similar' },
-      { q: '¿Qué signo va en: "Hola __ cómo estás"?', a: [',', '.', ';', ':'], correct: 0, difficulty: 2, explanation: 'La coma separa frases cortas en una oración' },
-      { q: '¿Qué es una metáfora?', a: ['Comparación implícita', 'Exageración', 'Repetición', 'Pregunta retórica'], correct: 0, difficulty: 3, explanation: 'La metáfora compara sin usar "como": "tus ojos son estrellas"' }
-    ]
-  },
-  ciencias: {
-    name: 'Ciencias',
-    icon: IconFlask,
-    color: 'green',
-    questions: [
-      { q: '¿Qué gas respiramos principalmente?', a: ['Oxígeno', 'Hidrógeno', 'Nitrógeno', 'CO₂'], correct: 0, difficulty: 1, explanation: 'Inhalamos oxígeno (O₂) necesario para vivir' },
-      { q: '¿Cuántos planetas hay en el Sistema Solar?', a: ['8', '9', '7', '10'], correct: 0, difficulty: 1, explanation: 'Mercurio, Venus, Tierra, Marte, Júpiter, Saturno, Urano, Neptuno' },
-      { q: '¿Qué órgano bombea la sangre?', a: ['Corazón', 'Pulmón', 'Hígado', 'Riñón'], correct: 0, difficulty: 1, explanation: 'El corazón bombea sangre a todo el cuerpo' },
-      { q: '¿Cuál es la fórmula del agua?', a: ['H₂O', 'CO₂', 'O₂', 'H₂'], correct: 0, difficulty: 2, explanation: 'Dos átomos de hidrógeno y uno de oxígeno' },
-      { q: '¿Qué tipo de animal es la ballena?', a: ['Mamífero', 'Pez', 'Reptil', 'Anfibio'], correct: 0, difficulty: 2, explanation: 'Las ballenas son mamíferos marinos que respiran aire' },
-      { q: '¿Qué produce la fotosíntesis?', a: ['Oxígeno', 'CO₂', 'Nitrógeno', 'Metano'], correct: 0, difficulty: 2, explanation: 'Las plantas producen oxígeno durante la fotosíntesis' },
-      { q: '¿A qué velocidad viaja la luz?', a: ['300,000 km/s', '150,000 km/s', '500,000 km/s', '100,000 km/s'], correct: 0, difficulty: 3, explanation: 'La luz viaja a aprox. 300,000 kilómetros por segundo' }
-    ]
-  },
-  sociales: {
-    name: 'Sociales',
-    icon: IconWorld,
-    color: 'orange',
-    questions: [
-      { q: '¿Cuál es la capital de Francia?', a: ['París', 'Londres', 'Roma', 'Madrid'], correct: 0, difficulty: 1, explanation: 'París es la capital y ciudad más grande de Francia' },
-      { q: '¿En qué continente está Egipto?', a: ['África', 'Asia', 'Europa', 'América'], correct: 0, difficulty: 1, explanation: 'Egipto está en el noreste de África' },
-      { q: '¿Quién descubrió América?', a: ['Cristóbal Colón', 'Marco Polo', 'Magallanes', 'Vasco da Gama'], correct: 0, difficulty: 1, explanation: 'Colón llegó a América en 1492' },
-      { q: '¿Cuántos continentes hay?', a: ['7', '5', '6', '8'], correct: 0, difficulty: 2, explanation: 'América, Europa, África, Asia, Oceanía, Antártida, divididos en N y S América' },
-      { q: '¿Qué océano está entre América y Europa?', a: ['Atlántico', 'Pacífico', 'Índico', 'Ártico'], correct: 0, difficulty: 2, explanation: 'El Océano Atlántico separa estos dos continentes' },
-      { q: '¿En qué año cayó el Muro de Berlín?', a: ['1989', '1991', '1985', '1979'], correct: 0, difficulty: 3, explanation: 'El Muro de Berlín cayó el 9 de noviembre de 1989' }
-    ]
-  },
-  ingles: {
-    name: 'Inglés',
-    icon: IconLanguage,
-    color: 'red',
-    questions: [
-      { q: '¿Cómo se dice "libro" en inglés?', a: ['Book', 'Look', 'Cook', 'Hook'], correct: 0, difficulty: 1, explanation: '"Book" significa libro en inglés' },
-      { q: '¿Qué significa "cat"?', a: ['Gato', 'Perro', 'Pájaro', 'Ratón'], correct: 0, difficulty: 1, explanation: '"Cat" es gato en español' },
-      { q: '¿Cuál es el plural de "child"?', a: ['Children', 'Childs', 'Childes', 'Childen'], correct: 0, difficulty: 2, explanation: '"Child" (niño) tiene un plural irregular: "children"' },
-      { q: '¿Qué significa "I am hungry"?', a: ['Tengo hambre', 'Estoy feliz', 'Tengo sueño', 'Estoy cansado'], correct: 0, difficulty: 1, explanation: '"Hungry" significa hambriento/a' },
-      { q: '¿Cómo se dice "buenos días" en inglés?', a: ['Good morning', 'Good night', 'Good afternoon', 'Good evening'], correct: 0, difficulty: 1, explanation: '"Good morning" se usa para saludar en la mañana' },
-      { q: '¿Cuál es el pasado de "go"?', a: ['Went', 'Goed', 'Gone', 'Goes'], correct: 0, difficulty: 2, explanation: '"Go" (ir) tiene pasado irregular: "went"' },
-      { q: 'What is the opposite of "hot"?', a: ['Cold', 'Warm', 'Cool', 'Mild'], correct: 0, difficulty: 2, explanation: '"Cold" (frío) es lo opuesto de "hot" (caliente)' }
-    ]
-  }
-};
 
 export function Trivia() {
   const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null);
@@ -113,12 +22,96 @@ export function Trivia() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [gameFinished, setGameFinished] = useState(false);
 
+  // Estado para preguntas generadas por Gemini
+  const [generatedSubjects, setGeneratedSubjects] = useState<SubjectsType | null>(null);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+
+  // Hook de Gemini para generar preguntas
+  /*const { response, loading, error, generateText } = useGemini({    
+    onSuccess: (text: any) => {
+      console.log('✅ Texto generado exitosamente:', text);
+      try {
+        let cleanedText = text.trim();
+        
+        // Remover bloques de código markdown si existen
+        if (cleanedText.startsWith('```json')) {
+          cleanedText = cleanedText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        } else if (cleanedText.startsWith('```')) {
+          cleanedText = cleanedText.replace(/```\n?/g, '');
+        }
+        
+        cleanedText = cleanedText.trim();
+        
+        console.log('📝 Texto limpio para parsear:', cleanedText.substring(0, 200) + '...');
+        
+        // Parsear la respuesta JSON de Gemini
+        const parsedData = JSON.parse(cleanedText);
+        
+        // Mapear los iconos de string a componentes
+        const mappedSubjects: SubjectsType = {};
+        Object.keys(parsedData).forEach(key => {
+          mappedSubjects[key] = {
+            ...parsedData[key],
+            icon: iconMap[parsedData[key].icon] || IconBrain
+          };
+        });
+        
+        setGeneratedSubjects(mappedSubjects);
+        setIsLoadingQuestions(false);
+        console.log('✅ Preguntas generadas y parseadas correctamente');
+      } catch (err) {
+        console.error('❌ Error al parsear respuesta:', err);
+        console.log('Respuesta recibida:', text);
+        // Si falla, usar datos predefinidos como fallback
+        setGeneratedSubjects(SUBJECTS);
+        setIsLoadingQuestions(false);
+      }
+    },
+    onError: (err: string) => {
+      console.error('❌ Error al generar preguntas:', err);
+      // En caso de error, usar datos predefinidos
+      setGeneratedSubjects(SUBJECTS);
+      setIsLoadingQuestions(false);
+    }
+  });*/
+
+  const { response, loading, error, generateText } = useGemini({
+  onSuccess: (text: string) =>
+    handleModelResponse<SubjectsType>({
+      text,
+      onParsed: (data) => {
+        setGeneratedSubjects(data);
+        setIsLoadingQuestions(false);
+      },
+      onError: (err) => {
+        handleModelError(err, SUBJECTS, setGeneratedSubjects);
+        setIsLoadingQuestions(false);
+      },
+      onFinally: () => {
+        console.log('✨ Finalizó el procesamiento del texto');
+      },
+    }),
+
+    onError: (err: string) =>
+      handleModelError(err, SUBJECTS, (fallback) => {
+        setGeneratedSubjects(fallback);
+        setIsLoadingQuestions(false);
+    }),
+  });
+
+  // Disparar la petición al cargar el componente
+  useEffect(() => {
+    console.log('🚀 Iniciando generación de preguntas con Gemini...');
+    generateText(promptTemplate);
+  }, []);
+
   const { crearTransaccion, loading: savingPoints, error: errorSavingPoints } = useTransaccionPuntos();
+
   // Cuando el juego termina y guardas los puntos
   const handleSavePoints = async () => {
-   const tipoPunto = { id: '1' };
+    const tipoPunto = { id: '1' };
 
-      const transaccionData: CrearTransaccionDTO = {
+    const transaccionData: CrearTransaccionDTO = {
       usuarioId: ST_GET_USER_ID(),
       tipoPunto: tipoPunto,
       tipoTransaccion: TipoTransaccion.GANAR,
@@ -138,17 +131,16 @@ export function Trivia() {
     
     if (result) {
       console.log('Puntos guardados exitosamente:', result);
-      // Puedes mostrar una notificación de éxito aquí
     } else if (errorSavingPoints) {
       console.error('Error al guardar puntos:', errorSavingPoints);
-      // Puedes mostrar una notificación de error aquí
     }
   };
 
   const getRandomQuestion = (): CurrentQuestion => {
-    const subjects = Object.keys(SUBJECTS);
+    const subjectsToUse = generatedSubjects || SUBJECTS;
+    const subjects = Object.keys(subjectsToUse);
     const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
-    const subjectData = SUBJECTS[randomSubject];
+    const subjectData = subjectsToUse[randomSubject];
     const questions = subjectData.questions;
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
     
@@ -169,10 +161,10 @@ export function Trivia() {
   };
 
   useEffect(() => {
-    if (!currentQuestion) {
+    if (!currentQuestion && !isLoadingQuestions && generatedSubjects) {
       startNewQuestion();
     }
-  }, []);
+  }, [isLoadingQuestions, generatedSubjects]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -236,11 +228,58 @@ export function Trivia() {
     startNewQuestion();
   };
 
-  if (!currentQuestion) return null;
+  // Pantalla de carga mientras se generan las preguntas
+  if (!currentQuestion || isLoadingQuestions) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Box p="md">
+          <Card shadow="xl" padding="xl" radius="lg" style={{ background: 'white' }}>
+            <Stack gap="xl" align="center">
+              <ThemeIcon size={120} radius="xl" color="violet" variant="light">
+                <IconBrain size={80} />
+              </ThemeIcon>
+              
+              <div style={{ textAlign: 'center' }}>
+                <Title order={2} c="violet" mb="xs">
+                  Generando preguntas...
+                </Title>
+                <Text size="lg" c="dimmed">
+                  {loading ? 'Creando preguntas personalizadas con IA' : 'Preparando tu trivia'}
+                </Text>
+              </div>
+
+              <Progress 
+                value={100} 
+                color="violet"
+                size="xl"
+                radius="xl"
+                animated
+                style={{ width: '100%' }}
+              />
+
+              {error && (
+                <Alert color="red" variant="light" style={{ width: '100%' }}>
+                  <Text size="sm" ta="center">
+                    Hubo un error al generar preguntas. Usando preguntas predefinidas...
+                  </Text>
+                </Alert>
+              )}
+            </Stack>
+          </Card>
+        </Box>
+      </div>
+    );
+  }
 
   if (gameFinished) {
     return (
-      
       <div style={{ 
         minHeight: '100vh', 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

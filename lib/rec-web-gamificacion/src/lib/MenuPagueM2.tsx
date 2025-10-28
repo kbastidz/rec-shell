@@ -19,6 +19,7 @@ import { RecompensasAdmin } from './UI_RECOMPENSA/components/RecompensasAdmin';
 import { TablaLideresAdmin } from './UI_TABLA_LIDERES/compoments/TablaLideresAdmin';
 import { TiposDesafioAdmin } from './UI_TIPO_DESAFIO/component/TiposDesafioAdmin';
 import { TipoRecompensaAdmin } from './UI_TIPO_RECOMPENSA/component/TipoRecompensaAdmin';
+import { Juegos } from './UI_PROCESS/UI_JUEGOS/components/Juegos';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -80,7 +81,16 @@ const menuItems = [
     color: 'orange',
     description: 'Visualiza rankings y estadísticas',
     component: TablaLideresAdmin
-  }
+  },
+  { 
+    icon: '🧩', 
+    label: 'Centro de juegos', 
+    value: 'juegos',
+    color: 'blue',
+    description: 'Centro de Juegos educativos',
+    component: Juegos
+  },
+  
 ];
 
 export function MenuPagueM2({ onNavigate }: ComponentWithNavigation) {

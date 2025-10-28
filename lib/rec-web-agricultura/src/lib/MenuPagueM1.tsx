@@ -22,7 +22,7 @@ import { TratamientosAdmin } from './UI_TRATANIENTO/components/TratamientosAdmin
 import { Listar } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Listar';
 import { Analisis } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis';
 import { ListarAdmin } from './UI_PROCESS/UI_ANALISIS_IMAGEN/components/ListarAdmin';
-import { PlanTratamientoListAdmin } from './UI_PROCESS/UI_ANALISIS_IMAGEN/components/PlanTratamientoListAdmin';
+import { PlanTratamientoListAdmin } from './UI_PROCESS/UI_PLAN_TRATAMIENTO/PlanTratamientoListAdmin';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -62,12 +62,20 @@ const menuItems = [
     component: MedidaAdmin
   },
   { 
+    icon: '🗓️', 
+    label: 'Plan Tratamiento', 
+    value: 'generacion',
+    color: 'yellow',
+    description: 'Generación de plan de tratamiento',
+    component: ListarAdmin
+  },
+  { 
     icon: '📋', 
     label: 'Seguimientos', 
     value: 'seguimientos',
     color: 'orange',
     description: 'Rastrea el progreso de cultivos',
-    component: PlanTratamientoListAdmin //ListarAdmin //SeguimientosAdmin
+    component: PlanTratamientoListAdmin  //SeguimientosAdmin
   },
   { 
     icon: '📊', 
@@ -86,7 +94,7 @@ const menuItems = [
     component: Analisis
   },
   { 
-    icon: '📋', 
+    icon: '🔍', 
     label: 'Consultas de Análisis', 
     value: 'listar',
     color: 'blue',

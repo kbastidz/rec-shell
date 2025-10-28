@@ -14,7 +14,7 @@ export  function Juegos() {
     <Container size="xl" py="xl">
       <Paper shadow="sm" p="xl" radius="md" withBorder>
         <Title order={1} mb="xl" ta="center">
-          <span role="img" aria-label="celebración">🎮</span> Centro de Juegos
+          <span role="img" aria-label="celebración">🧩</span> Centro de Juegos
         </Title>
 
         <Tabs value={activeTab} onChange={setActiveTab} variant="pills">

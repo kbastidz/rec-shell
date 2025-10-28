@@ -24,9 +24,9 @@ import {
   IconCalendar,
   IconCurrencyDollar,
 } from '@tabler/icons-react';
-import { usePlanesTratamiento } from '../hooks/useAgricultura';
-import { PlanTratamiento } from '../../../types/model';
-import { EstadoActividad } from '../../../enums/Enums';
+import { usePlanesTratamiento } from '../UI_ANALISIS_IMAGEN/hooks/useAgricultura';
+import { PlanTratamiento } from '../../types/model';
+import { EstadoActividad } from '../../enums/Enums';
 
 
 export function PlanTratamientoListAdmin() {

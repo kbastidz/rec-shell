@@ -20,3 +20,6 @@ export { useSessionExpiry } from './lib/session/hook/useSessionExpiry';
 export { ErrorHandler, handleError } from './lib/util/error.handler.util';
 export { DeleteConfirmModal } from './lib/common/DeleteConfirmModal';
 export { ActionButtons } from './lib/common/TooltipActionButton';
+
+export { useGemini } from './lib/gemini_IA/hooks/useGemini';
+export { handleModelResponse, handleModelError } from './lib/gemini_IA/handler/handleGeminiResponse';
