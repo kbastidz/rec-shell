@@ -5,106 +5,10 @@ import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { CrearTransaccionDTO } from '../../../types/dto';
 import { TipoTransaccion } from '../../../enums/Enums';
 import { useTransaccionPuntos } from '../hooks/useGamificacion';
+import { handleModelResponse, useGemini } from '@rec-shell/rec-web-shared';
+import { MATERIAS_DEFAULT, promptTemplateRaspa } from '../../../utils/CONSTANTE';
+import { Loader } from 'lucide-react';
 
-interface Mission {
-  id: number;
-  question: string;
-  answer: string;
-  points: number;
-}
-
-interface Subject {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  missions: Mission[];
-}
-
-interface RewardType {
-  type: string;
-  name: string;
-  emoji: string;
-  probability: number;
-  minPoints: number;
-  maxPoints: number;
-  color: string;
-}
-
-interface Reward {
-  rarity: RewardType;
-  points: number;
-  badge: string | null;
-  subjectId: string;
-}
-
-interface NotificationType {
-  type: 'success' | 'error';
-  message: string;
-}
-
-interface UnlockedCard extends Reward {
-  timestamp: number;
-}
-
-// Definición de materias con sus misiones
-const subjects: Subject[] = [
-  { 
-    id: 'math', 
-    name: 'Matemáticas', 
-    icon: '📘',
-    color: 'blue',
-    missions: [
-      { id: 1, question: 'Resuelve: 25 × 3 – 15 = ?', answer: '60', points: 10 },
-      { id: 2, question: 'Calcula: 144 ÷ 12 = ?', answer: '12', points: 10 },
-      { id: 3, question: 'Si tienes $50 y gastas $23, ¿cuánto te queda?', answer: '27', points: 15 }
-    ]
-  },
-  { 
-    id: 'language', 
-    name: 'Lengua', 
-    icon: '📗',
-    color: 'green',
-    missions: [
-      { id: 1, question: '¿Cuántas vocales tiene la palabra "educación"? (escribe el número)', answer: '5', points: 5 },
-      { id: 2, question: 'Completa: El plural de "pez" es ___', answer: 'peces', points: 10 },
-      { id: 3, question: '¿Cuál es el sinónimo de "feliz"? (contento/triste)', answer: 'contento', points: 10 }
-    ]
-  },
-  { 
-    id: 'social', 
-    name: 'Ciencias Sociales', 
-    icon: '🌎',
-    color: 'orange',
-    missions: [
-      { id: 1, question: '¿En qué continente está Ecuador?', answer: 'america', points: 15 },
-      { id: 2, question: '¿Cuál es la capital de Francia?', answer: 'paris', points: 10 },
-      { id: 3, question: 'Comparte un dato curioso sobre tu ciudad (escribe: "compartido")', answer: 'compartido', points: 15 }
-    ]
-  },
-  { 
-    id: 'science', 
-    name: 'Ciencias Naturales', 
-    icon: '🔬',
-    color: 'teal',
-    missions: [
-      { id: 1, question: '¿Cuántos planetas tiene el sistema solar?', answer: '8', points: 10 },
-      { id: 2, question: '¿Qué necesitan las plantas para hacer fotosíntesis? (luz/oscuridad)', answer: 'luz', points: 10 },
-      { id: 3, question: 'Observa algo vivo en tu casa (escribe: "observado")', answer: 'observado', points: 10 }
-    ]
-  },
-  { 
-    id: 'art', 
-    name: 'Arte', 
-    icon: '🎨',
-    color: 'pink',
-    missions: [
-      { id: 1, question: '¿Cuántos colores primarios hay?', answer: '3', points: 10 },
-      { id: 2, question: 'Crea un dibujo (escribe: "dibujado")', answer: 'dibujado', points: 20 },
-      { id: 3, question: '¿Rojo + Amarillo = ? (naranja/verde)', answer: 'naranja', points: 15 }
-    ]
-  }
-];
 
 // Tipos de recompensas
 const rewardTypes: RewardType[] = [
@@ -120,6 +24,14 @@ const badges: Record<string, string[]> = {
   social: ['🗺️ Explorador', '🏛️ Historiador', '🌍 Viajero', '📚 Sabio'],
   science: ['🔭 Científico', '🧪 Químico', '🌱 Biólogo', '⚗️ Investigador'],
   art: ['🖌️ Artista', '🎭 Creativo', '🌈 Colorista', '✨ Maestro']
+};
+
+const ICON_MAP: Record<string, string> = {
+  icon_math: "📗",
+  icon_language: "📘",
+  icon_social: "📙",
+  icon_science: "📒",
+  icon_art: "📕",
 };
 
 interface ScratchCardProps {
@@ -282,9 +194,78 @@ export  function RaspaGana() {
   const [showCard, setShowCard] = useState(false);
   const [currentReward, setCurrentReward] = useState<Reward | null>(null);
   const [notification, setNotification] = useState<NotificationType | null>(null);
-  const { crearTransaccion, loading } = useTransaccionPuntos();
+  const { CREAR, OBTENER_REGLA_POR_TIPO, regla } = useTransaccionPuntos();
   const [materiasCompletadas, setMateriasCompletadas] = useState<Set<string>>(new Set());
 
+  //Hook para invocar las reglas del juego Ini
+  useEffect(() => {
+    const cargarRegla = async () => {
+      await OBTENER_REGLA_POR_TIPO('RULETA');
+    };
+    cargarRegla();
+  }, []);
+  //Hook para invocar las reglas del juego Ini
+
+  // Calcular puntos por misión basado en regla
+  const calcularPuntosPorMision = () => {
+    const totalMisiones = materiasGeneradas.reduce((acc, materia) => acc + materia.missions.length, 0);
+    const puntosBase = regla?.puntosOtorgados ?? 10;
+    return totalMisiones > 0 ? Math.max(1, Math.floor(puntosBase / totalMisiones)) : 1;
+  };
+
+  
+
+  // Hook de Gemini Ini
+  
+  // Estados para Gemini
+  const [materiasGeneradas, setMateriasGeneradas] = useState<Subject[]>(MATERIAS_DEFAULT);
+  const [cargandoActividades, setCargandoActividades] = useState(true);
+  const [errorCargaIA, setErrorCargaIA] = useState(false);
+  
+  const { loading, error, generateText } = useGemini({
+    temperature: 0.8,
+    maxTokens: 8000,
+    onSuccess: (result: any) => {
+      handleModelResponse<Subject[]>({
+        text: result,
+        onParsed: (materiasIA) => {
+          if (Array.isArray(materiasIA) && materiasIA.length > 0) {
+            setMateriasGeneradas(materiasIA);
+            setErrorCargaIA(false);
+          } else {
+            console.warn('Array vacío recibido, usando materias por defecto');
+            setMateriasGeneradas(MATERIAS_DEFAULT);
+            setErrorCargaIA(true);
+          }
+        },
+        onError: (err) => {
+          console.error('Error al parsear respuesta de Gemini:', err);
+          setMateriasGeneradas(MATERIAS_DEFAULT);
+          setErrorCargaIA(true);
+        },
+        onFinally: () => {
+          setCargandoActividades(false);
+        }
+      });
+    },
+    onError: (errorMsg: string) => {
+      console.error('Error de Gemini:', errorMsg);
+      setCargandoActividades(false);
+      setMateriasGeneradas(MATERIAS_DEFAULT);
+      setErrorCargaIA(true);
+    }
+  });
+
+  // Cargar materias al montar el componente
+  useEffect(() => {
+    const cargarMaterias = async () => {
+      await generateText(promptTemplateRaspa);
+    };
+
+    cargarMaterias();
+  }, [generateText]);
+
+  // Hook de Gemini Ini
 
   const generateReward = (subjectId: string): Reward => {
     const rand = Math.random();
@@ -301,7 +282,7 @@ export  function RaspaGana() {
     
     const points = Math.floor(Math.random() * (selectedRarity.maxPoints - selectedRarity.minPoints + 1)) + selectedRarity.minPoints;
     
-    const badgePool = badges[subjectId];
+    const badgePool = badges[subjectId] || badges.math;
     const badge = selectedRarity.type === 'epic' && Math.random() > 0.5 
       ? badgePool[Math.floor(Math.random() * badgePool.length)]
       : null;
@@ -332,6 +313,10 @@ export  function RaspaGana() {
       
       const reward = generateReward(selectedSubject.id);
       setCurrentReward(reward);
+
+      // Sobrescribir los puntos con el cálculo proporcional
+      const puntosCalculados = calcularPuntosPorMision();
+      reward.points = puntosCalculados;
       
       // Agregar la nueva tarjeta a las desbloqueadas
       const newUnlockedCards = [...unlockedCards, { ...reward, timestamp: Date.now() }];
@@ -354,6 +339,7 @@ export  function RaspaGana() {
       setTotalPoints(prev => prev + currentReward.points);
 
       if (currentReward.badge && !collectedBadges.includes(currentReward.badge)) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         setCollectedBadges(prev => [...prev, currentReward.badge!]);
       }
     }
@@ -367,7 +353,7 @@ export  function RaspaGana() {
   
 useEffect(() => {
   // Verificar si alguna materia se acaba de completar
-  subjects.forEach(async (subject) => {
+  materiasGeneradas.forEach(async (subject) => {
     const allMissionsCompleted = subject.missions.every(
       m => completedMissions[`${subject.id}-${m.id}`]
     );
@@ -383,13 +369,13 @@ useEffect(() => {
       );
       
       const progresoGeneral = Math.round(
-        subjects.reduce((acc, s) => {
+        materiasGeneradas.reduce((acc, s) => {
           const progress = (s.missions.filter(m => completedMissions[`${s.id}-${m.id}`]).length / s.missions.length) * 100;
           return acc + progress;
-        }, 0) / subjects.length
+        }, 0) / materiasGeneradas.length
       );
 
-      const progresoMaterias = subjects.map(s => ({
+      const progresoMaterias = materiasGeneradas.map(s => ({
         materia_id: s.id,
         materia_nombre: s.name,
         progreso: Math.round((s.missions.filter(m => completedMissions[`${s.id}-${m.id}`]).length / s.missions.length) * 100),
@@ -397,12 +383,14 @@ useEffect(() => {
         total_misiones: s.missions.length
       }));
       
-      const tipoPunto = { id: '1' };
+      const tipoPunto = { id: regla?.id_tipo_punto?.toString() || '1' };
+      const puntosCalculados = regla?.puntosOtorgados ? regla.puntosOtorgados : totalPuntosMateria;
+
         const transaccionData : CrearTransaccionDTO = {
           usuarioId: ST_GET_USER_ID(),
           tipoPunto: tipoPunto,
           tipoTransaccion: TipoTransaccion.GANAR,
-          cantidad: totalPuntosMateria,
+          cantidad: puntosCalculados,
           descripcion: `¡Completó todas las misiones de ${subject.name}!`,
           tipoOrigen: 'MATERIA_COMPLETA',
           idOrigen: 1,
@@ -426,15 +414,15 @@ useEffect(() => {
             misiones_completadas_total: Object.keys(completedMissions).length
           }
         }
-      await crearTransaccion(transaccionData);
+      await CREAR(transaccionData);
     }
   });
-}, [completedMissions, collectedBadges, unlockedCards, totalPoints]);
+}, [completedMissions, collectedBadges, unlockedCards, totalPoints, materiasGeneradas]);
 
 
 
   const getSubjectProgress = (subjectId: string) => {
-    const subject = subjects.find(s => s.id === subjectId);
+    const subject = materiasGeneradas.find(s => s.id === subjectId);
     if (!subject) return 0;
     const completed = subject.missions.filter(m => completedMissions[`${subjectId}-${m.id}`]).length;
     return (completed / subject.missions.length) * 100;
@@ -444,9 +432,25 @@ useEffect(() => {
     return subject.missions.find(m => !completedMissions[`${subject.id}-${m.id}`]);
   };
 
-  return (
+  // Mostrar loader mientras carga
+  if (cargandoActividades) {
+    return (
+      <Container size="lg" py="xl">
+        <Center style={{ minHeight: '400px' }}>
+          <Stack align="center" gap="md">
+            <Loader size="xl" />
+            <Text size="lg" fw={500}>Generando misiones con IA...</Text>
+            <Text size="sm" c="dimmed">Esto puede tomar unos segundos</Text>
+          </Stack>
+        </Center>
+      </Container>
+    );
+  }
+
+  return ( 
     <Container size="lg" py="xl">
       <Stack gap="lg">
+        
         {/* Header */}
         <Paper p="xl" withBorder style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
           <Group justify="space-between" align="flex-start">
@@ -463,7 +467,7 @@ useEffect(() => {
                 </ThemeIcon>
                 <div>
                   <Text size="xs" c="white" opacity={0.8}>Puntos totales</Text>
-                  <Title order={2} c="white">{totalPoints}</Title>
+                  <Title order={2} c="white">{regla?.puntosOtorgados ?? totalPoints}</Title>
                 </div>
               </Group>
               <Badge size="lg" color="cyan" variant="light">
@@ -486,15 +490,18 @@ useEffect(() => {
         {/* Tabs */}
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>
-            <Tabs.Tab value="missions">📚 Misiones</Tabs.Tab>
-            <Tabs.Tab value="collection">🏆 Mi Colección</Tabs.Tab>
-            <Tabs.Tab value="stats">📊 Estadísticas</Tabs.Tab>
+            <Tabs.Tab value="missions">
+              <span role="img" aria-label="hacha">📚</span> Misiones</Tabs.Tab>
+            <Tabs.Tab value="collection">
+              <span role="img" aria-label="medalla">🏆</span>Mi Colección</Tabs.Tab>
+            <Tabs.Tab value="stats">
+              <span role="img" aria-label="estadísticas">📊 </span>Estadísticas</Tabs.Tab>
           </Tabs.List>
 
           {/* Panel de Misiones */}
           <Tabs.Panel value="missions" pt="xl">
             <Grid>
-              {subjects.map(subject => {
+              {materiasGeneradas.map(subject => {
                 const currentMission = getCurrentMission(subject);
                 const progress = getSubjectProgress(subject.id);
                 const isComplete = progress === 100;
@@ -510,7 +517,7 @@ useEffect(() => {
                       <Stack gap="md">
                         <Group justify="space-between">
                           <Group gap="xs">
-                            <Text size="30px">{subject.icon}</Text>
+                            <Text size="30px">{ICON_MAP[subject.icon] ?? "📚"}</Text>
                             <div>
                               <Text fw={600}>{subject.name}</Text>
                               <Text size="xs" c="dimmed">
@@ -612,7 +619,7 @@ useEffect(() => {
                     <RingProgress
                       size={180}
                       thickness={16}
-                      sections={subjects.map(s => ({
+                      sections={materiasGeneradas.map(s => ({
                         value: getSubjectProgress(s.id),
                         color: s.color
                       }))}
@@ -620,7 +627,7 @@ useEffect(() => {
                         <Center>
                           <Stack gap={0} align="center">
                             <Text size="xl" fw={700}>{Math.round(
-                              subjects.reduce((acc, s) => acc + getSubjectProgress(s.id), 0) / subjects.length
+                              materiasGeneradas.reduce((acc, s) => acc + getSubjectProgress(s.id), 0) / materiasGeneradas.length
                             )}%</Text>
                             <Text size="xs" c="dimmed">Progreso</Text>
                           </Stack>
@@ -634,11 +641,11 @@ useEffect(() => {
               
               <Grid.Col span={{ base: 12, sm: 6 }}>
                 <Stack gap="md">
-                  {subjects.map(subject => (
+                  {materiasGeneradas.map(subject => (
                     <Card key={subject.id} withBorder padding="md">
                       <Group justify="space-between" mb="xs">
                         <Group gap="xs">
-                          <Text size="20px">{subject.icon}</Text>
+                          <Text size="20px">{ICON_MAP[subject.icon] ?? "📚"}</Text>
                           <Text fw={500}>{subject.name}</Text>
                         </Group>
                         <Text fw={600} c={subject.color}>
@@ -663,7 +670,9 @@ useEffect(() => {
           }}
           title={
             <Group gap="xs">
-              <Text size="25px">{selectedSubject?.icon}</Text>
+              <Text size="25px">
+                <span role="img" aria-label="celebración">📚</span>
+              </Text>
               <Text fw={600}>{selectedSubject?.name}</Text>
             </Group>
           }
@@ -689,7 +698,7 @@ useEffect(() => {
                 
                 <Group justify="space-between">
                   <Badge size="lg" color="green" variant="light">
-                    Recompensa: {mission.points} puntos
+                    Recompensa: {calcularPuntosPorMision()} puntos
                   </Badge>
                   <Button 
                     onClick={checkAnswer}

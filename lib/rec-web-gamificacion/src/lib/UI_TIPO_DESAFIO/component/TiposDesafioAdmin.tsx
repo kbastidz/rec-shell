@@ -22,16 +22,13 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
 import {
-  IconPlus,
   IconEdit,
   IconTrash,
   IconSearch,
   IconUsers,
   IconUser,
-  IconAlertCircle,
-  IconAlertTriangle
+  IconAlertCircle
 } from '@tabler/icons-react';
 import {
   useTiposIndividuales,

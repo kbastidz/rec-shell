@@ -70,3 +70,12 @@ export interface CrearTransaccionDTO {
 export interface TipoPunto {
   id: string;
 }
+
+export interface ReglaPuntosDTO {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  eventoDisparador: string;
+  puntosOtorgados: number;
+  id_tipo_punto: number;
+}

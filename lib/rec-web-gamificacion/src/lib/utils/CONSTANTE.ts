@@ -108,3 +108,250 @@ export const SUBJECTS: SubjectsType = {
     ]
   }
 };
+
+export const promptTemplateRuleta = `
+Tu tarea es actuar como un **creador de contenido educativo viral** y generar un listado de actividades de aprendizaje innovadoras.
+Debes fusionar el contenido académico de diferentes materias con el formato y estilo de las redes sociales más populares (TikTok, Instagram/Stories/Reels/Carrusel, X/Twitter, YouTube Shorts).
+
+**¡INSTRUCCIÓN CRÍTICA!**
+**Debes generar ÚNICAMENTE Y EXCLUSIVAMENTE el objeto JSON que se especifica a continuación. No incluyas ningún texto, explicación, preámbulo, comentario, o cualquier carácter que no forme parte del JSON final (incluyendo frases como 'A continuación te ayudo', 'Aquí tienes el JSON', etc.).**
+
+**Estructura del JSON Requerido:**
+
+* **Formato:** Un único array de objetos (la lista de materias).
+* **Restricción:** El resultado debe ser en formato JSON estricto.
+
+**Cada objeto de materia debe incluir:**
+1.  \`id\`: (numérico, consecutivo, comenzando en 1).
+2.  \`nombre\`: El nombre de la materia.
+3.  \`emoji\`: Un emoji representativo de la materia.
+4.  \`color\`: Un color en formato hexadecimal estricto (\`#RRGGBB\`).
+5.  \`actividades\`: Un array de objetos con las tareas.
+
+**Cada objeto dentro del array \`actividades\` debe incluir:**
+1.  \`texto\`: La descripción de la actividad. Debe especificar claramente el tipo de red social/formato, la materia aplicada, ser creativo, motivacional y orientado a la viralidad.
+2.  \`puntos\`: Un valor numérico entero entre 3 y 5 (5 es el más complejo/impactante).
+
+**Temas a considerar para las materias (mínimo 5 materias):**
+* Ciencias Sociales/Historia
+* Economía/Finanzas
+* Programación/Tecnología
+* Música/Teoría Musical
+* Idiomas (Ej: Inglés)
+* Artes Visuales/Diseño
+
+**¡Ejemplo de Estilo de Actividad a Seguir!**
+\`texto\`: '📊 Carrusel de Instagram: Analiza 5 errores financieros comunes en universitarios. Cada slide debe ser un meme con un dato clave y el título 'No seas ese amigo''.
+\`puntos\`: 4
+
+**INICIA LA RESPUESTA DIRECTAMENTE CON EL CARÁCTER DE APERTURA DEL JSON (\`[\`) Y NADA MÁS.**
+`;
+
+export const MATERIAS = [
+  { 
+    id: 1, 
+    nombre: 'Matemáticas', 
+    emoji: '🔢', 
+    color: '#4A90E2',
+    actividades: [
+      { texto: '📸 Post estilo Instagram: Crea una historia visual resolviendo una ecuación paso a paso. Usa stickers y texto creativo para hacerla viral entre tus compañeros.', puntos: 4 },
+      { texto: '🎬 TikTok educativo: Graba un video de 60 segundos explicando un "hack matemático" que uses para calcular porcentajes rápido. Usa música de fondo y transiciones.', puntos: 5 },
+      { texto: '📊 Reto viral: Publica una encuesta en el grupo preguntando "¿Cuál es tu fórmula matemática favorita?" y comparte los resultados con un gráfico creativo.', puntos: 3 },
+      { texto: '💬 Thread educativo: Crea una secuencia de 3 posts explicando cómo usar las fracciones en la vida real (cocina, videojuegos, etc.). Usa emojis y ejemplos cool.', puntos: 4 },
+    ]
+  },
+  { 
+    id: 2, 
+    nombre: 'Lenguaje', 
+    emoji: '📚', 
+    color: '#E24A4A',
+    actividades: [
+      { texto: '📖 BookTok: Graba un video estilo TikTok recomendando tu libro favorito en 30 segundos. Hazlo dramático y emocionante para enganchar a tus seguidores.', puntos: 5 },
+      { texto: '✍️ Escritura viral: Escribe un micro-relato de terror o suspenso de máximo 280 caracteres (estilo Twitter/X) y publícalo con hashtags creativos.', puntos: 3 },
+      { texto: '🎭 Trend literario: Graba un video actuando una escena de tu obra literaria favorita. Usa efectos y filtros para hacerlo más épico.', puntos: 5 },
+      { texto: '📝 Meme educativo: Crea un meme usando figuras literarias (metáfora, hipérbole, etc.) que sea gracioso y educativo. Compártelo en el grupo.', puntos: 3 },
+    ]
+  },
+  { 
+    id: 3, 
+    nombre: 'Ciencias', 
+    emoji: '🔬', 
+    color: '#50C878',
+    actividades: [
+      { texto: '🧪 Experimento viral: Graba un experimento científico casero estilo YouTube (volcán de bicarbonato, etc.) y explica la reacción química. Bonus: efectos de edición.', puntos: 5 },
+      { texto: '🌍 Post informativo: Crea un carrusel de Instagram con 5 datos impactantes sobre el cambio climático. Usa diseño atractivo y fuentes que llamen la atención.', puntos: 4 },
+      { texto: '🔬 Challenge científico: Inicia un reto: "Menciona un científico que admires y por qué". Etiqueta a 3 compañeros para que continúen la cadena.', puntos: 3 },
+      { texto: '⚡ Dato curioso viral: Graba un video tipo "Sabías que..." con un dato científico sorprendente. Usa música épica y revelación dramática al final.', puntos: 4 },
+    ]
+  },
+  { 
+    id: 4, 
+    nombre: 'Historia', 
+    emoji: '📜', 
+    color: '#D4A574',
+    actividades: [
+      { texto: '🎥 Documental express: Graba un mini-documental de 2 minutos sobre un evento histórico importante usando fotos, narración y música de fondo dramática.', puntos: 5 },
+      { texto: '📱 Historia en Stories: Crea 5 stories contando un evento histórico como si fuera noticia de última hora con encuestas interactivas y preguntas.', puntos: 4 },
+      { texto: '🕰️ Time travel post: Publica qué época histórica visitarías y por qué, con una imagen o video editado donde "aparezcas" en esa época.', puntos: 4 },
+      { texto: '👥 Trend histórico: Recrea un meme famoso pero con personajes históricos. Ejemplo: "Expectativa vs Realidad" con Simón Bolívar o Cleopatra.', puntos: 3 },
+    ]
+  },
+  { 
+    id: 5, 
+    nombre: 'Arte', 
+    emoji: '🎨', 
+    color: '#E67EB4',
+    actividades: [
+      { texto: '🎨 Speed art video: Graba en timelapse cómo creas una obra de arte (dibujo, pintura, digital). Usa música trending y muestra el antes/después.', puntos: 5 },
+      { texto: '🖼️ Galería virtual: Crea un carrusel de Instagram mostrando 3 obras de arte que te inspiran y explica por qué en los captions.', puntos: 3 },
+      { texto: '✨ Desafío artístico: Inicia el "Art Challenge": dibuja algo con los ojos cerrados, grábate y reta a tus compañeros a hacerlo mejor.', puntos: 4 },
+      { texto: '🎭 Filtro creativo: Usa o crea un filtro de Instagram/Snapchat inspirado en un movimiento artístico (surrealismo, pop art) y tómate una selfie creativa.', puntos: 4 },
+    ]
+  },
+  { 
+    id: 6, 
+    nombre: 'Educación Física', 
+    emoji: '⚽', 
+    color: '#FF8C42',
+    actividades: [
+      { texto: '💪 Fitness Challenge: Graba un video haciendo un reto físico (plancha, sentadillas, etc.) y reta a tus amigos a superarte. Usa hashtags fitness.', puntos: 4 },
+      { texto: '⚽ Trick shot: Graba tu mejor jugada o truco deportivo en cámara lenta con música épica. Puede ser con cualquier deporte o actividad física.', puntos: 5 },
+      { texto: '🏃 Rutina viral: Crea y comparte una rutina de ejercicios de 1 minuto que se pueda hacer en casa. Hazlo dinámico con cortes rápidos de video.', puntos: 4 },
+      { texto: '📊 Progreso deportivo: Publica tu "antes y después" de alguna habilidad deportiva que hayas mejorado. Inspira a otros con tu dedicación.', puntos: 3 },
+    ]
+  },
+];
+
+export const promptTemplateBingo1 = "Genera un objeto JSON. El objeto debe contener las siguientes claves (materias): 'ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', y 'ARTES'. A cada clave asígnale un array que contenga 8 actividades de tarea o estudio relacionadas con esa materia. Las actividades deben ser variadas y adecuadas para un nivel de primaria o secundaria inicial. SOLO proporciona el objeto JSON, sin ninguna explicación ni texto adicional.";
+
+export const ACCIONES_BASE = {
+  ESPANOL: [
+    'Escribe una mini historia',
+    'Lee un poema en voz alta',
+    'Escribe 5 palabras nuevas',
+    'Corrige un texto con errores',
+    'Inventa un refrán',
+    'Describe tu lugar favorito',
+    'Escribe una carta a un amigo',
+    'Crea un acróstico'
+  ],
+  MATEMATICAS: [
+    'Resuelve 3 ejercicios de suma mental',
+    'Aprende una tabla de multiplicar',
+    'Calcula el perímetro de tu pupitre',
+    'Juega con fracciones',
+    'Resuelve un problema de división',
+    'Mide 5 objetos de tu casa',
+    'Crea un patrón numérico',
+    'Cuenta de 3 en 3 hasta 60'
+  ],
+  CIENCIAS: [
+    'Observa una planta y dibújala',
+    'Describe el clima de hoy',
+    'Mide la temperatura',
+    'Explica cómo se forma la lluvia',
+    'Identifica 3 animales locales',
+    'Experimenta con agua y aceite',
+    'Observa el cielo nocturno',
+    'Clasifica 5 objetos por material'
+  ],
+  SOCIALES: [
+    'Investiga un héroe local',
+    'Menciona 3 provincias',
+    'Busca un país en el mapa',
+    'Habla de tu familia',
+    'Describe una tradición local',
+    'Dibuja tu árbol genealógico',
+    'Investiga sobre Simón Bolívar',
+    'Menciona 3 ríos de Ecuador'
+  ],
+  ARTES: [
+    'Dibuja algo sobre tu día',
+    'Crea una canción corta',
+    'Haz una figura con papel',
+    'Pinta una emoción',
+    'Construye algo con material reciclado',
+    'Diseña un logo para tu clase',
+    'Crea un collage',
+    'Baila una canción y descríbela'
+  ]
+};
+
+export const promptTemplateBingo = `Genera un objeto JSON con actividades educativas para un bingo semanal escolar. 
+    
+    El formato debe ser:
+    {
+      "ESPANOL": ["actividad 1", "actividad 2", ...],
+      "MATEMATICAS": ["actividad 1", "actividad 2", ...],
+      "CIENCIAS": ["actividad 1", "actividad 2", ...],
+      "SOCIALES": ["actividad 1", "actividad 2", ...],
+      "ARTES": ["actividad 1", "actividad 2", ...]
+    }
+    
+    Genera exactamente 5 actividades diferentes para cada materia. Las actividades deben ser:
+    - Apropiadas para estudiantes de secundaria
+    - Variadas (lecturas, ejercicios, proyectos, investigaciones)
+    - Específicas y claras
+    - Realizables en una semana
+    
+    Responde SOLO con el objeto JSON, sin texto adicional.`;
+
+export const promptTemplateRaspa = `Genera la lista de 5 categorías de misiones educativas (Matemáticas, Lengua, Ciencias Sociales, Ciencias Naturales y Arte) con 3 misiones cada una. El output debe ser únicamente el objeto JSON, garantizando que los campos id de las categorías sean exactamente math, language, social, science, y art. La estructura debe usar: id de categoría (string), name, icon, color, y missions donde el campo id de la misión sea un valor numérico, junto con question, answer (string en minúsculas, sin tildes) y points (número), sin ningún texto, comentario o explicación adicional.`;
+
+export const MATERIAS_DEFAULT : Subject[] = [
+  { 
+    id: 'math', 
+    name: 'Matemáticas', 
+    icon: '📘',
+    color: 'blue',
+    missions: [
+      { id: 1, question: 'Resuelve: 25 × 3 – 15 = ?', answer: '60', points: 10 },
+      { id: 2, question: 'Calcula: 144 ÷ 12 = ?', answer: '12', points: 10 },
+      { id: 3, question: 'Si tienes $50 y gastas $23, ¿cuánto te queda?', answer: '27', points: 15 }
+    ]
+  },
+  { 
+    id: 'language', 
+    name: 'Lengua', 
+    icon: '📗',
+    color: 'green',
+    missions: [
+      { id: 1, question: '¿Cuántas vocales tiene la palabra "educación"? (escribe el número)', answer: '5', points: 5 },
+      { id: 2, question: 'Completa: El plural de "pez" es ___', answer: 'peces', points: 10 },
+      { id: 3, question: '¿Cuál es el sinónimo de "feliz"? (contento/triste)', answer: 'contento', points: 10 }
+    ]
+  },
+  { 
+    id: 'social', 
+    name: 'Ciencias Sociales', 
+    icon: '🌎',
+    color: 'orange',
+    missions: [
+      { id: 1, question: '¿En qué continente está Ecuador?', answer: 'america', points: 15 },
+      { id: 2, question: '¿Cuál es la capital de Francia?', answer: 'paris', points: 10 },
+      { id: 3, question: 'Comparte un dato curioso sobre tu ciudad (escribe: "compartido")', answer: 'compartido', points: 15 }
+    ]
+  },
+  { 
+    id: 'science', 
+    name: 'Ciencias Naturales', 
+    icon: '🔬',
+    color: 'teal',
+    missions: [
+      { id: 1, question: '¿Cuántos planetas tiene el sistema solar?', answer: '8', points: 10 },
+      { id: 2, question: '¿Qué necesitan las plantas para hacer fotosíntesis? (luz/oscuridad)', answer: 'luz', points: 10 },
+      { id: 3, question: 'Observa algo vivo en tu casa (escribe: "observado")', answer: 'observado', points: 10 }
+    ]
+  },
+  { 
+    id: 'art', 
+    name: 'Arte', 
+    icon: '🎨',
+    color: 'pink',
+    missions: [
+      { id: 1, question: '¿Cuántos colores primarios hay?', answer: '3', points: 10 },
+      { id: 2, question: 'Crea un dibujo (escribe: "dibujado")', answer: 'dibujado', points: 20 },
+      { id: 3, question: '¿Rojo + Amarillo = ? (naranja/verde)', answer: 'naranja', points: 15 }
+    ]
+  }
+];

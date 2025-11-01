@@ -5,102 +5,8 @@ import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
 import { CrearTransaccionDTO } from '../../../types/dto';
 import { useTransaccionPuntos } from '../hooks/useGamificacion';
-
-
-interface Actividad {
-  texto: string;
-  puntos: number;
-}
-
-interface Materia {
-  id: number;
-  nombre: string;
-  emoji: string;
-  color: string;
-  actividades: Actividad[];
-}
-
-interface ResultadoType {
-  materia: Materia;
-  actividad: Actividad;
-}
-
-const MATERIAS: Materia[] = [
-  { 
-    id: 1, 
-    nombre: 'Matemáticas', 
-    emoji: '🔢', 
-    color: '#4A90E2',
-    actividades: [
-      { texto: '📸 Post estilo Instagram: Crea una historia visual resolviendo una ecuación paso a paso. Usa stickers y texto creativo para hacerla viral entre tus compañeros.', puntos: 4 },
-      { texto: '🎬 TikTok educativo: Graba un video de 60 segundos explicando un "hack matemático" que uses para calcular porcentajes rápido. Usa música de fondo y transiciones.', puntos: 5 },
-      { texto: '📊 Reto viral: Publica una encuesta en el grupo preguntando "¿Cuál es tu fórmula matemática favorita?" y comparte los resultados con un gráfico creativo.', puntos: 3 },
-      { texto: '💬 Thread educativo: Crea una secuencia de 3 posts explicando cómo usar las fracciones en la vida real (cocina, videojuegos, etc.). Usa emojis y ejemplos cool.', puntos: 4 },
-    ]
-  },
-  { 
-    id: 2, 
-    nombre: 'Lenguaje', 
-    emoji: '📚', 
-    color: '#E24A4A',
-    actividades: [
-      { texto: '📖 BookTok: Graba un video estilo TikTok recomendando tu libro favorito en 30 segundos. Hazlo dramático y emocionante para enganchar a tus seguidores.', puntos: 5 },
-      { texto: '✍️ Escritura viral: Escribe un micro-relato de terror o suspenso de máximo 280 caracteres (estilo Twitter/X) y publícalo con hashtags creativos.', puntos: 3 },
-      { texto: '🎭 Trend literario: Graba un video actuando una escena de tu obra literaria favorita. Usa efectos y filtros para hacerlo más épico.', puntos: 5 },
-      { texto: '📝 Meme educativo: Crea un meme usando figuras literarias (metáfora, hipérbole, etc.) que sea gracioso y educativo. Compártelo en el grupo.', puntos: 3 },
-    ]
-  },
-  { 
-    id: 3, 
-    nombre: 'Ciencias', 
-    emoji: '🔬', 
-    color: '#50C878',
-    actividades: [
-      { texto: '🧪 Experimento viral: Graba un experimento científico casero estilo YouTube (volcán de bicarbonato, etc.) y explica la reacción química. Bonus: efectos de edición.', puntos: 5 },
-      { texto: '🌍 Post informativo: Crea un carrusel de Instagram con 5 datos impactantes sobre el cambio climático. Usa diseño atractivo y fuentes que llamen la atención.', puntos: 4 },
-      { texto: '🔬 Challenge científico: Inicia un reto: "Menciona un científico que admires y por qué". Etiqueta a 3 compañeros para que continúen la cadena.', puntos: 3 },
-      { texto: '⚡ Dato curioso viral: Graba un video tipo "Sabías que..." con un dato científico sorprendente. Usa música épica y revelación dramática al final.', puntos: 4 },
-    ]
-  },
-  { 
-    id: 4, 
-    nombre: 'Historia', 
-    emoji: '📜', 
-    color: '#D4A574',
-    actividades: [
-      { texto: '🎥 Documental express: Graba un mini-documental de 2 minutos sobre un evento histórico importante usando fotos, narración y música de fondo dramática.', puntos: 5 },
-      { texto: '📱 Historia en Stories: Crea 5 stories contando un evento histórico como si fuera noticia de última hora con encuestas interactivas y preguntas.', puntos: 4 },
-      { texto: '🕰️ Time travel post: Publica qué época histórica visitarías y por qué, con una imagen o video editado donde "aparezcas" en esa época.', puntos: 4 },
-      { texto: '👥 Trend histórico: Recrea un meme famoso pero con personajes históricos. Ejemplo: "Expectativa vs Realidad" con Simón Bolívar o Cleopatra.', puntos: 3 },
-    ]
-  },
-  { 
-    id: 5, 
-    nombre: 'Arte', 
-    emoji: '🎨', 
-    color: '#E67EB4',
-    actividades: [
-      { texto: '🎨 Speed art video: Graba en timelapse cómo creas una obra de arte (dibujo, pintura, digital). Usa música trending y muestra el antes/después.', puntos: 5 },
-      { texto: '🖼️ Galería virtual: Crea un carrusel de Instagram mostrando 3 obras de arte que te inspiran y explica por qué en los captions.', puntos: 3 },
-      { texto: '✨ Desafío artístico: Inicia el "Art Challenge": dibuja algo con los ojos cerrados, grábate y reta a tus compañeros a hacerlo mejor.', puntos: 4 },
-      { texto: '🎭 Filtro creativo: Usa o crea un filtro de Instagram/Snapchat inspirado en un movimiento artístico (surrealismo, pop art) y tómate una selfie creativa.', puntos: 4 },
-    ]
-  },
-  { 
-    id: 6, 
-    nombre: 'Educación Física', 
-    emoji: '⚽', 
-    color: '#FF8C42',
-    actividades: [
-      { texto: '💪 Fitness Challenge: Graba un video haciendo un reto físico (plancha, sentadillas, etc.) y reta a tus amigos a superarte. Usa hashtags fitness.', puntos: 4 },
-      { texto: '⚽ Trick shot: Graba tu mejor jugada o truco deportivo en cámara lenta con música épica. Puede ser con cualquier deporte o actividad física.', puntos: 5 },
-      { texto: '🏃 Rutina viral: Crea y comparte una rutina de ejercicios de 1 minuto que se pueda hacer en casa. Hazlo dinámico con cortes rápidos de video.', puntos: 4 },
-      { texto: '📊 Progreso deportivo: Publica tu "antes y después" de alguna habilidad deportiva que hayas mejorado. Inspira a otros con tu dedicación.', puntos: 3 },
-    ]
-  },
-];
-
-
+import { handleModelResponse, useGemini } from '@rec-shell/rec-web-shared';
+import { MATERIAS, promptTemplateRuleta } from '../../../utils/CONSTANTE';
 
 export function Ruleta() {
   const [girando, setGirando] = useState(false);
@@ -109,7 +15,82 @@ export function Ruleta() {
   const [yaGiro, setYaGiro] = useState(false);
   const [puntosTotal, setPuntosTotal] = useState(0);
   const usuarioId = ST_GET_USER_ID();
-  const { crearTransaccion, loading, error } = useTransaccionPuntos();
+
+  //Hook para invocar las reglas del juego Ini
+  const { CREAR, OBTENER_REGLA_POR_TIPO, regla, loading, error } = useTransaccionPuntos();
+
+  useEffect(() => {
+      const cargarRegla = async () => {
+        await OBTENER_REGLA_POR_TIPO('RULETA');
+      };
+      cargarRegla();
+  }, []);
+  //Hook para invocar las reglas del juego Ini
+
+  // Hook de Gemini Ini  
+  const [materiasGeneradas, setMateriasGeneradas] = useState<Materia[]>(MATERIAS);
+  const [cargandoActividades, setCargandoActividades] = useState(true);
+  
+  const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
+    temperature: 0.8,
+    maxTokens: 8000,
+    onSuccess: (result: any) => {
+      handleModelResponse<Materia[]>({
+        text: result,
+        onParsed: (materiasIA) => {
+          if (Array.isArray(materiasIA) && materiasIA.length > 0) {
+            setMateriasGeneradas(materiasIA);
+            sessionStorage.setItem(`materias_${usuarioId}`, JSON.stringify(materiasIA));
+          } else {
+            console.warn('Array vacío recibido, usando materias por defecto');
+            setMateriasGeneradas(MATERIAS);
+          }
+        },
+        onError: (err) => {
+          console.error('Error al parsear respuesta de Gemini:', err);
+          setMateriasGeneradas(MATERIAS);
+        },
+        onFinally: () => {
+          setCargandoActividades(false);
+        }
+      });
+    },
+    onError: (errorMsg: string) => {
+      console.error('Error de Gemini:', errorMsg);
+      setCargandoActividades(false);
+      setMateriasGeneradas(MATERIAS);
+    }
+  });
+  // Hook de Gemini Fin
+
+  // Cargar actividades al montar el componente
+  useEffect(() => {
+    const cargarActividades = async () => {
+      // Verificar si ya hay actividades guardadas para hoy
+      const materiasGuardadas = sessionStorage.getItem(`materias_${usuarioId}`);
+      const fechaGeneracion = sessionStorage.getItem(`fecha_materias_${usuarioId}`);
+      const hoy = new Date().toDateString();
+      
+      if (materiasGuardadas && fechaGeneracion === hoy) {
+        // Usar actividades guardadas del día
+        try {
+          const materias = JSON.parse(materiasGuardadas);
+          setMateriasGeneradas(materias);
+          setCargandoActividades(false);
+          return;
+        } catch (err) {
+          console.error('Error al cargar materias guardadas:', err);
+        }
+      }
+      
+      // Si no hay actividades guardadas o son de otro día, generar nuevas
+      sessionStorage.setItem(`fecha_materias_${usuarioId}`, hoy);
+      await generateText(promptTemplateRuleta);
+    };
+
+    cargarActividades();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuarioId]); // Solo depende de usuarioId
 
   useEffect(() => {
     // Verificar si ya giró hoy (usando memoria en lugar de localStorage)
@@ -135,7 +116,7 @@ export function Ruleta() {
     setGirando(true);
     setResultado(null);
 
-    const materiaSeleccionada = MATERIAS[Math.floor(Math.random() * MATERIAS.length)];
+    const materiaSeleccionada = materiasGeneradas[Math.floor(Math.random() * materiasGeneradas.length)];
     const actividadSeleccionada = materiaSeleccionada.actividades[Math.floor(Math.random() * materiaSeleccionada.actividades.length)];
 
     const vueltasExtra = 5 + Math.floor(Math.random() * 3);
@@ -156,14 +137,16 @@ export function Ruleta() {
       // Crear transacción de puntos en la base de datos
       try {
         const nuevoBalance = puntosTotal + actividadSeleccionada.puntos;
-        const tipoPunto = { id: '1' };
+        
+        const tipoPunto = { id: regla?.id_tipo_punto?.toString() || '1' };
+        const puntosCalculados = regla?.puntosOtorgados ? regla.puntosOtorgados : actividadSeleccionada.puntos;
 
         const transaccionData: CrearTransaccionDTO = {
           usuarioId: ST_GET_USER_ID(),
           tipoPunto: tipoPunto,
           tipoTransaccion: TipoTransaccion.GANAR,
-          cantidad: actividadSeleccionada.puntos,
-          balanceDespues: nuevoBalance,
+          cantidad: puntosCalculados,
+          //balanceDespues: nuevoBalance,
           descripcion: `Ruleta del Saber - ${materiaSeleccionada.nombre}`,
           tipoOrigen: 'RULETA',
           idOrigen: materiaSeleccionada.id,
@@ -175,7 +158,7 @@ export function Ruleta() {
           }
         };
 
-        await crearTransaccion(transaccionData);
+        await CREAR(transaccionData);
 
         setPuntosTotal(nuevoBalance);
         
@@ -204,14 +187,21 @@ export function Ruleta() {
               <span role="img" aria-label="rueda de la fortuna">🎡</span> ¡Gira la Ruleta del Saber!
             </Title>
             <Badge size="xl" variant="white" color="violet">
-              <span role="img" aria-label="estrella">⭐</span> {puntosTotal} puntos
+              <span role="img" aria-label="estrella">⭐</span>{' '}
+                {regla?.puntosOtorgados ?? puntosTotal} puntos
             </Badge>
           </Group>
         </Paper>
 
-        {error && (
-          <Alert color="red" title="Error al registrar puntos">
-            {error}
+        {(error || errorGemini) && (
+          <Alert color="red" title="Error">
+            {error || errorGemini}
+          </Alert>
+        )}
+
+        {cargandoActividades && (
+          <Alert color="blue" title="Generando actividades...">
+            <span role="img" aria-label="robot">🤖</span> Estamos creando actividades personalizadas con IA. Esto solo tomará unos segundos...
           </Alert>
         )}
 
@@ -248,7 +238,7 @@ export function Ruleta() {
                 boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
                 overflow: 'hidden'
               }}>
-                {MATERIAS.map((materia, index) => (
+                {materiasGeneradas.map((materia, index) => (
                   <div
                     key={materia.id}
                     style={{
@@ -277,17 +267,19 @@ export function Ruleta() {
             <Button
               size="xl"
               radius="xl"
-              disabled={girando || yaGiro || loading}
+              disabled={girando || yaGiro || loading || cargandoActividades}
               onClick={girarRuleta}
               style={{
-                background: yaGiro ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: (yaGiro || cargandoActividades) ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 fontSize: 20,
                 height: 60,
                 paddingLeft: 40,
                 paddingRight: 40
               }}
             >
-              {loading ? (
+              {cargandoActividades ? (
+                <><span role="img" aria-label="robot">🤖</span> Generando actividades...</>
+              ) : loading ? (
                 <><span role="img" aria-label="guardando">💾</span> Guardando...</>
               ) : yaGiro ? (
                 <><span role="img" aria-label="check">✅</span> Ya giraste hoy</>
@@ -360,7 +352,7 @@ export function Ruleta() {
               <span role="img" aria-label="portapapeles">📋</span> Materias disponibles:
             </Text>
             <Group gap="xs">
-              {MATERIAS.map(materia => (
+              {materiasGeneradas.map(materia => (
                 <Badge 
                   key={materia.id} 
                   variant="light" 
@@ -370,6 +362,11 @@ export function Ruleta() {
                 </Badge>
               ))}
             </Group>
+            {!cargandoActividades && (
+              <Text size="xs" c="dimmed" mt="xs">
+                <span role="img" aria-label="robot">🤖</span> Actividades generadas con IA
+              </Text>
+            )}
           </Stack>
         </Card>
       </Stack>

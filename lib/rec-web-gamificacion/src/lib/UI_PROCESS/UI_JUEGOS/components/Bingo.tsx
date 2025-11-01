@@ -15,38 +15,17 @@ import {
   Card,
   Notification,
   FileButton,
+  Loader,
+  Alert,
+  Center,
 } from '@mantine/core';
 
 import { CrearTransaccionDTO } from '../../../types/dto';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
 import { useTransaccionPuntos } from '../hooks/useGamificacion';
-
-type MateriaKey = 'ESPANOL' | 'MATEMATICAS' | 'CIENCIAS' | 'SOCIALES' | 'ARTES';
-
-interface Evidencia {
-  texto?: string;
-  archivo?: File | null;
-}
-
-interface Casilla {
-  id: number;
-  materia: MateriaKey;
-  accion: string;
-  completada: boolean;
-  evidencia: Evidencia | null;
-}
-
-interface Linea {
-  tipo: 'fila' | 'columna' | 'diagonal';
-  index: number;
-  casillas: number[];
-}
-
-interface Notificacion {
-  mensaje: string;
-  color: string;
-}
+import { ACCIONES_BASE, promptTemplateBingo } from '../../../utils/CONSTANTE';
+import { useGemini } from '@rec-shell/rec-web-shared';
 
 
 const MATERIAS = {
@@ -57,66 +36,48 @@ const MATERIAS = {
   ARTES: { nombre: 'Artes', color: '#9b59b6', icon: '🎨' }
 };
 
-const ACCIONES_BASE = {
-  ESPANOL: [
-    'Escribe una mini historia',
-    'Lee un poema en voz alta',
-    'Escribe 5 palabras nuevas',
-    'Corrige un texto con errores',
-    'Inventa un refrán',
-    'Describe tu lugar favorito',
-    'Escribe una carta a un amigo',
-    'Crea un acróstico'
-  ],
-  MATEMATICAS: [
-    'Resuelve 3 ejercicios de suma mental',
-    'Aprende una tabla de multiplicar',
-    'Calcula el perímetro de tu pupitre',
-    'Juega con fracciones',
-    'Resuelve un problema de división',
-    'Mide 5 objetos de tu casa',
-    'Crea un patrón numérico',
-    'Cuenta de 3 en 3 hasta 60'
-  ],
-  CIENCIAS: [
-    'Observa una planta y dibújala',
-    'Describe el clima de hoy',
-    'Mide la temperatura',
-    'Explica cómo se forma la lluvia',
-    'Identifica 3 animales locales',
-    'Experimenta con agua y aceite',
-    'Observa el cielo nocturno',
-    'Clasifica 5 objetos por material'
-  ],
-  SOCIALES: [
-    'Investiga un héroe local',
-    'Menciona 3 provincias',
-    'Busca un país en el mapa',
-    'Habla de tu familia',
-    'Describe una tradición local',
-    'Dibuja tu árbol genealógico',
-    'Investiga sobre Simón Bolívar',
-    'Menciona 3 ríos de Ecuador'
-  ],
-  ARTES: [
-    'Dibuja algo sobre tu día',
-    'Crea una canción corta',
-    'Haz una figura con papel',
-    'Pinta una emoción',
-    'Construye algo con material reciclado',
-    'Diseña un logo para tu clase',
-    'Crea un collage',
-    'Baila una canción y descríbela'
-  ]
-};
+type MateriaKey = keyof typeof MATERIAS;
 
-function generarTablero(): Casilla[] {
+interface Casilla {
+  id: number;
+  materia: MateriaKey;
+  accion: string;
+  completada: boolean;
+  evidencia: { texto: string; archivo: File | null } | null;
+}
+
+interface Linea {
+  tipo: string;
+  index: number;
+  casillas: number[];
+}
+
+interface Notificacion {
+  mensaje: string;
+  color: string;
+}
+
+interface AccionesGeneradas {
+  ESPANOL: string[];
+  MATEMATICAS: string[];
+  CIENCIAS: string[];
+  SOCIALES: string[];
+  ARTES: string[];
+}
+
+function generarTablero(acciones: AccionesGeneradas): Casilla[] {
   const tablero: Casilla[] = [];
-  const materiasKeys = Object.keys(ACCIONES_BASE) as MateriaKey[];
+  const materiasKeys: MateriaKey[] = ['ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', 'ARTES'];
+  
   for (let i = 0; i < 25; i++) {
+    // Seleccionar una materia aleatoria
     const materiaKey = materiasKeys[Math.floor(Math.random() * materiasKeys.length)];
-    const acciones = ACCIONES_BASE[materiaKey];
-    const accion = acciones[Math.floor(Math.random() * acciones.length)];
+    const accionesMateria = acciones[materiaKey] || [];
+    
+    // Seleccionar una acción aleatoria de esa materia
+    const accion = accionesMateria.length > 0
+      ? accionesMateria[Math.floor(Math.random() * accionesMateria.length)]
+      : 'Acción pendiente';
     
     tablero.push({
       id: i,
@@ -131,40 +92,45 @@ function generarTablero(): Casilla[] {
 }
 
 function detectarLineasCompletadas(tablero: Casilla[]): Linea[] {
-   const lineas: Linea[] = [];
+  const lineas: Linea[] = [];
+  
+  if (tablero.length !== 25) return lineas;
   
   // Filas
   for (let i = 0; i < 5; i++) {
     const fila = tablero.slice(i * 5, (i + 1) * 5);
-    if (fila.every(c => c.completada)) {
+    if (fila.length === 5 && fila.every(c => c && c.completada)) {
       lineas.push({ tipo: 'fila', index: i, casillas: fila.map(c => c.id) });
     }
   }
   
   // Columnas
   for (let i = 0; i < 5; i++) {
-    const columna = [0, 1, 2, 3, 4].map(row => tablero[row * 5 + i]);
-    if (columna.every(c => c.completada)) {
+    const columna = [0, 1, 2, 3, 4].map(row => tablero[row * 5 + i]).filter(c => c !== undefined);
+    if (columna.length === 5 && columna.every(c => c && c.completada)) {
       lineas.push({ tipo: 'columna', index: i, casillas: columna.map(c => c.id) });
     }
   }
   
   // Diagonales
-  const diagonal1 = [0, 6, 12, 18, 24].map(i => tablero[i]);
-  if (diagonal1.every(c => c.completada)) {
+  const diagonal1 = [0, 6, 12, 18, 24].map(i => tablero[i]).filter(c => c !== undefined);
+  if (diagonal1.length === 5 && diagonal1.every(c => c && c.completada)) {
     lineas.push({ tipo: 'diagonal', index: 1, casillas: [0, 6, 12, 18, 24] });
   }
   
-  const diagonal2 = [4, 8, 12, 16, 20].map(i => tablero[i]);
-  if (diagonal2.every(c => c.completada)) {
+  const diagonal2 = [4, 8, 12, 16, 20].map(i => tablero[i]).filter(c => c !== undefined);
+  if (diagonal2.length === 5 && diagonal2.every(c => c && c.completada)) {
     lineas.push({ tipo: 'diagonal', index: 2, casillas: [4, 8, 12, 16, 20] });
   }
   
   return lineas;
 }
 
-export  function Bingo() {
-  const [tablero, setTablero] = useState<Casilla[]>(() => generarTablero());
+export function Bingo() {
+  const usuarioId = ST_GET_USER_ID();
+
+  // Estado del juego
+  const [tablero, setTablero] = useState<Casilla[]>([]);
   const [modalAbierto, setModalAbierto] = useState<boolean>(false);
   const [casillaSeleccionada, setCasillaSeleccionada] = useState<Casilla | null>(null);
   const [evidenciaTexto, setEvidenciaTexto] = useState<string>('');
@@ -173,10 +139,133 @@ export  function Bingo() {
   const [lineasCompletadas, setLineasCompletadas] = useState<Linea[]>([]);
   const [notificacion, setNotificacion] = useState<Notificacion | null>(null);
   const [insignias, setInsignias] = useState<string[]>([]);
-  const { crearTransaccion, loading: loadingTransaccion } = useTransaccionPuntos();
+  
+  const { CREAR, OBTENER_REGLA_POR_TIPO, regla, loading: loadingTransaccion } = useTransaccionPuntos();
+  
+  // Hook de Gemini
+  const [accionesGeneradas, setAccionesGeneradas] = useState<AccionesGeneradas | null>(null);
+  const [cargandoActividades, setCargandoActividades] = useState(false);
+  const [errorIA, setErrorIA] = useState<string | null>(null);
+  const [bingoIniciado, setBingoIniciado] = useState(false);
 
-
+  //Hook para invocar las reglas del juego
   useEffect(() => {
+    const cargarRegla = async () => {
+      console.log('🔄 Cargando regla BINGO...');
+      await OBTENER_REGLA_POR_TIPO('BINGO');
+    };
+    cargarRegla();
+  }, []);
+
+  // Log cuando regla cambia
+  useEffect(() => {
+    if (regla) {
+      console.log('✅ Regla cargada:', regla);
+    }
+  }, [regla]);
+  
+  const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
+    temperature: 0.8,
+    maxTokens: 8000,
+    onSuccess: (result: any) => {
+      try {
+        let textoRespuesta = result;
+        
+        // Limpiar la respuesta si viene con markdown o texto adicional
+        if (typeof textoRespuesta === 'string') {
+          // Buscar JSON entre bloques de código
+          const matchCodeBlock = textoRespuesta.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+          if (matchCodeBlock) {
+            textoRespuesta = matchCodeBlock[1];
+          }
+          
+          // Buscar JSON directamente
+          const matchJSON = textoRespuesta.match(/\{[\s\S]*\}/);
+          if (matchJSON) {
+            textoRespuesta = matchJSON[0];
+          }
+        }
+        
+        // Intentar parsear el JSON
+        const accionesIA = JSON.parse(textoRespuesta);
+        
+        // Validar que tenga las 5 materias
+        const materiasEsperadas = ['ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', 'ARTES'];
+        const materiasValidas = materiasEsperadas.filter(m => 
+          accionesIA[m] && Array.isArray(accionesIA[m]) && accionesIA[m].length > 0
+        );
+        
+        if (materiasValidas.length === 5) {
+          console.log('✅ Actividades generadas correctamente:', accionesIA);
+          setAccionesGeneradas(accionesIA);
+          sessionStorage.setItem(`acciones_bingo_${usuarioId}`, JSON.stringify(accionesIA));
+          setErrorIA(null);
+        } else {
+          console.warn('⚠️ Respuesta incompleta de Gemini. Materias válidas:', materiasValidas.length);
+          setAccionesGeneradas(ACCIONES_BASE);
+          setErrorIA('Respuesta incompleta, usando actividades predefinidas');
+        }
+      } catch (error) {
+        console.error('❌ Error al procesar respuesta de Gemini:', error);
+        console.log('Respuesta recibida:', result);
+        setAccionesGeneradas(ACCIONES_BASE);
+        setErrorIA('Error al generar actividades, usando predefinidas');
+      } finally {
+        setCargandoActividades(false);
+      }
+    },
+    onError: (errorMsg: string) => {
+      console.error('Error de Gemini:', errorMsg);
+      setCargandoActividades(false);
+      setAccionesGeneradas(ACCIONES_BASE);
+      setErrorIA('No se pudo conectar con IA, usando actividades predefinidas');
+    }
+  });
+
+  // Verificar si hay un bingo guardado al montar
+  useEffect(() => {
+    const accionesGuardadas = sessionStorage.getItem(`acciones_bingo_${usuarioId}`);
+    
+    if (accionesGuardadas) {
+      try {
+        const acciones = JSON.parse(accionesGuardadas);
+        setAccionesGeneradas(acciones);
+        setBingoIniciado(true);
+      } catch (error) {
+        console.error('Error al cargar acciones guardadas:', error);
+      }
+    }
+  }, [usuarioId]);
+
+  // Generar tablero cuando las acciones estén listas
+  useEffect(() => {
+    if (accionesGeneradas && tablero.length === 0) {
+      setTablero(generarTablero(accionesGeneradas));
+    }
+  }, [accionesGeneradas, tablero.length]);
+
+  const iniciarBingoConIA = async () => {
+    setBingoIniciado(true);
+    setCargandoActividades(true);
+    
+    try {
+      await generateText(promptTemplateBingo);
+    } catch (error) {
+      console.error('Error al generar actividades:', error);
+      setAccionesGeneradas(ACCIONES_BASE);
+      setCargandoActividades(false);
+      setErrorIA('Error al generar actividades, usando predefinidas');
+    }
+  };
+
+  // Efecto para detectar líneas completadas y bingo completo
+  useEffect(() => {
+    // Verificar que regla esté cargada
+    if (!regla) {
+      console.log('⏳ Esperando carga de regla...');
+      return;
+    }
+
     const lineas = detectarLineasCompletadas(tablero);
     const nuevasLineas = lineas.filter(
       linea => !lineasCompletadas.some(
@@ -185,17 +274,23 @@ export  function Bingo() {
     );
     
     if (nuevasLineas.length > 0) {
+      console.log('🎉 Nuevas líneas detectadas:', nuevasLineas);
+      
       const puntosNuevos = nuevasLineas.length * 5;
       setPuntos(p => p + puntosNuevos);
       setLineasCompletadas(lineas);
       
-        const tipoPunto = { id: '1' };
-        nuevasLineas.forEach(async (linea) => {
-        const transaccionData: CrearTransaccionDTO = {
+      const tipoPunto = { id: regla.id_tipo_punto?.toString() || '1' };
+      const puntosCalculados = regla.puntosOtorgados || 1;
+
+      // Usar Promise.all en lugar de forEach
+      Promise.all(
+        nuevasLineas.map(async (linea) => {
+          const transaccionData: CrearTransaccionDTO = {
             usuarioId: ST_GET_USER_ID(),
             tipoPunto: tipoPunto,
             tipoTransaccion: TipoTransaccion.GANAR,
-            cantidad: 1,
+            cantidad: puntosCalculados,
             descripcion: `Completó ${linea.tipo} ${linea.index + 1} del Bingo`,
             tipoOrigen: 'BINGO_LINEA',
             idOrigen: linea.index,
@@ -203,9 +298,15 @@ export  function Bingo() {
               tipo_linea: linea.tipo,
               casillas: linea.casillas
             }
-        };
-        
-        await crearTransaccion(transaccionData);
+          };
+          
+          console.log('💾 Guardando transacción de línea:', transaccionData);
+          const resultado = await CREAR(transaccionData);
+          console.log('✅ Transacción de línea guardada:', resultado);
+          return resultado;
+        })
+      ).catch(error => {
+        console.error('❌ Error al guardar transacciones de líneas:', error);
       });
       
       setNotificacion({
@@ -217,16 +318,20 @@ export  function Bingo() {
     }
     
     // Verificar tablero completo
-    if (tablero.every(c => c.completada) && !insignias.includes('bingo_completo')) {
+    if (tablero.length > 0 && tablero.every(c => c.completada) && !insignias.includes('bingo_completo')) {
+      console.log('🏆 Bingo completo detectado');
+      
       setPuntos(p => p + 15);
       setInsignias([...insignias, 'bingo_completo']);
       
-       const tipoPunto = { id: '1' };
+      const tipoPunto = { id: regla.id_tipo_punto?.toString() || '1' };
+      const puntosCalculados = regla.puntosOtorgados || 1;
+
       const transaccionData: CrearTransaccionDTO = {
         usuarioId: ST_GET_USER_ID(),
         tipoPunto: tipoPunto,
         tipoTransaccion: TipoTransaccion.GANAR,
-        cantidad: 1,
+        cantidad: puntosCalculados,
         descripcion: '¡Bingo completo! Bonus especial',
         tipoOrigen: 'BINGO_COMPLETO',
         idOrigen: 1,
@@ -236,15 +341,19 @@ export  function Bingo() {
         }
       };
       
-      crearTransaccion(transaccionData);
+      console.log('💾 Guardando transacción de bingo completo:', transaccionData);
+      CREAR(transaccionData).then(resultado => {
+        console.log('✅ Transacción de bingo completo guardada:', resultado);
+      }).catch(error => {
+        console.error('❌ Error al guardar transacción de bingo completo:', error);
+      });
       
       setNotificacion({
-        mensaje: '🏆 ¡BINGO COMPLETO! +15 pts bonus',
+        mensaje: '🏆 ¡BINGO COMPLETO!',
         color: 'yellow'
       });
     }
-  }, [tablero, lineasCompletadas, insignias, crearTransaccion]);
-
+  }, [tablero, lineasCompletadas, insignias, regla, CREAR]);
 
   const abrirModal = (casilla: Casilla) => {
     setCasillaSeleccionada(casilla);
@@ -254,26 +363,35 @@ export  function Bingo() {
   };
 
   const completarCasilla = async () => {
-  if (!casillaSeleccionada) return;
+    if (!casillaSeleccionada) return;
 
-  if (!evidenciaTexto && !archivo) {
-    alert('Por favor agrega una evidencia (texto o archivo)');
-    return;
-  }
-  
-  const nuevoTablero = tablero.map(c => 
-    c.id === casillaSeleccionada.id 
-      ? { ...c, completada: true, evidencia: { texto: evidenciaTexto, archivo } }
-      : c
-  );
-  
-  setTablero(nuevoTablero);
-     const tipoPunto = { id: '1' };
+    if (!evidenciaTexto && !archivo) {
+      alert('Por favor agrega una evidencia (texto o archivo)');
+      return;
+    }
+
+    if (!regla) {
+      console.error('❌ No se puede completar casilla: regla no cargada');
+      alert('Error: Configuración del juego no cargada. Intenta recargar la página.');
+      return;
+    }
+    
+    const nuevoTablero = tablero.map(c => 
+      c.id === casillaSeleccionada.id 
+        ? { ...c, completada: true, evidencia: { texto: evidenciaTexto, archivo } }
+        : c
+    );
+    
+    setTablero(nuevoTablero);
+    
+    const tipoPunto = { id: regla.id_tipo_punto?.toString() || '1' };
+    const puntosCalculados = regla.puntosOtorgados || 1;
+
     const transaccionData: CrearTransaccionDTO = {
       usuarioId: ST_GET_USER_ID(),
       tipoPunto: tipoPunto,
       tipoTransaccion: TipoTransaccion.GANAR,
-      cantidad: 1,
+      cantidad: puntosCalculados,
       descripcion: `Completó acción: ${casillaSeleccionada.accion}`,
       tipoOrigen: 'BINGO',
       idOrigen: casillaSeleccionada.id,
@@ -284,20 +402,91 @@ export  function Bingo() {
         archivo_nombre: archivo?.name || null
       }
     };
-  
-    await crearTransaccion(transaccionData);
+    
+    console.log('💾 Guardando transacción de casilla:', transaccionData);
+    
+    try {
+      const resultado = await CREAR(transaccionData);
+      console.log('✅ Transacción de casilla guardada:', resultado);
+    } catch (error) {
+      console.error('❌ Error al guardar transacción de casilla:', error);
+    }
     
     setModalAbierto(false);
   };
 
   const reiniciarBingo = () => {
-    setTablero(generarTablero());
+    sessionStorage.removeItem(`acciones_bingo_${usuarioId}`);
+    setTablero([]);
     setPuntos(0);
     setLineasCompletadas([]);
     setInsignias([]);
-    setNotificacion({ mensaje: '🎲 Nuevo tablero generado', color: 'blue' });
+    setErrorIA(null);
+    iniciarBingoConIA();
+    setNotificacion({ mensaje: '🎲 Generando nuevo tablero...', color: 'blue' });
     setTimeout(() => setNotificacion(null), 2000);
   };
+
+  // Pantalla inicial si no ha iniciado el bingo
+  if (!bingoIniciado) {
+    return (
+      <Container size="xl" py="xl">
+        <Center style={{ minHeight: '60vh' }}>
+          <Paper shadow="lg" p="xl" style={{ maxWidth: 600, textAlign: 'center' }}>
+            <Stack gap="xl">
+              <div style={{ fontSize: '5rem' }}>🎲</div>
+              <Title order={1} style={{ 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                Bingo Educativo Semanal
+              </Title>
+              <Text size="lg" c="dimmed">
+                Completa actividades de diferentes materias, forma líneas y gana puntos. 
+                ¡La IA generará actividades personalizadas para ti!
+              </Text>
+              
+              <Stack gap="sm">
+                <Paper p="sm" bg="blue.0">
+                  <Text size="sm" fw={500}>✨ Actividades personalizadas con IA</Text>
+                </Paper>
+                <Paper p="sm" bg="green.0">
+                  <Text size="sm" fw={500}>🏆 Gana puntos por líneas completadas</Text>
+                </Paper>
+                <Paper p="sm" bg="yellow.0">
+                  <Text size="sm" fw={500}>📚 5 materias diferentes</Text>
+                </Paper>
+              </Stack>
+
+              <Button 
+                size="xl" 
+                onClick={iniciarBingoConIA}
+                gradient={{ from: 'grape', to: 'violet', deg: 90 }}
+                variant="gradient"
+                style={{ marginTop: '1rem' }}
+              >
+                🚀 Iniciar Bingo Educativo
+              </Button>
+            </Stack>
+          </Paper>
+        </Center>
+      </Container>
+    );
+  }
+
+  // Mostrar loading mientras se cargan las actividades
+  if (cargandoActividades) {
+    return (
+      <Container size="xl" py="xl">
+        <Paper shadow="sm" p="xl" style={{ textAlign: 'center' }}>
+          <Loader size="xl" mb="md" />
+          <Title order={3} mb="xs">Generando tu Bingo Educativo...</Title>
+          <Text c="dimmed">Estamos creando actividades personalizadas para ti</Text>
+        </Paper>
+      </Container>
+    );
+  }
 
   const completadas = tablero.filter(c => c.completada).length;
   const progreso = (completadas / 25) * 100;
@@ -311,22 +500,26 @@ export  function Bingo() {
               <Title order={1} c="white">
                 <span role="img" aria-label="dado">🎲</span> Bingo Educativo Semanal
               </Title>
-
               <Text c="white" size="sm" mt={5}>Completa acciones de cada materia para ganar puntos</Text>
             </div>
             <Stack gap="xs" align="end">
-             <Badge size="xl" variant="filled" color="yellow" style={{ fontSize: '1.2rem' }}>
-              <span role="img" aria-label="estrella">⭐</span> {puntos} pts
-            </Badge>
-
-            {insignias.includes('bingo_completo') && (
-              <Badge size="lg" variant="filled" color="orange">
-                <span role="img" aria-label="trofeo">🏆</span> Bingo Completo
+              <Badge size="xl" variant="filled" color="yellow" style={{ fontSize: '1.2rem' }}>
+                <span role="img" aria-label="estrella">⭐</span> {regla?.puntosOtorgados ?? puntos} pts
               </Badge>
-            )}
+              {insignias.includes('bingo_completo') && (
+                <Badge size="lg" variant="filled" color="orange">
+                  <span role="img" aria-label="trofeo">🏆</span> Bingo Completo
+                </Badge>
+              )}
             </Stack>
           </Group>
         </Paper>
+
+        {errorIA && (
+          <Alert color="yellow" title="Modo offline" icon="⚠️">
+            {errorIA}
+          </Alert>
+        )}
 
         {notificacion && (
           <Notification 
@@ -341,7 +534,7 @@ export  function Bingo() {
         <Card shadow="sm" padding="lg">
           <Group justify="space-between" mb="md">
             <Text fw={600}>Progreso: {completadas}/25 casillas</Text>
-            <Button onClick={reiniciarBingo} variant="light" color="grape">
+            <Button onClick={reiniciarBingo} variant="light" color="grape" loading={cargandoActividades}>
               <span role="img" aria-label="recargar">🔄</span> Nuevo Tablero Semanal
             </Button>
           </Group>
@@ -389,7 +582,15 @@ export  function Bingo() {
                       size="xs" 
                       c={casilla.completada ? 'white' : 'dark'}
                       fw={500}
-                      style={{ lineHeight: 1.3 }}
+                      style={{ 
+                        lineHeight: 1.3,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        wordBreak: 'break-word'
+                      }}
                     >
                       {casilla.accion}
                     </Text>
@@ -413,7 +614,7 @@ export  function Bingo() {
 
         <Card shadow="sm" padding="lg">
           <Title order={3} mb="md">
-           <span role="img" aria-label="gráfica">📊</span> Estadísticas
+            <span role="img" aria-label="gráfica">📊</span> Estadísticas
           </Title>
           <Grid>
             <Grid.Col span={6}>
@@ -465,7 +666,6 @@ export  function Bingo() {
                   <Button {...props} variant="light" fullWidth>
                     <span role="img" aria-label="clip">📎</span> {archivo ? archivo.name : 'Subir foto o documento'}
                   </Button>
-
                 )}
               </FileButton>
             </div>
@@ -481,7 +681,6 @@ export  function Bingo() {
             >
               <span role="img" aria-label="completada">✅</span> Marcar como completada
             </Button>
-
           </Stack>
         )}
       </Modal>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Center, Paper, ThemeIcon, Alert, Box } from '@mantine/core';
-import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
+import { IconBrain, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
 
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
@@ -22,60 +22,15 @@ export function Trivia() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [gameFinished, setGameFinished] = useState(false);
 
+  
+
+  // Hook de Gemini para generar preguntas Ini  
+  
   // Estado para preguntas generadas por Gemini
   const [generatedSubjects, setGeneratedSubjects] = useState<SubjectsType | null>(null);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
 
-  // Hook de Gemini para generar preguntas
-  /*const { response, loading, error, generateText } = useGemini({    
-    onSuccess: (text: any) => {
-      console.log('✅ Texto generado exitosamente:', text);
-      try {
-        let cleanedText = text.trim();
-        
-        // Remover bloques de código markdown si existen
-        if (cleanedText.startsWith('```json')) {
-          cleanedText = cleanedText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        } else if (cleanedText.startsWith('```')) {
-          cleanedText = cleanedText.replace(/```\n?/g, '');
-        }
-        
-        cleanedText = cleanedText.trim();
-        
-        console.log('📝 Texto limpio para parsear:', cleanedText.substring(0, 200) + '...');
-        
-        // Parsear la respuesta JSON de Gemini
-        const parsedData = JSON.parse(cleanedText);
-        
-        // Mapear los iconos de string a componentes
-        const mappedSubjects: SubjectsType = {};
-        Object.keys(parsedData).forEach(key => {
-          mappedSubjects[key] = {
-            ...parsedData[key],
-            icon: iconMap[parsedData[key].icon] || IconBrain
-          };
-        });
-        
-        setGeneratedSubjects(mappedSubjects);
-        setIsLoadingQuestions(false);
-        console.log('✅ Preguntas generadas y parseadas correctamente');
-      } catch (err) {
-        console.error('❌ Error al parsear respuesta:', err);
-        console.log('Respuesta recibida:', text);
-        // Si falla, usar datos predefinidos como fallback
-        setGeneratedSubjects(SUBJECTS);
-        setIsLoadingQuestions(false);
-      }
-    },
-    onError: (err: string) => {
-      console.error('❌ Error al generar preguntas:', err);
-      // En caso de error, usar datos predefinidos
-      setGeneratedSubjects(SUBJECTS);
-      setIsLoadingQuestions(false);
-    }
-  });*/
-
-  const { response, loading, error, generateText } = useGemini({
+  const { loading, error, generateText } = useGemini({
   onSuccess: (text: string) =>
     handleModelResponse<SubjectsType>({
       text,
@@ -102,20 +57,33 @@ export function Trivia() {
   // Disparar la petición al cargar el componente
   useEffect(() => {
     console.log('🚀 Iniciando generación de preguntas con Gemini...');
-    generateText(promptTemplate);
+    //generateText(promptTemplate);
   }, []);
+  // Hook de Gemini para generar preguntas Fin
 
-  const { crearTransaccion, loading: savingPoints, error: errorSavingPoints } = useTransaccionPuntos();
+  
+  //Hook para invocar las reglas del juego Ini
+  const { CREAR, OBTENER_REGLA_POR_TIPO, loading: savingPoints, error: errorSavingPoints, regla } = useTransaccionPuntos();
+  
+  useEffect(() => {
+    const cargarRegla = async () => {
+      await OBTENER_REGLA_POR_TIPO('TRIVIA');
+    };
+    cargarRegla();
+  }, []);
+  //Hook para invocar las reglas del juego Ini
+
 
   // Cuando el juego termina y guardas los puntos
   const handleSavePoints = async () => {
-    const tipoPunto = { id: '1' };
+    const tipoPunto = { id: regla?.id_tipo_punto?.toString() || '1' };
+    const puntosCalculados = regla?.puntosOtorgados ? regla.puntosOtorgados : score;
 
     const transaccionData: CrearTransaccionDTO = {
       usuarioId: ST_GET_USER_ID(),
       tipoPunto: tipoPunto,
       tipoTransaccion: TipoTransaccion.GANAR,
-      cantidad: score,
+      cantidad: puntosCalculados,
       descripcion: `Puntos obtenidos en Trivia Relámpago - ${totalQuestions} preguntas`,
       tipoOrigen: 'TRIVIA',
       idOrigen: 1,
@@ -127,12 +95,12 @@ export function Trivia() {
       }
     };
 
-    const result = await crearTransaccion(transaccionData);
+    const result = await CREAR(transaccionData);
     
     if (result) {
       console.log('Puntos guardados exitosamente:', result);
     } else if (errorSavingPoints) {
-      console.error('Error al guardar puntos:', errorSavingPoints);
+      console.error('Error al guardar puntos');
     }
   };
 
