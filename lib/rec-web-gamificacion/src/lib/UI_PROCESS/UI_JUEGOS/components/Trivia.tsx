@@ -57,7 +57,7 @@ export function Trivia() {
   // Disparar la petición al cargar el componente
   useEffect(() => {
     console.log('🚀 Iniciando generación de preguntas con Gemini...');
-    //generateText(promptTemplate);
+    generateText(promptTemplate);
   }, []);
   // Hook de Gemini para generar preguntas Fin
 
