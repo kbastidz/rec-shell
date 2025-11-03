@@ -407,12 +407,7 @@ export  function RecompensasAdmin() {
       }
       closeDeleteModal();
     } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error?.message || 'Error al eliminar',
-        color: 'red',
-        icon: <IconAlertCircle size="1rem" />
-      });
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, error?.message || 'Error al eliminar');
     }
   };
 

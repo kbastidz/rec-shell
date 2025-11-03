@@ -19,6 +19,7 @@
     "@tabler/icons-react": "^3.34.1",
     "empty": "0.10.1",
     "lucide-react": "^0.541.0",
+    "pdfjs-dist": "^4.0.379",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-router-dom": "6.29.0"

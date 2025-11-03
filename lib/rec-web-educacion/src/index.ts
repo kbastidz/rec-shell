@@ -1,0 +1,1 @@
+export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/GeneradorAdmin';

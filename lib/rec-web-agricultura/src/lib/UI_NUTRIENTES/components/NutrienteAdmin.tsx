@@ -27,7 +27,7 @@ import {
 } from '@tabler/icons-react';
 import { DeficienciaNutriente } from '../../types/model';
 import { DeficienciaNutrienteInput } from '../../types/dto';
-import { ActionButtons, DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 import { useAgricultura } from '../hooks/useAgricultura';
 
 export const NutrienteAdmin = () => {
@@ -119,21 +119,11 @@ export const NutrienteAdmin = () => {
     if (deficienciaSeleccionada) {
       const exito = await ELIMINAR(deficienciaSeleccionada.id.toString());
       if (exito) {
-        notifications.show({
-          title: 'Éxito',
-          message: 'Registro eliminado correctamente',
-          color: 'green',
-          icon: <IconCheck size={16} />
-        });
+        notifications.success(NOTIFICATION_MESSAGES.GENERAL.DELETE.message);
         setModalELIMINAR(false);
         setDeficienciaSeleccionada(null);
       } else {
-        notifications.show({
-          title: 'Error',
-          message: error || 'No se pudo eliminar el registro',
-          color: 'red',
-          icon: <IconX size={16} />
-        });
+        notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, error || 'No se pudo eliminar el registro');
       }
     }
   };
@@ -147,19 +137,9 @@ export const NutrienteAdmin = () => {
     }
     
     if (resultado) {
-      notifications.show({
-        title: 'Éxito',
-        message: `Registro ${deficiencia.activo ? 'desactivado' : 'activado'} correctamente`,
-        color: 'green',
-        icon: <IconCheck size={16} />
-      });
+      notifications.success(NOTIFICATION_MESSAGES.GENERAL.STATE.message, `Registro ${deficiencia.activo ? 'desactivado' : 'activado'} correctamente`);
     } else {
-      notifications.show({
-        title: 'Error',
-        message: error || 'No se pudo cambiar el estado',
-        color: 'red',
-        icon: <IconX size={16} />
-      });
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, error || 'No se pudo cambiar el estado');
     }
   };
 

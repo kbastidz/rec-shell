@@ -200,7 +200,7 @@ export  function RaspaGana() {
   //Hook para invocar las reglas del juego Ini
   useEffect(() => {
     const cargarRegla = async () => {
-      await OBTENER_REGLA_POR_TIPO('RULETA');
+      await OBTENER_REGLA_POR_TIPO('RASPA_GANA');
     };
     cargarRegla();
   }, []);

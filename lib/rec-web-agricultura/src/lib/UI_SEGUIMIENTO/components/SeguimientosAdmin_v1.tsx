@@ -27,7 +27,7 @@ import { EstadoActividad } from '../../enums/Enums';
 import { ActividadSeguimiento, PlanTratamiento } from '../../types/model';
 import { useActividadSeguimiento } from '../hooks/useAgricultura';
 import { estadoColors } from '../../utils/utils';
-import { ActionButtons, DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 import { Activity, ClipboardList, FileText, Bell, Calendar, CheckCircle, Clock, DollarSign, User } from 'lucide-react';
 import { useTratamientos } from '../../UI_TRATANIENTO/hooks/useAgricultura';
 
@@ -119,12 +119,8 @@ export const SeguimientosAdmin_v1: React.FC = () => {
 
   useEffect(() => {
     if (error) {
-      notifications.show({
-        title: 'Error',
-        message: error,
-        color: 'red',
-        icon: <IconAlertCircle size={16} />
-      });
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, error);
+      
       clearError();
     }
   }, [error, clearError, notifications]);

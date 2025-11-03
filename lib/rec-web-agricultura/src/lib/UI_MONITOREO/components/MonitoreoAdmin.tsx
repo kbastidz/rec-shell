@@ -514,11 +514,7 @@ export const MonitoreoAdmin: React.FC = () => {
       setDeleteModalOpened(false);
       refetch();
     } else {
-      notifications.show({
-        title: 'Error',
-        message: 'No se pudo eliminar el parámetro',
-        color: 'red',
-      });
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 'No se pudo eliminar el parámetro');
     }
   };
 

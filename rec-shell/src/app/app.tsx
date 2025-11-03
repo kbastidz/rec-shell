@@ -5,7 +5,7 @@ import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
 import {  MenuPagueM1 } from '@rec-shell/rec-web-agricultura';
 import { MenuPagueM2 } from '@rec-shell/rec-web-gamificacion';
-
+import { GeneradorAdmin } from '@rec-shell/rec-web-educacion';
 const ROLES = {
   ADMIN: 'ADMIN',
   MODERATOR: 'MODERATOR'
@@ -14,7 +14,7 @@ type UserRole = typeof ROLES[keyof typeof ROLES];
 
 const rolePermissions = {
   [ROLES.ADMIN]: {
-    AgriculturaComponent: MenuPagueM1,
+    AgriculturaComponent: GeneradorAdmin,//MenuPagueM1,
     GamificacionComponent: MenuPagueM2,
     AdminUserComponent: MenuUser
   },

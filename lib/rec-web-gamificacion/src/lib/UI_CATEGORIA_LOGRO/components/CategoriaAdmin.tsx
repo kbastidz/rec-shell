@@ -28,7 +28,7 @@ import { ActionButtons, DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
 export function CategoriaAdmin() {
   const {
-    todasLasCategorias,
+    categorias,
     loading,
     CREAR,
     ACTUALIZAR,
@@ -125,7 +125,7 @@ export function CategoriaAdmin() {
     }
   };
 
-  if (loading && todasLasCategorias.length === 0) {
+  if (loading && categorias.length === 0) {
     return (
       <Center h={400}>
         <Loader size="lg" />
@@ -157,7 +157,7 @@ export function CategoriaAdmin() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {todasLasCategorias.map((categoria) => (
+            {categorias.map((categoria) => (
               <Table.Tr key={categoria.id}>
                 <Table.Td>{categoria.nombre}</Table.Td>
                 <Table.Td>{categoria.nombreMostrar}</Table.Td>
@@ -208,7 +208,7 @@ export function CategoriaAdmin() {
           </Table.Tbody>
         </Table>
 
-        {todasLasCategorias.length === 0 && (
+        {categorias.length === 0 && (
           <Center p="xl">
             <Text c="dimmed">No hay categorías registradas</Text>
           </Center>
