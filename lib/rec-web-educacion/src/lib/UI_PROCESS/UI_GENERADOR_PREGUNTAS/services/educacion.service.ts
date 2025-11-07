@@ -1,4 +1,5 @@
 import { InvokeApi } from '@rec-shell/rec-web-shared';
+import { Evaluacion, EvaluacionParsed, Pregunta } from '../interfaces/interface';
 
 const API_URL = `/educacion/evaluaciones`;
 
@@ -13,7 +14,7 @@ export class ConexionService extends InvokeApi {
     resumen?: string;
     nombreArchivo?: string;
   }): Promise<any> {
-    console.log(cuestionarioData);
+    
     const response = await this.post<any>(API_URL, {
       preguntas: cuestionarioData.preguntas,
       resumen: cuestionarioData.resumen,
@@ -21,6 +22,14 @@ export class ConexionService extends InvokeApi {
     });
     return response;
   }
+
+  async GET(): Promise<Pregunta[]> {
+    const response = await this.get<Evaluacion[]>(`${API_URL}`);
+    const evaluacion = response[0];
+    const datos: EvaluacionParsed["datosEvaluacion"] = JSON.parse(evaluacion.datosEvaluacion);
+    return datos.preguntas;
+  }
+
 }
 
 export const service = new ConexionService();

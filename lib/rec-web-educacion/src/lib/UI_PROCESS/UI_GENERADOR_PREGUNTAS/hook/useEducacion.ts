@@ -12,10 +12,17 @@ interface GuardarCuestionarioParams {
   nombreArchivo?: string;
 }
 
+interface Pregunta {
+  pregunta: string;
+  opciones: string[];
+  respuestaCorrecta: number;
+}
+
 export const useEducacion = () => {
   const notifications = useNotifications();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
 
   const CREAR = async (data: GuardarCuestionarioParams) => {
     setLoading(true);
@@ -41,9 +48,34 @@ export const useEducacion = () => {
     }
   };
 
+  //const OBTENER = async (resultadoId: number) => {
+  const OBTENER = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await service.GET();
+      setPreguntas(response);
+      console.log(response);
+      return response;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al obtener las preguntas';
+      setError(errorMessage);
+      notifications.error(
+        NOTIFICATION_MESSAGES.GENERAL.ERROR.title,
+        errorMessage
+      );
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     CREAR,
+    OBTENER,
     loading,
-    error
+    error,
+    preguntas
   };
 };
