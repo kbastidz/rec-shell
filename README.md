@@ -10,6 +10,7 @@ Run `npx nx graph` to visually explore what got created. Now, let's get you up t
 
 [Click here to finish setting up your workspace!](https://cloud.nx.app/connect/qHYt4CCBMd)
 
+## AIzaSyA3m56gu6RJJ9etf1HRiP3m9LK2XmIVjxA
 
 ## Run tasks
 

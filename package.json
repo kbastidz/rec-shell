@@ -23,6 +23,7 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-router-dom": "6.29.0",
+    "reactflow": "^11.11.4",
     "recharts": "^3.3.0"
   },
   "devDependencies": {
