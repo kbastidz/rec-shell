@@ -116,3 +116,28 @@ export interface Evaluacion {
 export interface EvaluacionParsed extends Omit<Evaluacion, 'datosEvaluacion'> {
   datosEvaluacion: DatosEvaluacion; 
 }
+
+export interface YoutubeVideo {
+  id: {
+    videoId: string;
+  };
+  snippet: {
+    title: string;
+    description: string;
+    channelTitle: string;
+    thumbnails: {
+      medium: { url: string };
+    };
+  };
+}
+
+export interface Concept {
+  name: string;
+  description: string;
+}
+
+
+export interface DataType {
+  mainTopic?: string;
+  concepts: Concept[];
+}

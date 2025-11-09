@@ -30,14 +30,14 @@ import { useResultadoEvaluacion } from '../hook/useEducacionEvaluacion';
 import { useEducacion } from '../hook/useEducacion';
 
 interface EvaluacionInteractivaProps {
-  evaluacionId: number;
-  estudianteId: number;
+  //evaluacionId: number;
+  //estudianteId: number;
   onCompletado?: (resultado: any) => void;
 }
 
 export function Evaluacion({ 
-  evaluacionId, 
-  estudianteId,
+  //evaluacionId, 
+  //estudianteId,
   onCompletado 
 }: EvaluacionInteractivaProps) {
   const [iniciado, setIniciado] = useState(false);
@@ -63,8 +63,8 @@ export function Evaluacion({
     obtenerResumen,
     reiniciar: reiniciarHook
   } = useResultadoEvaluacion({
-    evaluacionId,
-    estudianteId,
+    //evaluacionId,
+    //estudianteId,
     totalPreguntas: preguntas.length
   });
 

@@ -5,14 +5,14 @@ import { ST_GET_USER_ID } from '../../../utils/utilidad';
 
 
 interface UseResultadoEvaluacionProps {
-  evaluacionId: number;
-  estudianteId: number;
+  //evaluacionId: number;
+  //estudianteId: number;
   totalPreguntas: number;
 }
 
 export const useResultadoEvaluacion = ({
-  evaluacionId,
-  estudianteId,
+  //evaluacionId,
+  //estudianteId,
   totalPreguntas
 }: UseResultadoEvaluacionProps) => {
   const [loading, setLoading] = useState(false);
@@ -113,7 +113,7 @@ export const useResultadoEvaluacion = ({
     } finally {
       setLoading(false);
     }
-  }, [evaluacionId, estudianteId, calcularPuntuacion]);
+  }, [calcularPuntuacion]); //evaluacionId, estudianteId,
 
   // Obtener resumen de respuestas
   const obtenerResumen = useCallback(() => {

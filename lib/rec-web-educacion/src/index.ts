@@ -3,3 +3,4 @@ export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/HistoricoNotas
 export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/DashboardNotasAcademico';
 export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/Evaluacion';
 export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/RecomendacionesAdmin';
+export * from './lib/MenuPagueM3';

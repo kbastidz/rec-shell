@@ -42,98 +42,162 @@ El documento es predominantemente cualitativo y descriptivo, centrándose en las
 Se menciona que la investigación en IA en educación ha avanzado "décadas" y ha experimentado un "gran avance en los últimos diez años" debido al desarrollo de técnicas específicas, pero sin cuantificar ese avance. Las referencias bibliográficas citadas son de los años 2002 a 2023, lo que indica que el artículo se basa en investigación reciente y consolidada.
 `;
 
-export const PREGUNTAS = 
-{
-  "preguntas": [
+export const PREGUNTAS = {
+  preguntas: [
     {
-      "pregunta": "¿Cuál es el tema principal que aborda el documento PDF?",
-      "opciones": [
-        "El impacto transformador de la Inteligencia Artificial en la educación.",
-        "La historia de la Inteligencia Artificial en la industria.",
-        "Los desafíos económicos de la educación moderna."
+      pregunta: '¿Cuál es el tema principal que aborda el documento PDF?',
+      opciones: [
+        'El impacto transformador de la Inteligencia Artificial en la educación.',
+        'La historia de la Inteligencia Artificial en la industria.',
+        'Los desafíos económicos de la educación moderna.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "¿Cómo describe el documento a la Inteligencia Artificial en el ámbito educativo?",
-      "opciones": [
-        "Como una tecnología disruptiva que cambia fundamentalmente la enseñanza y el aprendizaje.",
-        "Como una herramienta experimental con potencial limitado.",
-        "Como un complemento menor a los métodos de enseñanza tradicionales."
+      pregunta:
+        '¿Cómo describe el documento a la Inteligencia Artificial en el ámbito educativo?',
+      opciones: [
+        'Como una tecnología disruptiva que cambia fundamentalmente la enseñanza y el aprendizaje.',
+        'Como una herramienta experimental con potencial limitado.',
+        'Como un complemento menor a los métodos de enseñanza tradicionales.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "¿Cuál de las siguientes técnicas NO es mencionada en el documento como una aplicación de IA en educación?",
-      "opciones": [
-        "Robótica industrial avanzada.",
-        "Procesamiento del Lenguaje Natural (NLP).",
-        "Aprendizaje automático (Machine Learning)."
+      pregunta:
+        '¿Cuál de las siguientes técnicas NO es mencionada en el documento como una aplicación de IA en educación?',
+      opciones: [
+        'Robótica industrial avanzada.',
+        'Procesamiento del Lenguaje Natural (NLP).',
+        'Aprendizaje automático (Machine Learning).',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "Una de las principales aplicaciones de la IA en educación es la personalización del aprendizaje. ¿Qué implica esto?",
-      "opciones": [
-        "Adaptación del contenido y la experiencia educativa a las necesidades individuales de cada estudiante.",
-        "Estandarización de todos los materiales educativos para una mayor uniformidad.",
-        "Eliminación de la necesidad de interacción entre estudiantes y profesores."
+      pregunta:
+        'Una de las principales aplicaciones de la IA en educación es la personalización del aprendizaje. ¿Qué implica esto?',
+      opciones: [
+        'Adaptación del contenido y la experiencia educativa a las necesidades individuales de cada estudiante.',
+        'Estandarización de todos los materiales educativos para una mayor uniformidad.',
+        'Eliminación de la necesidad de interacción entre estudiantes y profesores.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "¿Qué tipo de contenido educativo puede generar la Inteligencia Artificial Generativa, según el resumen?",
-      "opciones": [
-        "Ejercicios, cuestionarios, materiales didácticos y juegos educativos personalizados.",
-        "Libros de texto físicos y manuales impresos.",
-        "Infraestructura física para centros educativos."
+      pregunta:
+        '¿Qué tipo de contenido educativo puede generar la Inteligencia Artificial Generativa, según el resumen?',
+      opciones: [
+        'Ejercicios, cuestionarios, materiales didácticos y juegos educativos personalizados.',
+        'Libros de texto físicos y manuales impresos.',
+        'Infraestructura física para centros educativos.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "¿Cuáles son las dos tendencias actuales destacadas en el documento respecto a la IA en educación?",
-      "opciones": [
-        "Aprendizaje Profundo (Deep Learning) e Inteligencia Artificial Generativa.",
-        "Realidad Virtual y Aumentada.",
-        "Blockchain y Ciberseguridad."
+      pregunta:
+        '¿Cuáles son las dos tendencias actuales destacadas en el documento respecto a la IA en educación?',
+      opciones: [
+        'Aprendizaje Profundo (Deep Learning) e Inteligencia Artificial Generativa.',
+        'Realidad Virtual y Aumentada.',
+        'Blockchain y Ciberseguridad.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "Según el documento, ¿cuál es uno de los desafíos para la implementación de la IA en educación?",
-      "opciones": [
-        "La resistencia al cambio por parte de educadores y estudiantes.",
-        "La facilidad para comprender cómo la IA llega a sus conclusiones.",
-        "La abundancia de datos educativos de alta calidad."
+      pregunta:
+        'Según el documento, ¿cuál es uno de los desafíos para la implementación de la IA en educación?',
+      opciones: [
+        'La resistencia al cambio por parte de educadores y estudiantes.',
+        'La facilidad para comprender cómo la IA llega a sus conclusiones.',
+        'La abundancia de datos educativos de alta calidad.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "¿Qué oportunidad principal ofrece la IA para mejorar el rendimiento académico de los estudiantes?",
-      "opciones": [
-        "La personalización del aprendizaje y la retroalimentación inmediata.",
-        "La eliminación de todas las evaluaciones formales.",
-        "La reducción de la necesidad de estudio individual."
+      pregunta:
+        '¿Qué oportunidad principal ofrece la IA para mejorar el rendimiento académico de los estudiantes?',
+      opciones: [
+        'La personalización del aprendizaje y la retroalimentación inmediata.',
+        'La eliminación de todas las evaluaciones formales.',
+        'La reducción de la necesidad de estudio individual.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "¿Cuál es uno de los riesgos asociados a la IA, especialmente la generativa, según el resumen?",
-      "opciones": [
-        "La desinformación y los sesgos debido a datos de entrenamiento incompletos o sesgados.",
-        "La mejora automática del pensamiento crítico en los estudiantes.",
-        "La disminución de la dependencia tecnológica en el aula."
+      pregunta:
+        '¿Cuál es uno de los riesgos asociados a la IA, especialmente la generativa, según el resumen?',
+      opciones: [
+        'La desinformación y los sesgos debido a datos de entrenamiento incompletos o sesgados.',
+        'La mejora automática del pensamiento crítico en los estudiantes.',
+        'La disminución de la dependencia tecnológica en el aula.',
       ],
-      "respuestaCorrecta": 0
+      respuestaCorrecta: 0,
     },
     {
-      "pregunta": "¿Cómo se posiciona la IA en relación con el rol de los educadores humanos, según las conclusiones del documento?",
-      "opciones": [
-        "Como una herramienta de apoyo que complementa y mejora el proceso educativo.",
-        "Como un sustituto completo que reemplazará a los educadores en el futuro.",
-        "Como una tecnología irrelevante para la interacción directa con los estudiantes."
+      pregunta:
+        '¿Cómo se posiciona la IA en relación con el rol de los educadores humanos, según las conclusiones del documento?',
+      opciones: [
+        'Como una herramienta de apoyo que complementa y mejora el proceso educativo.',
+        'Como un sustituto completo que reemplazará a los educadores en el futuro.',
+        'Como una tecnología irrelevante para la interacción directa con los estudiantes.',
       ],
-      "respuestaCorrecta": 0
-    }
-  ]
+      respuestaCorrecta: 0,
+    },
+  ],
+};
+
+export const PROMP_MAPA_CONECPTUAL = (inputText: string) => `Genera un mapa conceptual educativo sobre el tema: "${inputText}". Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin explicaciones) con esta estructura exacta: { "mainTopic": "Tema principal", "concepts": [ { "name": "Concepto 1", "description": "Descripción breve", "relatedTo": [1, 2] }, { "name": "Concepto 2", "description": "Descripción breve", "relatedTo": [] } ] } Genera entre 6 y 9 conceptos clave relacionados con el tema. El campo "relatedTo" debe contener índices (números) de otros conceptos relacionados en el array "concepts".`;
+
+export const GENERADOR_MAPA = {
+  mainTopic: 'Historia del Uso de Internet',
+  concepts: [
+    {
+      name: 'Orígenes de ARPANET (1960s-1970s)',
+      description:
+        'Red experimental del Departamento de Defensa de EE. UU. para la comunicación e intercambio de recursos entre computadoras académicas y militares, sentando las bases de la conmutación de paquetes.',
+      relatedTo: [1, 3],
+    },
+    {
+      name: 'Nacimiento de la World Wide Web (1989-1990s)',
+      description:
+        'Tim Berners-Lee propone un sistema de gestión de información basado en hipertexto. Se desarrollan HTTP, HTML y el primer navegador/editor web, democratizando el acceso a la información.',
+      relatedTo: [0, 2, 3],
+    },
+    {
+      name: 'Primeros Navegadores Gráficos (1993-1990s)',
+      description:
+        'La aparición de navegadores como Mosaic y Netscape Navigator facilitó enormemente la navegación web con interfaces gráficas, impulsando la adopción masiva de internet por el público general.',
+      relatedTo: [1, 3],
+    },
+    {
+      name: 'Comercialización e Internet para el Consumidor (1990s-2000s)',
+      description:
+        "Se levantan las restricciones al uso comercial de internet, surgen los Proveedores de Servicios de Internet (ISP) y el boom de las 'puntocom', llevando internet a los hogares y empresas.",
+      relatedTo: [0, 1, 2, 4],
+    },
+    {
+      name: 'Web 2.0 y Redes Sociales (2000s)',
+      description:
+        'Transición hacia una web más interactiva y participativa, donde los usuarios generan contenido. Surgen plataformas como Wikipedia, YouTube, Facebook y Twitter, transformando la comunicación.',
+      relatedTo: [3, 5, 6],
+    },
+    {
+      name: 'Internet Móvil y Ubicuo (2007-Actualidad)',
+      description:
+        'La proliferación de smartphones y tabletas hace que internet sea accesible en cualquier momento y lugar, impulsando el desarrollo de aplicaciones móviles y servicios basados en la ubicación.',
+      relatedTo: [4, 6, 7],
+    },
+    {
+      name: 'Impacto Global y Transformación Social (Actualidad)',
+      description:
+        'El internet ha redefinido la educación, el comercio, la política y las relaciones sociales a escala global, creando una sociedad interconectada y dependiente de la información digital.',
+      relatedTo: [4, 5, 7],
+    },
+    {
+      name: 'Desafíos Actuales (Actualidad)',
+      description:
+        'El uso masivo de internet plantea retos como la privacidad de datos, la ciberseguridad, la desinformación (fake news), la brecha digital y el impacto en la salud mental.',
+      relatedTo: [5, 6],
+    },
+  ],
 };

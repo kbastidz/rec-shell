@@ -5,7 +5,7 @@ import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
 import {  MenuPagueM1 } from '@rec-shell/rec-web-agricultura';
 import { MenuPagueM2 } from '@rec-shell/rec-web-gamificacion';
-import { RecomendacionesAdmin } from '@rec-shell/rec-web-educacion';
+import { Evaluacion, MenuPagueM3 } from '@rec-shell/rec-web-educacion';
 const ROLES = {
   ADMIN: 'ADMIN',
   MODERATOR: 'MODERATOR'
@@ -14,13 +14,15 @@ type UserRole = typeof ROLES[keyof typeof ROLES];
 
 const rolePermissions = {
   [ROLES.ADMIN]: {
-    AgriculturaComponent: RecomendacionesAdmin, //Evaluacion, //GeneradorAdmin, //Evaluacion, //DashboardNotasAcademico, //HistoricoNotasAdmin,//MenuPagueM1,
+    AgriculturaComponent: MenuPagueM1, //RecomendacionesAdmin, //Evaluacion, //GeneradorAdmin, //Evaluacion, //DashboardNotasAcademico, //HistoricoNotasAdmin,//MenuPagueM1,
     GamificacionComponent: MenuPagueM2,
+    EducacionComponent: MenuPagueM3,
     AdminUserComponent: MenuUser
   },
   [ROLES.MODERATOR]: {
     AgriculturaComponent: MenuPagueM1,
     GamificacionComponent: MenuPagueM2,
+    EducacionComponent: MenuPagueM3,
     AdminUserComponent: MenuUser
   }
 };
@@ -74,7 +76,7 @@ export function App() {
         AdminUserComponent={listMenu.AdminUserComponent}
         AgriculturaComponent={listMenu.AgriculturaComponent}
         GamificacionComponent={listMenu.GamificacionComponent}
-        
+        EducacionComponent={listMenu.EducacionComponent}
         onSignOut={signOut}
         userInfo={userInfo}
       />

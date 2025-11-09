@@ -44,6 +44,7 @@ interface AdminTemplateProps {
   AdminUserComponent?: NavigableComponent;
   AgriculturaComponent?: NavigableComponent;
   GamificacionComponent?: NavigableComponent;
+  EducacionComponent?: NavigableComponent;
 
   ProductsComponent?: NavigableComponent;
   CalendarComponent?: NavigableComponent;
@@ -61,7 +62,7 @@ export function AdminTemplate({
   AdminUserComponent,
   AgriculturaComponent,
   GamificacionComponent,
-  
+  EducacionComponent,
 
   ProductsComponent,
   CalendarComponent,
@@ -83,7 +84,8 @@ export function AdminTemplate({
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: 'users', label: 'Usuarios', icon: Users, component: AdminUserComponent },
     { key: 'cultivo', label: 'Agricultura', icon: Leaf, component: AgriculturaComponent },
-    { key: 'educacion', label: 'Gamificacion', icon: GraduationCap, component: GamificacionComponent },
+    { key: 'gamificacion', label: 'Gamificacion', icon: GraduationCap, component: GamificacionComponent },
+    { key: 'educacion', label: 'Educación', icon: GraduationCap, component: EducacionComponent },
     
 
 
@@ -102,7 +104,7 @@ export function AdminTemplate({
       // Solo mostrar elementos que tienen componente asociado
       return item.component !== undefined;
     });
-  }, [AdminUserComponent, AgriculturaComponent, GamificacionComponent, ProductsComponent, CalendarComponent, FilesComponent, SettingsComponent]);
+  }, [AdminUserComponent, AgriculturaComponent, GamificacionComponent, EducacionComponent, ProductsComponent, CalendarComponent, FilesComponent, SettingsComponent]);
 
   // Verificar si la pestaña activa está disponible, si no, cambiar a dashboard
   React.useEffect(() => {
