@@ -8,6 +8,7 @@ import { ModalsProvider } from '@mantine/modals';
 
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import { ChatbotAdmin } from '@rec-shell/rec-web-shared';
 
 
 
@@ -20,6 +21,7 @@ root.render(
     <MantineProvider>
       <ModalsProvider> 
         <Notifications /> 
+        <ChatbotAdmin/>
         <BrowserRouter>
           <App />
         </BrowserRouter>

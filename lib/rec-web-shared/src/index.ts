@@ -24,3 +24,4 @@ export { ActionButtons } from './lib/common/TooltipActionButton';
 export { useGemini } from './lib/gemini_IA/hooks/useGemini';
 export { service } from './lib/youtube_IA/service/api_youtube.service'
 export { handleModelResponse, handleModelError } from './lib/gemini_IA/handler/handleGeminiResponse';
+export {ChatbotAdmin} from './lib/chatbot/ChatbotAdmin';
