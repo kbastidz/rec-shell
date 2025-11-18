@@ -68,7 +68,9 @@ export interface CrearTransaccionDTO {
 }
 
 export interface TipoPunto {
-  id: string;
+  id: number; //string;
+  nombre: string;
+  nombreMostrar: string;
 }
 
 export interface ReglaPuntosDTO {
@@ -78,4 +80,15 @@ export interface ReglaPuntosDTO {
   eventoDisparador: string;
   puntosOtorgados: number;
   id_tipo_punto: number;
+}
+
+export interface ReglaPuntosInput {
+  nombre: string;
+  descripcion?: string;
+  tipoPunto: TipoPunto;
+  eventoDisparador: string;
+  puntosOtorgados: number;
+  condiciones: Record<string, any>;
+  estaActivo: boolean;
+  prioridad: number;
 }

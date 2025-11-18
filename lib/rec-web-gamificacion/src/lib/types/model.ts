@@ -29,7 +29,8 @@ export interface RegistroActividadUsuario {
 }
 
 export interface TipoPunto {
-  id: string;
+  //id: string;
+  id: number;
   nombre: string;
   nombreMostrar: string;
   descripcion?: string;
@@ -63,6 +64,8 @@ export interface TransaccionPuntos {
   metadatos: Record<string, any>;
   creadoEn: string; 
   expiraEn?: string; 
+  tipoPuntoNombre: string;
+  usuarioId: number;
 }
 
 export interface ReglaPuntos {

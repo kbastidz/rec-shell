@@ -20,6 +20,8 @@ import { TablaLideresAdmin } from './UI_TABLA_LIDERES/compoments/TablaLideresAdm
 import { TiposDesafioAdmin } from './UI_TIPO_DESAFIO/component/TiposDesafioAdmin';
 import { TipoRecompensaAdmin } from './UI_TIPO_RECOMPENSA/component/TipoRecompensaAdmin';
 import { Juegos } from './UI_PROCESS/UI_JUEGOS/components/Juegos';
+import { ReglaPuntosAdmin } from './UI_REGLA_PUNTOS/components/ReglaPuntosAdmin';
+import { TransaccionPuntosAdmin } from './UI_PROCESS/UI_TRANSACIONPUNTOS/components/TransaccionPuntosAdmin';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -75,13 +77,21 @@ const menuItems = [
     component: RecompensasAdmin
   },
   { 
-    icon: '📊', 
-    label: 'Tabla de Líderes', 
-    value: 'tabla-lideres',
+    icon: '⚙️', 
+    label: 'Reglas por Puntos', 
+    value: 'regla-puntos',
     color: 'orange',
-    description: 'Visualiza rankings y estadísticas',
-    component: TablaLideresAdmin
+    description: 'Gestiona las reglas de la asignación de puntos',
+    component: ReglaPuntosAdmin //TablaLideresAdmin
   },
+  { 
+    icon: '💯', 
+    label: 'Conciliación de actividades', 
+    value: 'concialiacion',
+    color: 'red',
+    description: 'Administración de puntaje de usuarios',
+    component: TransaccionPuntosAdmin
+  },  
   { 
     icon: '🧩', 
     label: 'Centro de juegos', 

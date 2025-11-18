@@ -8,3 +8,5 @@ export * from './lib/UI_TIPO_RECOMPENSA/component/TipoRecompensaAdmin';
 export * from './lib/MenuPagueM2';
 export * from './lib/UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
 export * from './lib/UI_PROCESS/UI_JUEGOS/components/Juegos';
+export * from './lib/UI_REGLA_PUNTOS/components/ReglaPuntosAdmin';
+export * from './lib/UI_PROCESS/UI_TRANSACIONPUNTOS/components/TransaccionPuntosAdmin';
