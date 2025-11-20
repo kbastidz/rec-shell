@@ -45,3 +45,19 @@ export const TIPOS_TABLA = [
   { value: 'COMPLETADOS', label: 'Completados' },
   { value: 'RACHA', label: 'Racha' }
 ];
+
+export const formatearFecha = (fecha: string): string => {
+  return new Date(fecha).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+export const formatearTiempo = (segundos: number): string => {
+  const minutos = Math.floor(segundos / 60);
+  const segs = segundos % 60;
+  return `${minutos}m ${segs}s`;
+};

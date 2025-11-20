@@ -26,14 +26,14 @@ import { ActionButtons } from '@rec-shell/rec-web-shared';
 import { DeleteConfirmModal } from '@rec-shell/rec-web-shared';
 
 export function ReglaPuntosAdmin() {
-  const { loading, error, reglasPuntos, crear, obtenerTodos, actualizar, eliminar, tipoPuntos, obtenerTipoPuntos } = useReglaPuntos();
+  const { loading, error, reglasPuntos, CREAR, OBTENER, ACTUALIZAR, ELIMINAR, tipoPuntos, obtenerTipoPuntos } = useReglaPuntos();
   const [modalOpened, setModalOpened] = useState(false);
   const [modalEliminarOpened, setModalEliminarOpened] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [reglaSeleccionada, setReglaSeleccionada] = useState<ReglaPuntos | null>(null);
 
   useEffect(() => {
-    obtenerTodos();
+    OBTENER();
     obtenerTipoPuntos();
   }, []);
 
@@ -126,18 +126,18 @@ export function ReglaPuntosAdmin() {
     };
 
     if (modoEdicion && reglaSeleccionada) {
-      await actualizar(reglaSeleccionada.id, data);
+      await ACTUALIZAR(reglaSeleccionada.id, data);
     } else {
-      await crear(data);
+      await CREAR(data);
     }
 
     setModalOpened(false);
     form.reset();
-     await obtenerTodos();
+     await OBTENER();
   };
 
   const handleEliminar = async (id: string, nombre: string) => {
-    await eliminar(id);
+    await ELIMINAR(id);
     setModalEliminarOpened(false);
     setReglaSeleccionada(null);
   };

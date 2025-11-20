@@ -141,3 +141,28 @@ export interface DataType {
   mainTopic?: string;
   concepts: Concept[];
 }
+
+export interface ConsultResultadoEvaluacionResponse {
+  id: number;
+  estado: string;
+  respuestas: RespuestaEvaluacion[];
+  evaluacion_id: number;
+  estudiante_id: number;
+  fecha_realizacion: string;
+  tiempo_total_segundos: number;
+  puntuacion_obtenida: number;
+  puntuacion_maxima: number;
+  porcentaje_aciertos: number;
+}
+
+export interface RespuestaEvaluacion {
+  id: number;
+  opciones: string[];
+  numero_pregunta: number;
+  pregunta_texto: string;
+  respuesta_correcta: number;
+  respuesta_seleccionada: number;
+  es_correcta: boolean;
+  tiempo_respuesta_segundos: number;
+  fecha_respuesta: string;
+}

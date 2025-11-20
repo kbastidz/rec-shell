@@ -24,7 +24,7 @@ import { TransaccionPuntos } from '../../../types/model';
 import { useNotifications } from '@rec-shell/rec-web-shared';
 
 export const TransaccionPuntosAdmin = () => {
-  const { transacciones, loading, error, users, getTransaccionesActivas, updateTransaccion } = useTransaccionPuntos();
+  const { transacciones, loading, error, users, OBTENER, ACTUALIZAR } = useTransaccionPuntos();
   const [selectedUsuario, setSelectedUsuario] = useState<string>('all');
   const [selectedTipoPunto, setSelectedTipoPunto] = useState<string>('all');
   const [filteredTransacciones, setFilteredTransacciones] = useState<TransaccionPuntos[]>([]);
@@ -32,7 +32,7 @@ export const TransaccionPuntosAdmin = () => {
   const [fechaHasta, setFechaHasta] = useState<string>('');
   const notifications = useNotifications();
   
-  // Estado para el modal de resta
+
   const [modalOpened, setModalOpened] = useState(false);
   const [transaccionSeleccionada, setTransaccionSeleccionada] = useState<TransaccionPuntos | null>(null);
   const [cantidadARestar, setCantidadARestar] = useState<number>(0);
@@ -65,23 +65,19 @@ export const TransaccionPuntosAdmin = () => {
   }, [transacciones]);
 
   useEffect(() => {
-    getTransaccionesActivas();
+    OBTENER();
   }, []);
 
   useEffect(() => {
     let filtered = transacciones;
-
-    // Filtrar por usuario
     if (selectedUsuario !== 'all') {
       filtered = filtered.filter(t => t.usuarioId === Number(selectedUsuario));
     }
 
-    // Filtrar por tipo de punto
     if (selectedTipoPunto !== 'all') {
       filtered = filtered.filter(t => t.tipoPuntoNombre === selectedTipoPunto);
     }
 
-    // Filtrar por fecha desde
     if (fechaDesde) {
       const fechaDesdeDate = new Date(fechaDesde + 'T00:00:00');
       filtered = filtered.filter(t => {
@@ -90,7 +86,6 @@ export const TransaccionPuntosAdmin = () => {
       });
     }
 
-    // Filtrar por fecha hasta
     if (fechaHasta) {
       const fechaHastaDate = new Date(fechaHasta + 'T23:59:59.999');
       filtered = filtered.filter(t => {
@@ -101,7 +96,6 @@ export const TransaccionPuntosAdmin = () => {
 
     setFilteredTransacciones(filtered);
   }, [selectedUsuario, selectedTipoPunto, transacciones, fechaDesde, fechaHasta]);
-
   const getBadgeColor = (tipo: string) => {
     switch (tipo?.toLowerCase()) {
       case 'ganancia':
@@ -148,7 +142,7 @@ export const TransaccionPuntosAdmin = () => {
       balanceNuevo: transaccionSeleccionada.balanceDespues - cantidadARestar,
     });
     
-    await updateTransaccion(transaccionSeleccionada.id, transaccionSeleccionada);
+    await ACTUALIZAR(transaccionSeleccionada.id, transaccionSeleccionada);
     notifications.success(); 
     
     setModalOpened(false);

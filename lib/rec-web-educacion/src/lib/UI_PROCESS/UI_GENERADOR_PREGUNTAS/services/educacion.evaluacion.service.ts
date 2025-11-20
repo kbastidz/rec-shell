@@ -1,5 +1,5 @@
 import { InvokeApi } from "@rec-shell/rec-web-shared";
-import { EstadisticasEvaluacion, HistorialEstudiante, RespuestaEstudiante, ResultadoEvaluacionData, ResultadoEvaluacionResponse } from "../interfaces/interface";
+import { ConsultResultadoEvaluacionResponse, EstadisticasEvaluacion, HistorialEstudiante, RespuestaEstudiante, ResultadoEvaluacionData, ResultadoEvaluacionResponse } from "../interfaces/interface";
 
 const API_URL = `/educacion/resultados-evaluaciones`;
 
@@ -24,6 +24,11 @@ export class ConexionService extends InvokeApi {
         tiempo_respuesta_segundos: r.tiempoRespuestaSegundos
       }))
     });
+    return response;
+  }
+
+  async GET(): Promise<ConsultResultadoEvaluacionResponse[]> {
+    const response = await this.get<ConsultResultadoEvaluacionResponse[]>(`${API_URL}`);
     return response;
   }
 

@@ -16,7 +16,7 @@ const rolePermissions = {
   [ROLES.ADMIN]: {
     AgriculturaComponent: MenuPagueM1,
     GamificacionComponent: MenuPagueM2,
-    EducacionComponent: TransaccionPuntosAdmin, //DashboardAdmin, //DashboardAdmin, //MenuPagueM3,
+    EducacionComponent: MenuPagueM3, //DashboardAdmin, //DashboardAdmin, //MenuPagueM3,
     AdminUserComponent: MenuUser
   },
   [ROLES.MODERATOR]: {

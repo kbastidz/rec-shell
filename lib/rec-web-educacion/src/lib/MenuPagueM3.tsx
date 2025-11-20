@@ -16,6 +16,7 @@ import { HistoricoNotasAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/compone
 import { DashboardNotasAcademico } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/DashboardNotasAcademico';
 import { Evaluacion } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/Evaluacion';
 import { RecomendacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/RecomendacionesAdmin';
+import { ConsultarEvaluacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/ConsultarEvaluacionesAdmin';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -61,6 +62,14 @@ const menuItems = [
     color: 'pink',
     description: 'Utiliza inteligencia artificial para analizar textos y generar materiales de apoyo como videos recomendados y mapas conceptuales, potenciando el aprendizaje visual y contextual',
     component: RecomendacionesAdmin
+  },
+   { 
+    icon: '📋', 
+    label: 'Analisis de Evaluaciones', 
+    value: 'resultados',
+    color: 'yelow',
+    description: 'Permite consultar y analizar de manera detallada los resultados de las evaluaciones.',
+    component: ConsultarEvaluacionesAdmin
   }
 ];
 

@@ -11,7 +11,7 @@ export const useReglaPuntos = () => {
   const [reglaPuntos, setReglaPuntos] = useState<ReglaPuntos | null>(null);
   const notifications = useNotifications();
 
-  const crear = async (data: ReglaPuntosInput): Promise<ReglaPuntos | null> => {
+  const CREAR = async (data: ReglaPuntosInput): Promise<ReglaPuntos | null> => {
     setLoading(true);
     setError(null);
     try {
@@ -20,14 +20,14 @@ export const useReglaPuntos = () => {
       setReglasPuntos((prev) => [...prev, response]);
       return response;
     } catch (err: any) {
-      setError(err.message || 'Error al crear la regla de puntos');
+      setError(err.message || 'Error al CREAR la regla de puntos');
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const obtenerTodos = async (): Promise<void> => {
+  const OBTENER = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -53,7 +53,7 @@ export const useReglaPuntos = () => {
     }
   };
 
-  const obtenerPorId = async (id: string): Promise<ReglaPuntos | null> => {
+  const OBTENER_BY_ID = async (id: string): Promise<ReglaPuntos | null> => {
     setLoading(true);
     setError(null);
     try {
@@ -68,7 +68,7 @@ export const useReglaPuntos = () => {
     }
   };
 
-  const actualizar = async (id: string, data: ReglaPuntosInput): Promise<ReglaPuntos | null> => {
+  const ACTUALIZAR = async (id: string, data: ReglaPuntosInput): Promise<ReglaPuntos | null> => {
     setLoading(true);
     setError(null);
     try {
@@ -80,14 +80,14 @@ export const useReglaPuntos = () => {
       setReglaPuntos(response);
       return response;
     } catch (err: any) {
-      setError(err.message || 'Error al actualizar la regla de puntos');
+      setError(err.message || 'Error al ACTUALIZAR la regla de puntos');
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const eliminar = async (id: string): Promise<boolean> => {
+  const ELIMINAR = async (id: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
@@ -99,7 +99,7 @@ export const useReglaPuntos = () => {
       setReglasPuntos((prev) => prev.filter((regla) => regla.id !== id));
       return true;
     } catch (err: any) {
-      setError(err.message || 'Error al eliminar la regla de puntos');
+      setError(err.message || 'Error al ELIMINAR la regla de puntos');
       return false;
     } finally {
       setLoading(false);
@@ -112,11 +112,11 @@ export const useReglaPuntos = () => {
     reglasPuntos,
     reglaPuntos,
     tipoPuntos,
-    crear,
-    obtenerTodos,
-    obtenerPorId,
+    CREAR,
+    OBTENER,
+    OBTENER_BY_ID,
     obtenerTipoPuntos,
-    actualizar,
-    eliminar,
+    ACTUALIZAR,
+    ELIMINAR,
   };
 };

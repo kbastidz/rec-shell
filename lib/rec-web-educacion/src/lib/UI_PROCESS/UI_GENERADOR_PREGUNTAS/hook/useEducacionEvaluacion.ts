@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ResultadoEvaluacionResponse, RespuestaEstudiante, ResultadoEvaluacionData } from '../interfaces/interface';
+import { ResultadoEvaluacionResponse, RespuestaEstudiante, ResultadoEvaluacionData, ConsultResultadoEvaluacionResponse } from '../interfaces/interface';
 import { service } from '../services/educacion.evaluacion.service';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 
@@ -188,5 +188,39 @@ export const useEstadisticasEvaluacion = (evaluacionId: number) => {
     error,
     estadisticas,
     recargar: cargarEstadisticas
+  };
+};
+
+export const useResultadosEvaluaciones = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resultados, setResultados] = useState<ConsultResultadoEvaluacionResponse[]>([]);
+
+  const cargarResultados = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await service.GET();
+      setResultados(data);
+      return data;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error al cargar resultados";
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarResultados();
+  }, [cargarResultados]);
+
+  return {
+    loading,
+    error,
+    resultados,
+    recargar: cargarResultados
   };
 };

@@ -10,8 +10,8 @@ interface UseTransaccionPuntosResult {
   error: string | null;
   users: User[];
   getTransaccionById: (id: string) => Promise<void>;
-  getTransaccionesActivas: () => Promise<void>;
-  updateTransaccion: (id: string, data: TransaccionPuntos) => Promise<void>;
+  OBTENER: () => Promise<void>;
+  ACTUALIZAR: (id: string, data: TransaccionPuntos) => Promise<void>;
 }
 
 export const useTransaccionPuntos = (): UseTransaccionPuntosResult => {
@@ -35,7 +35,7 @@ export const useTransaccionPuntos = (): UseTransaccionPuntosResult => {
     }
   };
 
-  const getTransaccionesActivas = async (): Promise<void> => {
+  const OBTENER = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -43,13 +43,13 @@ export const useTransaccionPuntos = (): UseTransaccionPuntosResult => {
       setTransacciones(response);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al obtener las transacciones');
-      console.error('Error en getTransaccionesActivas:', err);
+      console.error('Error en OBTENER:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateTransaccion = async (id: string, data: TransaccionPuntos): Promise<void> => {
+  const ACTUALIZAR = async (id: string, data: TransaccionPuntos): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -61,7 +61,7 @@ export const useTransaccionPuntos = (): UseTransaccionPuntosResult => {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar la transacción');
-      console.error('Error en updateTransaccion:', err);
+      console.error('Error en ACTUALIZAR:', err);
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export const useTransaccionPuntos = (): UseTransaccionPuntosResult => {
     error,
     users,
     getTransaccionById,
-    getTransaccionesActivas,
-    updateTransaccion,
+    OBTENER,
+    ACTUALIZAR,
   };
 };

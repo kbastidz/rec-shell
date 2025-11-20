@@ -201,3 +201,171 @@ export const GENERADOR_MAPA = {
     },
   ],
 };
+
+
+
+const resultadosMock = [
+  {
+    "id": 1,
+    "estado": "completado",
+    "respuestas": [
+      {
+        "id": 1,
+        "opciones": [
+          "El impacto transformador de la Inteligencia Artificial en la educación.",
+          "La historia de la Inteligencia Artificial en la industria.",
+          "Los desafíos económicos de la educación moderna."
+        ],
+        "numero_pregunta": 1,
+        "pregunta_texto": "¿Cuál es el tema principal que aborda el documento PDF?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 0,
+        "es_correcta": true,
+        "tiempo_respuesta_segundos": 31,
+        "fecha_respuesta": "2025-11-17T21:57:55.125087"
+      },
+      {
+        "id": 2,
+        "opciones": [
+          "Como una tecnología disruptiva que cambia fundamentalmente la enseñanza y el aprendizaje.",
+          "Como una herramienta experimental con potencial limitado.",
+          "Como un complemento menor a los métodos de enseñanza tradicionales."
+        ],
+        "numero_pregunta": 2,
+        "pregunta_texto": "¿Cómo describe el documento a la Inteligencia Artificial en el ámbito educativo?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 1,
+        "es_correcta": false,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.132438"
+      },
+      {
+        "id": 3,
+        "opciones": [
+          "Robótica industrial avanzada.",
+          "Procesamiento del Lenguaje Natural (NLP).",
+          "Aprendizaje automático (Machine Learning)."
+        ],
+        "numero_pregunta": 3,
+        "pregunta_texto": "¿Cuál de las siguientes técnicas NO es mencionada en el documento como una aplicación de IA en educación?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 0,
+        "es_correcta": true,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.135518"
+      },
+      {
+        "id": 4,
+        "opciones": [
+          "Adaptación del contenido y la experiencia educativa a las necesidades individuales de cada estudiante.",
+          "Estandarización de todos los materiales educativos para una mayor uniformidad.",
+          "Eliminación de la necesidad de interacción entre estudiantes y profesores."
+        ],
+        "numero_pregunta": 4,
+        "pregunta_texto": "Una de las principales aplicaciones de la IA en educación es la personalización del aprendizaje. ¿Qué implica esto?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 2,
+        "es_correcta": false,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.138606"
+      },
+      {
+        "id": 5,
+        "opciones": [
+          "Ejercicios, cuestionarios, materiales didácticos y juegos educativos personalizados.",
+          "Libros de texto físicos y manuales impresos.",
+          "Infraestructura física para centros educativos."
+        ],
+        "numero_pregunta": 5,
+        "pregunta_texto": "¿Qué tipo de contenido educativo puede generar la Inteligencia Artificial Generativa, según el resumen?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 1,
+        "es_correcta": false,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.138606"
+      },
+      {
+        "id": 6,
+        "opciones": [
+          "Aprendizaje Profundo (Deep Learning) e Inteligencia Artificial Generativa.",
+          "Realidad Virtual y Aumentada.",
+          "Blockchain y Ciberseguridad."
+        ],
+        "numero_pregunta": 6,
+        "pregunta_texto": "¿Cuáles son las dos tendencias actuales destacadas en el documento respecto a la IA en educación?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 0,
+        "es_correcta": true,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.141704"
+      },
+      {
+        "id": 7,
+        "opciones": [
+          "La resistencia al cambio por parte de educadores y estudiantes.",
+          "La facilidad para comprender cómo la IA llega a sus conclusiones.",
+          "La abundancia de datos educativos de alta calidad."
+        ],
+        "numero_pregunta": 7,
+        "pregunta_texto": "Según el documento, ¿cuál es uno de los desafíos para la implementación de la IA en educación?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 1,
+        "es_correcta": false,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.14276"
+      },
+      {
+        "id": 8,
+        "opciones": [
+          "La personalización del aprendizaje y la retroalimentación inmediata.",
+          "La eliminación de todas las evaluaciones formales.",
+          "La reducción de la necesidad de estudio individual."
+        ],
+        "numero_pregunta": 8,
+        "pregunta_texto": "¿Qué oportunidad principal ofrece la IA para mejorar el rendimiento académico de los estudiantes?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 2,
+        "es_correcta": false,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.14276"
+      },
+      {
+        "id": 9,
+        "opciones": [
+          "La desinformación y los sesgos debido a datos de entrenamiento incompletos o sesgados.",
+          "La mejora automática del pensamiento crítico en los estudiantes.",
+          "La disminución de la dependencia tecnológica en el aula."
+        ],
+        "numero_pregunta": 9,
+        "pregunta_texto": "¿Cuál es uno de los riesgos asociados a la IA, especialmente la generativa, según el resumen?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 0,
+        "es_correcta": true,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.144536"
+      },
+      {
+        "id": 10,
+        "opciones": [
+          "Como una herramienta de apoyo que complementa y mejora el proceso educativo.",
+          "Como un sustituto completo que reemplazará a los educadores en el futuro.",
+          "Como una tecnología irrelevante para la interacción directa con los estudiantes."
+        ],
+        "numero_pregunta": 10,
+        "pregunta_texto": "¿Cómo se posiciona la IA en relación con el rol de los educadores humanos, según las conclusiones del documento?",
+        "respuesta_correcta": 0,
+        "respuesta_seleccionada": 1,
+        "es_correcta": false,
+        "tiempo_respuesta_segundos": 2,
+        "fecha_respuesta": "2025-11-17T21:57:55.146843"
+      }
+    ],
+    "evaluacion_id": 1,
+    "estudiante_id": 1,
+    "fecha_realizacion": "2025-11-17T21:57:55.119737",
+    "tiempo_total_segundos": 54,
+    "puntuacion_obtenida": 4,
+    "puntuacion_maxima": 10,
+    "porcentaje_aciertos": 40.00
+  }
+];
