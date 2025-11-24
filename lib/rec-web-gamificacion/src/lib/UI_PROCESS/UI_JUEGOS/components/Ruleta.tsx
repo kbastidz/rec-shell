@@ -138,7 +138,7 @@ export function Ruleta() {
       try {
         const nuevoBalance = puntosTotal + actividadSeleccionada.puntos;
         
-        const tipoPunto = { id: regla?.id_tipo_punto?.toString() || '1' };
+        const tipoPunto = { id: regla?.id_tipo_punto || 1 ,  nombre: "", nombreMostrar:""};
         const puntosCalculados = regla?.puntosOtorgados ? regla.puntosOtorgados : actividadSeleccionada.puntos;
 
         const transaccionData: CrearTransaccionDTO = {

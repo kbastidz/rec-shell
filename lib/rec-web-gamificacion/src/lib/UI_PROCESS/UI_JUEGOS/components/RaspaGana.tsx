@@ -383,7 +383,7 @@ useEffect(() => {
         total_misiones: s.missions.length
       }));
       
-      const tipoPunto = { id: regla?.id_tipo_punto?.toString() || '1' };
+      const tipoPunto = { id: regla?.id_tipo_punto || 1 ,  nombre: "", nombreMostrar:""};
       const puntosCalculados = regla?.puntosOtorgados ? regla.puntosOtorgados : totalPuntosMateria;
 
         const transaccionData : CrearTransaccionDTO = {

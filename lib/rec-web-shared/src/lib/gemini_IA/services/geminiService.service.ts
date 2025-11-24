@@ -1,3 +1,5 @@
+import { GeminiRequest, GeminiResponse } from "../model/dominio";
+
 class GeminiService {
   
   private API_URL = 'https://generativelanguage.googleapis.com/v1';

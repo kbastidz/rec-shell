@@ -76,7 +76,7 @@ export function Trivia() {
 
   // Cuando el juego termina y guardas los puntos
   const handleSavePoints = async () => {
-    const tipoPunto = { id: regla?.id_tipo_punto?.toString() || '1' };
+    const tipoPunto = { id: regla?.id_tipo_punto || 1 ,  nombre: "", nombreMostrar:""};
     const puntosCalculados = regla?.puntosOtorgados ? regla.puntosOtorgados : score;
 
     const transaccionData: CrearTransaccionDTO = {

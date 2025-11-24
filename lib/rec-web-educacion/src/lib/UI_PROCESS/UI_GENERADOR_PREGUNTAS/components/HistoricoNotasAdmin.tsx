@@ -45,6 +45,7 @@ interface Materia {
 
 interface Estudiante {
   id: string;
+  no: number;
   apellidos: string;
   nombres: string;
   materias: {
@@ -56,8 +57,8 @@ interface Estudiante {
     matematica: Materia;
     lenguaLiteratura: Materia;
   };
-  acompanamientoIntegral?: number;
-  animacionLectura?: number;
+  acompanamientoIntegral: number;
+  animacionLectura: number;
 }
 
 // ===== Funciones auxiliares =====

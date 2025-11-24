@@ -17,6 +17,7 @@ import { DashboardNotasAcademico } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/com
 import { Evaluacion } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/Evaluacion';
 import { RecomendacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/RecomendacionesAdmin';
 import { ConsultarEvaluacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/ConsultarEvaluacionesAdmin';
+import { DashboardAdmin } from './UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -70,6 +71,14 @@ const menuItems = [
     color: 'yelow',
     description: 'Permite consultar y analizar de manera detallada los resultados de las evaluaciones.',
     component: ConsultarEvaluacionesAdmin
+  },
+  {
+    icon: '📋',
+    label: 'Dashboard',
+    value: 'dashboard2',
+    color: 'yelow',
+    description: 'Permite consultar y analizar de manera detallada los resultados de las evaluaciones.',
+    component: DashboardAdmin
   }
 ];
 

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { service } from '../services/geminiService.service';
+import { UseGeminiOptions, UseGeminiReturn } from '../model/dominio';
 
 export const useGemini = ({
   //apiKey,

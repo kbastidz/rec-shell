@@ -1,4 +1,4 @@
-interface GeminiRequest {
+export interface GeminiRequest {
   prompt: string;
   //apiKey: string;
   //model?: 'gemini-pro' | 'gemini-1.5-pro' | 'gemini-1.5-flash' | 'gemini-2.5-flash';
@@ -6,7 +6,7 @@ interface GeminiRequest {
   maxTokens?: number;
 }
 
-interface GeminiResponse {
+export interface GeminiResponse {
   candidates: Array<{
     content: {
       parts: Array<{
@@ -16,14 +16,14 @@ interface GeminiResponse {
   }>;
 }
 
-interface UseGeminiOptions {
+export interface UseGeminiOptions {
   temperature?: number;
   maxTokens?: number;
   onSuccess?: (response: string) => void;
   onError?: (error: string) => void;
 }
 
-interface UseGeminiReturn {
+export interface UseGeminiReturn {
   response: string | null;
   loading: boolean;
   error: string | null;

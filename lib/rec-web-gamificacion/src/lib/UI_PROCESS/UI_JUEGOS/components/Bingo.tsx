@@ -280,7 +280,7 @@ export function Bingo() {
       setPuntos(p => p + puntosNuevos);
       setLineasCompletadas(lineas);
       
-      const tipoPunto = { id: regla.id_tipo_punto?.toString() || '1' };
+      const tipoPunto = { id: regla?.id_tipo_punto || 1 ,  nombre: "", nombreMostrar:""};
       const puntosCalculados = regla.puntosOtorgados || 1;
 
       // Usar Promise.all en lugar de forEach
@@ -324,7 +324,7 @@ export function Bingo() {
       setPuntos(p => p + 15);
       setInsignias([...insignias, 'bingo_completo']);
       
-      const tipoPunto = { id: regla.id_tipo_punto?.toString() || '1' };
+      const tipoPunto = { id: regla.id_tipo_punto || 1 ,  nombre: "", nombreMostrar:""};
       const puntosCalculados = regla.puntosOtorgados || 1;
 
       const transaccionData: CrearTransaccionDTO = {
@@ -383,8 +383,7 @@ export function Bingo() {
     );
     
     setTablero(nuevoTablero);
-    
-    const tipoPunto = { id: regla.id_tipo_punto?.toString() || '1' };
+    const tipoPunto = { id: regla?.id_tipo_punto || 1 ,  nombre: "", nombreMostrar:""};
     const puntosCalculados = regla.puntosOtorgados || 1;
 
     const transaccionData: CrearTransaccionDTO = {
@@ -434,7 +433,9 @@ export function Bingo() {
         <Center style={{ minHeight: '60vh' }}>
           <Paper shadow="lg" p="xl" style={{ maxWidth: 600, textAlign: 'center' }}>
             <Stack gap="xl">
-              <div style={{ fontSize: '5rem' }}>🎲</div>
+              <div style={{ fontSize: '5rem' }}>
+                <span role="img" aria-label="dice">🎲</span>
+              </div>
               <Title order={1} style={{ 
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 WebkitBackgroundClip: 'text',

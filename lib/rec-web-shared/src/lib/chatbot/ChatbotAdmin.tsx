@@ -16,10 +16,16 @@ import {
 import { IconMessageCircle, IconX, IconSend, IconRobot, IconUser } from '@tabler/icons-react';
 import { useGemini } from '../gemini_IA/hooks/useGemini';
 
+interface Message {
+  id: number;
+  text: string;
+  sender: 'bot' | 'user';
+  timestamp: Date;
+}
 
 export const ChatbotAdmin = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       text: '¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
@@ -28,12 +34,12 @@ export const ChatbotAdmin = () => {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
-  const viewport = useRef(null);
-  const inputRef = useRef(null);
+  const viewport = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { loading, generateText } = useGemini({
-    onSuccess: (text) => {
-      const botMessage = {
+    onSuccess: (text: string) => {
+      const botMessage: Message = {
         id: Date.now(),
         text,
         sender: 'bot',
@@ -41,8 +47,8 @@ export const ChatbotAdmin = () => {
       };
       setMessages((prev) => [...prev, botMessage]);
     },
-    onError: (err) => {
-      const errorMessage = {
+    onError: (err: unknown) => {
+      const errorMessage: Message = {
         id: Date.now(),
         text: '❌ Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta nuevamente.',
         sender: 'bot',
@@ -67,7 +73,7 @@ export const ChatbotAdmin = () => {
   const handleSendMessage = async () => {
     if (!inputValue.trim() || loading) return;
 
-    const userMessage = {
+    const userMessage: Message = {
       id: Date.now(),
       text: inputValue,
       sender: 'user',
@@ -80,14 +86,14 @@ export const ChatbotAdmin = () => {
     await generateText(inputValue);
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  const formatTime = (date) => {
+  const formatTime = (date: Date): string => {
     return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   };
 

@@ -37,9 +37,30 @@ import {
   IconRefresh
 } from '@tabler/icons-react';
 import { useDashboard } from '../hooks/useDashboard';
+import { AlertaDTO, CultivoResumenDTO } from '../dto/dto';
 
-// Componente de estadística
-const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
+
+// Tipos de interfaces
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  color: string;
+  subtitle?: string;
+}
+
+
+interface AlertCardProps {
+  alerta: AlertaDTO;
+}
+
+
+interface CultivoCardProps {
+  cultivo: CultivoResumenDTO ;
+  onVerDetalle: (id: number) => void;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, color, subtitle }) => (
   <Card shadow="sm" padding="lg" radius="md" withBorder>
     <Group justify="space-between" mb="xs">
       <ThemeIcon size="xl" radius="md" color={color} variant="light">
@@ -63,8 +84,8 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
 );
 
 // Componente de alerta
-const AlertCard = ({ alerta }) => {
-  const getSeverityColor = (sev) => {
+const AlertCard: React.FC<AlertCardProps> = ({ alerta }) => {
+  const getSeverityColor = (sev: string): string => { // Cambiar a string
     switch (sev) {
       case 'ALTA': return 'red';
       case 'MEDIA': return 'yellow';
@@ -73,10 +94,12 @@ const AlertCard = ({ alerta }) => {
     }
   };
 
-  const getTipoIcon = (tipo) => {
+  const getTipoIcon = (tipo: string): React.ElementType => {
     switch (tipo) {
       case 'DEFICIENCIA': return IconAlertTriangle;
       case 'ACTIVIDAD': return IconCalendarEvent;
+      case 'TRATAMIENTO': return IconFlask;
+      case 'PARAMETRO': return IconTemperature;
       default: return IconAlertTriangle;
     }
   };
@@ -121,9 +144,9 @@ const AlertCard = ({ alerta }) => {
   );
 };
 
-// Componente de cultivo
-const CultivoCard = ({ cultivo, onVerDetalle }) => {
-  const getSaludColor = (salud) => {
+
+const CultivoCard: React.FC<CultivoCardProps> = ({ cultivo, onVerDetalle }) => {
+  const getSaludColor = (salud: string): string => {
     switch (salud) {
       case 'BUENA': return 'green';
       case 'REGULAR': return 'yellow';
@@ -132,7 +155,7 @@ const CultivoCard = ({ cultivo, onVerDetalle }) => {
     }
   };
 
-  const getSaludValue = (salud) => {
+  const getSaludValue = (salud: string): number => {
     switch (salud) {
       case 'BUENA': return 85;
       case 'REGULAR': return 55;
@@ -246,7 +269,7 @@ const CultivoCard = ({ cultivo, onVerDetalle }) => {
 };
 
 // Componente principal
-export const DashboardAdmin = () => {
+export const DashboardAdmin: React.FC = () => {
   const {
     resumen,
     estadisticasGenerales,
@@ -282,7 +305,7 @@ export const DashboardAdmin = () => {
     cargarDatosIniciales();
   }, []);
 
-  const cargarDatosIniciales = async () => {
+  const cargarDatosIniciales = async (): Promise<void> => {
     try {
       // Cargar resumen principal (incluye estadísticas, cultivos, alertas y actividades)
       await obtenerResumen(filtros);
@@ -320,7 +343,7 @@ export const DashboardAdmin = () => {
     }
   };
 
-  const handleVerDetalleCultivo = async (id) => {
+  const handleVerDetalleCultivo = async (id: number): Promise<void> => {
     try {
       await obtenerDetalleCultivo(id);
     } catch (err) {
@@ -328,7 +351,7 @@ export const DashboardAdmin = () => {
     }
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = (): void => {
     cargarDatosIniciales();
   };
 
@@ -436,7 +459,7 @@ export const DashboardAdmin = () => {
             </Title>
             {cultivos && cultivos.length > 0 ? (
               <Stack gap="md">
-                {cultivos.map((cultivo) => (
+                {cultivos.map((cultivo: CultivoResumenDTO) => (
                   <CultivoCard 
                     key={cultivo.id} 
                     cultivo={cultivo}
@@ -461,13 +484,13 @@ export const DashboardAdmin = () => {
                 <Title order={3}>Alertas Recientes</Title>
                 {alertasData && (
                   <Badge color="red" variant="filled">
-                    {alertasData.filter(a => !a.leida).length}
+                    {alertasData.filter((a: AlertaDTO) => !a.leida).length}
                   </Badge>
                 )}
               </Group>
               {alertasData && alertasData.length > 0 ? (
                 <Stack gap="sm">
-                  {alertasData.slice(0, 5).map((alerta) => (
+                  {alertasData.slice(0, 5).map((alerta: AlertaDTO) => (
                     <AlertCard key={alerta.id} alerta={alerta} />
                   ))}
                 </Stack>
@@ -485,7 +508,7 @@ export const DashboardAdmin = () => {
               </Title>
               {actividades && actividades.length > 0 ? (
                 <Stack gap="sm">
-                  {actividades.map((actividad) => (
+                  {actividades.map((actividad: any) => (
                     <Card key={actividad.id} padding="md" withBorder>
                       <Group justify="space-between" mb="xs">
                         <Text size="sm" fw={600}>
@@ -553,7 +576,7 @@ export const DashboardAdmin = () => {
                       Más Frecuentes
                     </Text>
                     <Stack gap="xs">
-                      {deficiencias.deficienciasMasFrecuentes.map((def, idx) => (
+                      {deficiencias.deficienciasMasFrecuentes.map((def: any, idx: number) => (
                         <Paper key={idx} p="sm" withBorder>
                           <Group justify="space-between">
                             <Box>
@@ -638,7 +661,7 @@ export const DashboardAdmin = () => {
                       Por Tipo de Tratamiento
                     </Text>
                     <Stack gap="xs">
-                      {tratamientos.tratamientosPorTipo.map((tipo, idx) => (
+                      {tratamientos.tratamientosPorTipo.map((tipo: any, idx: number) => (
                         <Paper key={idx} p="sm" withBorder>
                           <Group justify="space-between">
                             <Text size="sm" fw={500}>

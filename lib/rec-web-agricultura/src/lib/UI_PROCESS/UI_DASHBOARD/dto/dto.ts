@@ -177,3 +177,36 @@ export interface DashboardFiltroDTO {
   estadoCultivo: string;
   severidadMinima: string;
 }
+
+/*
+export interface Alerta {
+  id: string | number;
+  tipo: 'DEFICIENCIA' | 'ACTIVIDAD';
+  severidad: 'ALTA' | 'MEDIA' | 'BAJA';
+  mensaje: string;
+  cultivoNombre: string;
+  leida: boolean;
+}
+*/
+
+
+export interface ParametrosActuales {
+  temperatura?: number;
+  humedadSuelo?: number;
+  phSuelo?: number;
+  horasSol?: number;
+}
+
+export interface Cultivo {
+  id: string | number;
+  nombreCultivo: string;
+  variedadCacao: string;
+  estadoCultivo: 'ACTIVO' | 'INACTIVO';
+  saludGeneral: 'BUENA' | 'REGULAR' | 'CRITICA';
+  areaHectareas: number;
+  ubicacionNombre: string;
+  parametrosActuales?: ParametrosActuales;
+  analisisRealizados: number;
+  deficienciasActivas: number;
+}
+
