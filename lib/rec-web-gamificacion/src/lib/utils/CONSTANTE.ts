@@ -1,4 +1,5 @@
 import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
+import { Subject, SubjectsType } from '../UI_PROCESS/UI_JUEGOS/interface/interface';
 
 export const promptTemplate = `Actúa como un generador de bancos de preguntas en formato JSON. Tu única salida debe ser el código JSON, sin ninguna explicación, saludo, o texto adicional.
 

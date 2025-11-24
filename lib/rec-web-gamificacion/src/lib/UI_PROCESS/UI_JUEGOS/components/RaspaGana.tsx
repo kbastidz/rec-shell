@@ -8,6 +8,7 @@ import { useTransaccionPuntos } from '../hooks/useGamificacion';
 import { handleModelResponse, useGemini } from '@rec-shell/rec-web-shared';
 import { MATERIAS_DEFAULT, promptTemplateRaspa } from '../../../utils/CONSTANTE';
 import { Loader } from 'lucide-react';
+import { Mission, NotificationType, Reward, RewardType, Subject, UnlockedCard } from '../interface/interface';
 
 
 // Tipos de recompensas

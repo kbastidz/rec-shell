@@ -14,12 +14,12 @@ interface SubjectData {
   questions: Question[];
 }
 
-interface CurrentQuestion extends Question {
+export interface CurrentQuestion extends Question {
   subject: string;
   subjectData: SubjectData;
 }
 
-type SubjectsType = {
+export type SubjectsType = {
   [key: string]: SubjectData;
 }
 
@@ -55,7 +55,7 @@ interface Actividad {
   puntos: number;
 }
 
-interface Materia {
+export interface Materia {
   id: number;
   nombre: string;
   emoji: string;
@@ -63,7 +63,7 @@ interface Materia {
   actividades: Actividad[];
 }
 
-interface ResultadoType {
+export interface ResultadoType {
   materia: Materia;
   actividad: Actividad;
 }
@@ -75,14 +75,14 @@ interface AccionesGeneradas {
 
 //rasp
 
-interface Mission {
+export interface Mission {
   id: number;
   question: string;
   answer: string;
   points: number;
 }
 
-interface Subject {
+export interface Subject {
   id: string;
   name: string;
   icon: string;
@@ -90,7 +90,7 @@ interface Subject {
   missions: Mission[];
 }
 
-interface RewardType {
+export interface RewardType {
   type: string;
   name: string;
   emoji: string;
@@ -100,19 +100,19 @@ interface RewardType {
   color: string;
 }
 
-interface Reward {
+export interface Reward {
   rarity: RewardType;
   points: number;
   badge: string | null;
   subjectId: string;
 }
 
-interface NotificationType {
+export interface NotificationType {
   type: 'success' | 'error';
   message: string;
 }
 
-interface UnlockedCard extends Reward {
+export interface UnlockedCard extends Reward {
   timestamp: number;
 }
 

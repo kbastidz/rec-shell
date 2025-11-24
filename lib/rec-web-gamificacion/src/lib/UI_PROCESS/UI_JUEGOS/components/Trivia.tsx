@@ -8,6 +8,7 @@ import { CrearTransaccionDTO } from '../../../types/dto';
 import { useTransaccionPuntos } from '../hooks/useGamificacion';
 import { handleModelError, handleModelResponse, useGemini } from '@rec-shell/rec-web-shared';
 import { promptTemplate, SUBJECTS } from '../../../utils/CONSTANTE';
+import { CurrentQuestion, SubjectsType } from '../interface/interface';
 
 
 

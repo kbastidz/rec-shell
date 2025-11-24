@@ -7,6 +7,7 @@ import { CrearTransaccionDTO } from '../../../types/dto';
 import { useTransaccionPuntos } from '../hooks/useGamificacion';
 import { handleModelResponse, useGemini } from '@rec-shell/rec-web-shared';
 import { MATERIAS, promptTemplateRuleta } from '../../../utils/CONSTANTE';
+import { ResultadoType, Materia } from '../interface/interface';
 
 export function Ruleta() {
   const [girando, setGirando] = useState(false);
