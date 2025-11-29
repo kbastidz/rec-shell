@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Title,
@@ -10,6 +10,7 @@ import {
   ThemeIcon,
   Box,
   Button,
+  Loader,
 } from '@mantine/core';
 
 import { CategoriaAdmin } from './UI_CATEGORIA_LOGRO/components/CategoriaAdmin';
@@ -23,92 +24,62 @@ import { Juegos } from './UI_PROCESS/UI_JUEGOS/components/Juegos';
 import { ReglaPuntosAdmin } from './UI_REGLA_PUNTOS/components/ReglaPuntosAdmin';
 import { TransaccionPuntosAdmin } from './UI_PROCESS/UI_TRANSACIONPUNTOS/components/TransaccionPuntosAdmin';
 
+import { useOpciones } from '@rec-shell/rec-web-auth';
+import { OpcionDTO, ST_GET_ROLE_USER_ID } from '@rec-shell/rec-web-shared';
+
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
 }
 
-const menuItems = [
-  { 
-    icon: '📁', 
-    label: 'Categorías', 
-    value: 'categorias',
-    color: 'blue',
-    description: 'Gestiona las categorías del sistema',
-    component: CategoriaAdmin
-  },
-  { 
-    icon: '🎯', 
-    label: 'Tipos de Desafío', 
-    value: 'tipos-desafio',
-    color: 'violet',
-    description: 'Configura los tipos de desafíos',
-    component: TiposDesafioAdmin
-  },
-  { 
-    icon: '🎁', 
-    label: 'Tipos de Recompensa', 
-    value: 'tipos-recompensa',
-    color: 'pink',
-    description: 'Define tipos de recompensas',
-    component: TipoRecompensaAdmin
-  },
-  { 
-    icon: '🏆', 
-    label: 'Logros', 
-    value: 'logros',
-    color: 'yellow',
-    description: 'Administra logros y medallas',
-    component: LogrosAdmin
-  },
-  { 
-    icon: '⚔️', 
-    label: 'Desafíos', 
-    value: 'desafios',
-    color: 'red',
-    description: 'Gestiona desafíos activos',
-    component: DesafiosAdmin
-  },
-  { 
-    icon: '📦', 
-    label: 'Recompensas', 
-    value: 'recompensas',
-    color: 'green',
-    description: 'Administra recompensas disponibles',
-    component: RecompensasAdmin
-  },
-  { 
-    icon: '⚙️', 
-    label: 'Reglas por Puntos', 
-    value: 'regla-puntos',
-    color: 'orange',
-    description: 'Gestiona las reglas de la asignación de puntos',
-    component: ReglaPuntosAdmin //TablaLideresAdmin
-  },
-  { 
-    icon: '💯', 
-    label: 'Conciliación de actividades', 
-    value: 'concialiacion',
-    color: 'red',
-    description: 'Administración de puntaje de usuarios',
-    component: TransaccionPuntosAdmin
-  },  
-  { 
-    icon: '🧩', 
-    label: 'Centro de juegos', 
-    value: 'juegos',
-    color: 'blue',
-    description: 'Centro de Juegos educativos',
-    component: Juegos
-  },
-  
-];
+const componentMap: Record<string, React.ComponentType<any>> = {
+  'categorias': CategoriaAdmin,
+  'tipos-desafio': TiposDesafioAdmin,
+  'tipos-recompensa': TipoRecompensaAdmin,
+  'logros': LogrosAdmin,
+  'desafios': DesafiosAdmin,
+  'recompensas': RecompensasAdmin,
+  'regla-puntos': ReglaPuntosAdmin,
+  'concialiacion': TransaccionPuntosAdmin,
+  'juegos': Juegos,
+};
+
+const colorMap: Record<string, string> = {
+  'categorias': 'blue',
+  'tipos-desafio': 'violet',
+  'tipos-recompensa': 'pink',
+  'logros': 'yellow',
+  'desafios': 'red',
+  'recompensas': 'green',
+  'regla-puntos': 'orange',
+  'concialiacion': 'red',
+  'juegos': 'blue',
+};
 
 export function MenuPagueM2({ onNavigate }: ComponentWithNavigation) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const { opciones, loading, error, OBTENER_OPCIONES_BY_ROL } = useOpciones();
+
+  useEffect(() => {
+    const roleId = ST_GET_ROLE_USER_ID();
+    if (roleId) {
+      OBTENER_OPCIONES_BY_ROL(roleId, 'GAMIFICACION');
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <Container fluid p="xl">
+        <Stack align="center" justify="center" style={{ minHeight: '400px' }}>
+          <Loader size="lg" />
+          <Text c="dimmed">Cargando opciones del menú...</Text>
+        </Stack>
+      </Container>
+    );
+  }
 
   if (activeSection) {
-    const currentItem = menuItems.find(item => item.value === activeSection);
-    const Component = currentItem?.component;
+    const currentOption = opciones.find(opt => opt.codigo === activeSection);
+    const Component = currentOption ? componentMap[currentOption.codigo] : null;
 
     return (
       <Container fluid p="xl">
@@ -140,9 +111,9 @@ export function MenuPagueM2({ onNavigate }: ComponentWithNavigation) {
         </Box>
 
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="xl">
-          {menuItems.map((item) => (
+          {opciones.map((opcion: OpcionDTO) => (
             <Card
-              key={item.value}
+              key={opcion.id}
               shadow="sm"
               padding="xl"
               radius="md"
@@ -160,23 +131,28 @@ export function MenuPagueM2({ onNavigate }: ComponentWithNavigation) {
                 e.currentTarget.style.boxShadow = '';
               }}
               onClick={() => {
-                console.log('Navegando a:', item.value);
-                setActiveSection(item.value);
+                console.log('Navegando a:', opcion.codigo);
+                setActiveSection(opcion.codigo);
               }}
             >
               <Stack gap="md">
                 <Group>
-                  <ThemeIcon size="xl" radius="md" variant="light" color={item.color}>
-                    <Text size="xl">{item.icon}</Text>
+                  <ThemeIcon 
+                    size="xl" 
+                    radius="md" 
+                    variant="light" 
+                    color={colorMap[opcion.codigo] || 'gray'}
+                  >
+                    <Text size="xl">{opcion.icono}</Text>
                   </ThemeIcon>
                   <Box style={{ flex: 1 }}>
                     <Text fw={600} size="lg">
-                      {item.label}
+                      {opcion.nombre}
                     </Text>
                   </Box>
                 </Group>
                 <Text size="sm" c="dimmed">
-                  {item.description}
+                  {opcion.descripcion}
                 </Text>
               </Stack>
             </Card>

@@ -88,6 +88,14 @@ export interface RefreshTokenResponse {
   };
 }
 
+export interface OpcionDTO {
+  id: number;
+  nombre: string;
+  codigo: string;
+  icono: string;
+  descripcion: string;
+}
+
 export interface SignInProps {
   onSignIn?: (credentials: SignInCredentials) => Promise<void>;
   onForgotPassword?: () => void;

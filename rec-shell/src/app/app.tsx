@@ -4,8 +4,9 @@ import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
 import { MenuPagueM1 } from '@rec-shell/rec-web-agricultura';
-import { DashboardAdmin, MenuPagueM2, ReglaPuntosAdmin, TransaccionPuntosAdmin } from '@rec-shell/rec-web-gamificacion';
+import { MenuPagueM2 } from '@rec-shell/rec-web-gamificacion';
 import { MenuPagueM3 } from '@rec-shell/rec-web-educacion';
+
 const ROLES = {
   ADMIN: 'ADMIN',
   MODERATOR: 'MODERATOR'
@@ -16,7 +17,7 @@ const rolePermissions = {
   [ROLES.ADMIN]: {
     AgriculturaComponent: MenuPagueM1,
     GamificacionComponent: MenuPagueM2,
-    EducacionComponent: MenuPagueM3, //DashboardAdmin, //DashboardAdmin, //MenuPagueM3,
+    EducacionComponent: MenuPagueM3, 
     AdminUserComponent: MenuUser
   },
   [ROLES.MODERATOR]: {

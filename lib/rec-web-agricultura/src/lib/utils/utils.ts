@@ -57,6 +57,8 @@ export function ST_GET_USER_ID(): string {
   return userStr ? JSON.parse(userStr).id : ''; 
 }
 
+
+
 export function GET_ERROR(error: unknown, defaultMessage = "Error al cargar los registros"): string {
   return error instanceof Error ? error.message : defaultMessage;
 }
@@ -82,3 +84,81 @@ export const temporadas = [
     { value: 'INVIERNO', label: 'Invierno' },
     { value: 'TODO_AÑO', label: 'Todo el año' }
   ];
+
+
+/*
+const menuItems = [
+  { 
+    icon: '🌱', 
+    label: 'Cultivos', 
+    value: 'cultivos',
+    color: 'green',
+    description: 'Gestiona los cultivos del sistema',
+    component: CultivosAdmin
+  },
+  { 
+    icon: '💧', 
+    label: 'Nutrientes', 
+    value: 'nutrientes',
+    color: 'blue',
+    description: 'Administra nutrientes y fertilizantes',
+    component: NutrienteAdmin
+  },
+  { 
+    icon: '💊', 
+    label: 'Tratamientos', 
+    value: 'tratamientos',
+    color: 'violet',
+    description: 'Configura tratamientos y aplicaciones',
+    component: TratamientosAdmin
+  },
+  { 
+    icon: '📏', 
+    label: 'Medidas', 
+    value: 'medidas',
+    color: 'cyan',
+    description: 'Define unidades de medida',
+    component: MedidaAdmin
+  },
+  { 
+    icon: '🗓️', 
+    label: 'Plan Tratamiento', 
+    value: 'generacion',
+    color: 'yellow',
+    description: 'Generación de plan de tratamiento',
+    component: ListarAdmin
+  },
+  { 
+    icon: '📋', 
+    label: 'Seguimientos', 
+    value: 'seguimientos',
+    color: 'orange',
+    description: 'Rastrea el progreso de cultivos',
+    component: PlanTratamientoListAdmin  //SeguimientosAdmin
+  },
+  { 
+    icon: '📊', 
+    label: 'Monitoreo', 
+    value: 'monitoreo',
+    color: 'teal',
+    description: 'Visualiza datos y estadísticas',
+    component: MonitoreoAdmin
+  },
+  { 
+    icon: '🧪', 
+    label: 'Análisis', 
+    value: 'analisis',
+    color: 'purple',
+    description: 'Analiza el estado de las hojas de cacao (detección de enfermedades)',
+    component: Analisis
+  },
+  { 
+    icon: '🔍', 
+    label: 'Consultas de Análisis', 
+    value: 'listar',
+    color: 'blue',
+    description: 'Consulta los resultados de los análisis realizados',
+    component: Listar
+  }
+];
+*/

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Title,
@@ -10,6 +10,7 @@ import {
   ThemeIcon,
   Box,
   Button,
+  Loader,
 } from '@mantine/core';
 
 
@@ -24,91 +25,64 @@ import { Analisis } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis';
 import { ListarAdmin } from './UI_PROCESS/UI_ANALISIS_IMAGEN/components/ListarAdmin';
 import { PlanTratamientoListAdmin } from './UI_PROCESS/UI_PLAN_TRATAMIENTO/PlanTratamientoListAdmin';
 
+import { useOpciones } from '@rec-shell/rec-web-auth';
+import { OpcionDTO, ST_GET_ROLE_USER_ID } from '@rec-shell/rec-web-shared';
+
+
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
 }
 
-const menuItems = [
-  { 
-    icon: '🌱', 
-    label: 'Cultivos', 
-    value: 'cultivos',
-    color: 'green',
-    description: 'Gestiona los cultivos del sistema',
-    component: CultivosAdmin
-  },
-  { 
-    icon: '💧', 
-    label: 'Nutrientes', 
-    value: 'nutrientes',
-    color: 'blue',
-    description: 'Administra nutrientes y fertilizantes',
-    component: NutrienteAdmin
-  },
-  { 
-    icon: '💊', 
-    label: 'Tratamientos', 
-    value: 'tratamientos',
-    color: 'violet',
-    description: 'Configura tratamientos y aplicaciones',
-    component: TratamientosAdmin
-  },
-  { 
-    icon: '📏', 
-    label: 'Medidas', 
-    value: 'medidas',
-    color: 'cyan',
-    description: 'Define unidades de medida',
-    component: MedidaAdmin
-  },
-  { 
-    icon: '🗓️', 
-    label: 'Plan Tratamiento', 
-    value: 'generacion',
-    color: 'yellow',
-    description: 'Generación de plan de tratamiento',
-    component: ListarAdmin
-  },
-  { 
-    icon: '📋', 
-    label: 'Seguimientos', 
-    value: 'seguimientos',
-    color: 'orange',
-    description: 'Rastrea el progreso de cultivos',
-    component: PlanTratamientoListAdmin  //SeguimientosAdmin
-  },
-  { 
-    icon: '📊', 
-    label: 'Monitoreo', 
-    value: 'monitoreo',
-    color: 'teal',
-    description: 'Visualiza datos y estadísticas',
-    component: MonitoreoAdmin
-  },
-  { 
-    icon: '🧪', 
-    label: 'Análisis', 
-    value: 'analisis',
-    color: 'purple',
-    description: 'Analiza el estado de las hojas de cacao (detección de enfermedades)',
-    component: Analisis
-  },
-  { 
-    icon: '🔍', 
-    label: 'Consultas de Análisis', 
-    value: 'listar',
-    color: 'blue',
-    description: 'Consulta los resultados de los análisis realizados',
-    component: Listar
-  }
-];
+const componentMap: Record<string, React.ComponentType<any>> = {
+  'cultivos': CultivosAdmin,
+  'nutrientes': NutrienteAdmin,
+  'tratamientos': TratamientosAdmin,
+  'medidas': MedidaAdmin,
+  'generacion': ListarAdmin,
+  'seguimientos': PlanTratamientoListAdmin,
+  'monitoreo': MonitoreoAdmin,
+  'analisis': Analisis,
+  'listar': Listar,
+};
+
+const colorMap: Record<string, string> = {
+  'cultivos': 'green',
+  'nutrientes': 'blue',
+  'tratamientos': 'violet',
+  'medidas': 'cyan',
+  'generacion': 'yellow',
+  'seguimientos': 'orange',
+  'monitoreo': 'teal',
+  'analisis': 'purple',
+  'listar': 'blue',
+};
 
 export function MenuPagueM1({ onNavigate }: ComponentWithNavigation) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const { opciones, loading, error, OBTENER_OPCIONES_BY_ROL } = useOpciones();
+
+  useEffect(() => {
+    const roleId = ST_GET_ROLE_USER_ID();
+    if (roleId) {
+      OBTENER_OPCIONES_BY_ROL(roleId, 'CULTIVO');
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <Container fluid p="xl">
+        <Stack align="center" justify="center" style={{ minHeight: '400px' }}>
+          <Loader size="lg" />
+          <Text c="dimmed">Cargando opciones del menú...</Text>
+        </Stack>
+      </Container>
+    );
+  }
 
   if (activeSection) {
-    const currentItem = menuItems.find(item => item.value === activeSection);
-    const Component = currentItem?.component;
+    
+    const currentOption = opciones.find(opt => opt.codigo === activeSection);
+    const Component = currentOption ? componentMap[currentOption.codigo] : null;
 
     return (
       <Container fluid p="xl">
@@ -140,48 +114,53 @@ export function MenuPagueM1({ onNavigate }: ComponentWithNavigation) {
         </Box>
 
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 3 }} spacing="xl">
-          {menuItems.map((item) => (
-            <Card
-              key={item.value}
-              shadow="sm"
-              padding="xl"
-              radius="md"
-              withBorder
-              style={{ 
-                cursor: 'pointer', 
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '';
-              }}
-              onClick={() => {
-                console.log('Navegando a:', item.value);
-                setActiveSection(item.value);
-              }}
-            >
-              <Stack gap="md">
-                <Group>
-                  <ThemeIcon size="xl" radius="md" variant="light" color={item.color}>
-                    <Text size="xl">{item.icon}</Text>
-                  </ThemeIcon>
-                  <Box style={{ flex: 1 }}>
-                    <Text fw={600} size="lg">
-                      {item.label}
-                    </Text>
-                  </Box>
-                </Group>
-                <Text size="sm" c="dimmed">
-                  {item.description}
-                </Text>
-              </Stack>
-            </Card>
-          ))}
-        </SimpleGrid>
+            {opciones.map((opcion: OpcionDTO) => (
+              <Card
+                key={opcion.id}
+                shadow="sm"
+                padding="xl"
+                radius="md"
+                withBorder
+                style={{ 
+                  cursor: 'pointer', 
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '';
+                }}
+                onClick={() => {
+                  console.log('Navegando a:', opcion.codigo);
+                  setActiveSection(opcion.codigo);
+                }}
+              >
+                <Stack gap="md">
+                  <Group>
+                    <ThemeIcon 
+                      size="xl" 
+                      radius="md" 
+                      variant="light" 
+                      color={colorMap[opcion.codigo] || 'gray'}
+                    >
+                      <Text size="xl">{opcion.icono}</Text>
+                    </ThemeIcon>
+                    <Box style={{ flex: 1 }}>
+                      <Text fw={600} size="lg">
+                        {opcion.nombre}
+                      </Text>
+                    </Box>
+                  </Group>
+                  <Text size="sm" c="dimmed">
+                    {opcion.descripcion}
+                  </Text>
+                </Stack>
+              </Card>
+            ))}
+          </SimpleGrid>
       </Stack>
     </Container>
   );

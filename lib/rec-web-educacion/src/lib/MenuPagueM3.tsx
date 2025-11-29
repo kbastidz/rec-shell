@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Title,
@@ -10,7 +10,9 @@ import {
   ThemeIcon,
   Box,
   Button,
+  Loader,
 } from '@mantine/core';
+
 import { GeneradorAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/GeneradorAdmin';
 import { HistoricoNotasAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/HistoricoNotasAdmin';
 import { DashboardNotasAcademico } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/DashboardNotasAcademico';
@@ -19,75 +21,58 @@ import { RecomendacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/compon
 import { ConsultarEvaluacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/ConsultarEvaluacionesAdmin';
 import { DashboardAdmin } from './UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
 
+import { useOpciones } from '@rec-shell/rec-web-auth';
+import { OpcionDTO, ST_GET_ROLE_USER_ID } from '@rec-shell/rec-web-shared';
+
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
 }
 
-const menuItems = [
-  { 
-    icon: '🧠', 
-    label: 'Generador de Resúmenes y Preguntas IA', 
-    value: 'generador',
-    color: 'indigo',
-    description: 'Analiza documentos PDF utilizando inteligencia artificial para generar automáticamente un resumen claro y conciso del contenido, junto con preguntas relevantes que facilitan la comprensión y evaluación del texto',
-    component: GeneradorAdmin
-  },
-  { 
-    icon: '📚', 
-    label: 'Gestor de Notas Trimestrales', 
-    value: 'historico',
-    color: 'blue',
-    description: 'Permite cargar, organizar y visualizar las calificaciones de los estudiantes por trimestre, facilitando la gestión histórica del rendimiento académico',
-    component: HistoricoNotasAdmin
-  },
-  { 
-    icon: '📊', 
-    label: 'Panel de Análisis Académico', 
-    value: 'dashboard',
-    color: 'teal',
-    description: 'Genera un dashboard interactivo que presenta métricas, gráficos y estadísticas detalladas sobre las notas de los estudiantes, brindando una visión global del desempeño académico',
-    component: DashboardNotasAcademico
-  },
-  { 
-    icon: '📝', 
-    label: 'Módulo de Evaluaciones', 
-    value: 'evaluacion',
-    color: 'violet',
-    description: 'Permite crear y realizar evaluaciones personalizadas, registrando respuestas y resultados para medir el aprendizaje de manera dinámica y eficiente',
-    component: Evaluacion
-  },
-  { 
-    icon: '🎥', 
-    label: 'Generador IA de Recursos Educativos', 
-    value: 'recomendaciones',
-    color: 'pink',
-    description: 'Utiliza inteligencia artificial para analizar textos y generar materiales de apoyo como videos recomendados y mapas conceptuales, potenciando el aprendizaje visual y contextual',
-    component: RecomendacionesAdmin
-  },
-   { 
-    icon: '📋', 
-    label: 'Analisis de Evaluaciones', 
-    value: 'resultados',
-    color: 'yelow',
-    description: 'Permite consultar y analizar de manera detallada los resultados de las evaluaciones.',
-    component: ConsultarEvaluacionesAdmin
-  },
-  {
-    icon: '📋',
-    label: 'Dashboard',
-    value: 'dashboard2',
-    color: 'yelow',
-    description: 'Permite consultar y analizar de manera detallada los resultados de las evaluaciones.',
-    component: DashboardAdmin
-  }
-];
+const componentMap: Record<string, React.ComponentType<any>> = {
+  'generador': GeneradorAdmin,
+  'historico': HistoricoNotasAdmin,
+  'dashboard': DashboardNotasAcademico,
+  'evaluacion': Evaluacion,
+  'recomendaciones': RecomendacionesAdmin,
+  'resultados': ConsultarEvaluacionesAdmin,
+  'dashboard2': DashboardAdmin,
+};
+
+const colorMap: Record<string, string> = {
+  'generador': 'indigo',
+  'historico': 'blue',
+  'dashboard': 'teal',
+  'evaluacion': 'violet',
+  'recomendaciones': 'pink',
+  'resultados': 'yellow',
+  'dashboard2': 'yellow',
+};
 
 export function MenuPagueM3({ onNavigate }: ComponentWithNavigation) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const { opciones, loading, error, OBTENER_OPCIONES_BY_ROL } = useOpciones();
+
+  useEffect(() => {
+    const roleId = ST_GET_ROLE_USER_ID();
+    if (roleId) {
+      OBTENER_OPCIONES_BY_ROL(roleId, 'EDUCACION');
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <Container fluid p="xl">
+        <Stack align="center" justify="center" style={{ minHeight: '400px' }}>
+          <Loader size="lg" />
+          <Text c="dimmed">Cargando opciones del menú...</Text>
+        </Stack>
+      </Container>
+    );
+  }
 
   if (activeSection) {
-    const currentItem = menuItems.find(item => item.value === activeSection);
-    const Component = currentItem?.component;
+    const currentOption = opciones.find(opt => opt.codigo === activeSection);
+    const Component = currentOption ? componentMap[currentOption.codigo] : null;
 
     return (
       <Container fluid p="xl">
@@ -119,9 +104,9 @@ export function MenuPagueM3({ onNavigate }: ComponentWithNavigation) {
         </Box>
 
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 3 }} spacing="xl">
-          {menuItems.map((item) => (
+          {opciones.map((opcion: OpcionDTO) => (
             <Card
-              key={item.value}
+              key={opcion.id}
               shadow="sm"
               padding="xl"
               radius="md"
@@ -139,23 +124,28 @@ export function MenuPagueM3({ onNavigate }: ComponentWithNavigation) {
                 e.currentTarget.style.boxShadow = '';
               }}
               onClick={() => {
-                console.log('Navegando a:', item.value);
-                setActiveSection(item.value);
+                console.log('Navegando a:', opcion.codigo);
+                setActiveSection(opcion.codigo);
               }}
             >
               <Stack gap="md">
                 <Group>
-                  <ThemeIcon size="xl" radius="md" variant="light" color={item.color}>
-                    <Text size="xl">{item.icon}</Text>
+                  <ThemeIcon 
+                    size="xl" 
+                    radius="md" 
+                    variant="light" 
+                    color={colorMap[opcion.codigo] || 'gray'}
+                  >
+                    <Text size="xl">{opcion.icono}</Text>
                   </ThemeIcon>
                   <Box style={{ flex: 1 }}>
                     <Text fw={600} size="lg">
-                      {item.label}
+                      {opcion.nombre}
                     </Text>
                   </Box>
                 </Group>
                 <Text size="sm" c="dimmed">
-                  {item.description}
+                  {opcion.descripcion}
                 </Text>
               </Stack>
             </Card>

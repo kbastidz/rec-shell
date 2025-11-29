@@ -8,7 +8,8 @@ import {
   ChangePasswordRequest,
   ChangePasswordResponse,
   RefreshTokenRequest,
-  RefreshTokenResponse
+  RefreshTokenResponse,
+  OpcionDTO
 } from '../types/auth';
 import  {handleError, InvokeApi } from '@rec-shell/rec-web-shared';
 
@@ -57,6 +58,16 @@ export class AuthService extends InvokeApi {
     } catch (error) {
       return handleError(error, 'refreshing token', 'Error al actualizar token');
     }
+  }
+
+  async GET_OPCIONES(): Promise<OpcionDTO[]> {
+    const response = await this.get<OpcionDTO[]>('/admin/opciones');
+    return response;
+  }
+
+  async GET_OPCION_BY_ROL(role: string, proyecto: string): Promise<OpcionDTO[]> {
+    const response = await this.get<OpcionDTO[]>(`/admin/roles/${role}/opciones/${proyecto}`);
+    return response;
   }
 }
 
