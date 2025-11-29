@@ -27,7 +27,7 @@ import {
 } from '@tabler/icons-react';
 import { DeficienciaNutriente } from '../../types/model';
 import { DeficienciaNutrienteInput } from '../../types/dto';
-import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, PaginationControls, useNotifications, usePagination } from '@rec-shell/rec-web-shared';
 import { useAgricultura } from '../hooks/useAgricultura';
 
 export const NutrienteAdmin = () => {
@@ -63,6 +63,26 @@ export const NutrienteAdmin = () => {
   useEffect(() => {
     BUSCAR();
   }, []);
+
+  // Ref Paginacion Global
+  const lista = Array.isArray(deficiencias) ? deficiencias : [];
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    setPage,
+    setItemsPerPage,
+    itemsPerPage,
+    startIndex,
+    endIndex,
+    totalItems,
+    searchTerm,
+    setSearchTerm
+  } = usePagination({
+    data: lista,
+    itemsPerPage: 5,
+    searchFields: ['codigo', 'nombre', 'nutrienteDeficiente'] // Campos específicos para buscar
+  });
 
   const limpiarFormulario = () => {
     setFormulario({
@@ -148,8 +168,9 @@ export const NutrienteAdmin = () => {
     setModalDetalle(true);
   };
 
-  const lista = Array.isArray(deficiencias) ? deficiencias : [];
-  const rows = lista.map((deficiencia) => (
+  
+  //const rows = lista.map((deficiencia) => (
+  const rows = paginatedData.map((deficiencia) => (
     <Table.Tr key={deficiencia.id}>
       <Table.Td>{deficiencia.codigo}</Table.Td>
       <Table.Td>{deficiencia.nombre}</Table.Td>
@@ -241,13 +262,31 @@ export const NutrienteAdmin = () => {
                 <Table.Tr>
                   <Table.Td colSpan={5} style={{ textAlign: 'center' }}>
                     <Text c="dimmed">
-                      No se encontraron registros
+                      {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No se encontraron registros'}
                     </Text>
                   </Table.Td>
                 </Table.Tr>
               )}
             </Table.Tbody>
           </Table>
+
+          {/* Ref paginacion Global - Controles de paginación */}
+          {lista.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) => value && setItemsPerPage(Number(value))}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Buscar por código, nombre o nutriente..."
+            />
+          )}
+          
         </Card>
       )}
 
