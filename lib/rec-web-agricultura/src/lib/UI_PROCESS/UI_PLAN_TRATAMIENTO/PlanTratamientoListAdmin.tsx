@@ -23,10 +23,14 @@ import {
   IconEye,
   IconCalendar,
   IconCurrencyDollar,
+  IconPlant,
+  IconSun
 } from '@tabler/icons-react';
 import { usePlanesTratamiento } from '../UI_ANALISIS_IMAGEN/hooks/useAgricultura';
-import { PlanTratamiento } from '../../types/model';
-import { EstadoActividad } from '../../enums/Enums';
+import { PaginationControls, usePagination } from '@rec-shell/rec-web-shared';
+import { PlanTratamientoNuevo } from '../../types/dto';
+
+
 
 
 export function PlanTratamientoListAdmin() {
@@ -37,7 +41,7 @@ export function PlanTratamientoListAdmin() {
   } = usePlanesTratamiento();
 
   const [modalDetalle, setModalDetalle] = useState(false);
-  const [planSeleccionado, setPlanSeleccionado] = useState<PlanTratamiento | null>(null);
+  const [planSeleccionado, setPlanSeleccionado] = useState<PlanTratamientoNuevo | null>(null);
 
   useEffect(() => {
     obtenerTodosPlanes();
@@ -47,39 +51,26 @@ export function PlanTratamientoListAdmin() {
     obtenerTodosPlanes();
   };
 
-  const handleVerDetalle = (plan: PlanTratamiento) => {
+  const handleVerDetalle = (plan: PlanTratamientoNuevo) => {
     setPlanSeleccionado(plan);
     setModalDetalle(true);
   };
 
-  const getEstadoColor = (estado: string) => {
-    const est = estado?.toUpperCase() || '';
-    switch (est) {
-      case 'COMPLETADO':
-        return 'green';
-      case 'EN_PROCESO':
-        return 'blue';
-      case 'CANCELADO':
-        return 'red';
-      case 'PENDIENTE':
-        return 'yellow';
-      default:
-        return 'gray';
+  // Función para determinar el tipo de tratamiento (basado en el nombre)
+  const getTipoColor = (tratamiento: string) => {
+    const trat = tratamiento?.toLowerCase() || '';
+    if (trat.includes('urea') || trat.includes('nitrato') || trat.includes('nitrógeno')) {
+      return 'blue';
+    } else if (trat.includes('fosforo') || trat.includes('fósforo') || trat.includes('p2o5')) {
+      return 'orange';
+    } else if (trat.includes('potasio') || trat.includes('k2o')) {
+      return 'green';
+    } else if (trat.includes('foliar')) {
+      return 'cyan';
+    } else if (trat.includes('suelo')) {
+      return 'brown';
     }
-  };
-
-  const getPrioridadColor = (prioridad: string) => {
-    const pri = prioridad?.toUpperCase() || '';
-    switch (pri) {
-      case 'ALTA':
-        return 'red';
-      case 'MEDIA':
-        return 'orange';
-      case 'BAJA':
-        return 'blue';
-      default:
-        return 'gray';
-    }
+    return 'gray';
   };
 
   const formatearFecha = (fecha?: string) => {
@@ -88,8 +79,30 @@ export function PlanTratamientoListAdmin() {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
+
+  // Ref Paginacion Global
+    const lista = Array.isArray(listaPlanes) ? listaPlanes : [];
+    const {
+      currentPage,
+      totalPages,
+      paginatedData,
+      setPage,
+      setItemsPerPage,
+      itemsPerPage,
+      startIndex,
+      endIndex,
+      totalItems,
+      searchTerm,
+      setSearchTerm,
+    } = usePagination({
+      data: lista,
+      itemsPerPage: 5,
+      searchFields: ['planTratamiento', 'fechaCreacion'],
+    });
 
   if (loading && (!listaPlanes || listaPlanes.length === 0)) {
     return (
@@ -102,61 +115,51 @@ export function PlanTratamientoListAdmin() {
     );
   }
 
-  const rows = listaPlanes?.map((plan: PlanTratamiento) => (
+  const rows = (paginatedData as unknown as PlanTratamientoNuevo[])?.map((plan: PlanTratamientoNuevo) => (
     <Table.Tr key={plan.id}>     
       
       <Table.Td>
-        <Text size="sm">{plan.nombreTratamiento || 'N/A'}</Text>
+        <Group gap="xs">
+          <IconPlant size={16} />
+          <Text size="sm">{plan.planTratamiento.tratamiento || 'N/A'}</Text>
+        </Group>
       </Table.Td>
       
       <Table.Td>
         <Badge
-          color={getEstadoColor(plan.estado)}
-          variant="dot"
-        >
-          {plan.estado}
-        </Badge>
-      </Table.Td>
-      
-      <Table.Td>
-        <Badge
-          color={getPrioridadColor(plan.prioridad)}
+          color={getTipoColor(plan.planTratamiento.tratamiento)}
           variant="light"
         >
-          {plan.prioridad}
+          {plan.planTratamiento.planAplicacion.tipo || 'N/A'}
         </Badge>
       </Table.Td>
       
       <Table.Td>
-        {plan.costoEstimado ? (
-          <Group gap="xs">
-            <IconCurrencyDollar size={16} />
-            <NumberFormatter 
-              value={plan.costoEstimado} 
-              thousandSeparator="," 
-              decimalScale={2}
-              prefix="$"
-            />
-          </Group>
-        ) : (
-          <Text size="sm" c="dimmed">-</Text>
-        )}
+        <Group gap="xs">
+          <IconCurrencyDollar size={16} />
+          <Text size="sm">
+            {plan.planTratamiento.planAplicacion.volumenPorHectareaEstimado_L} L/ha
+          </Text>
+        </Group>
       </Table.Td>
       
       <Table.Td>
-        {plan.duracionDias ? (
-          <Text size="sm">{plan.duracionDias} días</Text>
-        ) : (
-          <Text size="sm" c="dimmed">-</Text>
-        )}
+        <Group gap="xs">
+          <IconCalendar size={16} />
+          <Text size="sm">{plan.planTratamiento.planAplicacion.duracionTratamientoDias} días</Text>
+        </Group>
       </Table.Td>
       
       <Table.Td>
-        <Text size="sm">{formatearFecha(plan.fechaInicioSugerida)}</Text>
+        <Text size="sm">{plan.planTratamiento.planAplicacion.numeroAplicaciones} aplicaciones</Text>
       </Table.Td>
       
       <Table.Td>
         <Text size="sm">{formatearFecha(plan.fechaCreacion)}</Text>
+      </Table.Td>
+      
+      <Table.Td>
+        <Text size="sm">{formatearFecha(plan.fechaActualizacion)}</Text>
       </Table.Td>
 
       <Table.Td>
@@ -168,7 +171,7 @@ export function PlanTratamientoListAdmin() {
             leftSection={<IconEye size={16} />}
             onClick={() => handleVerDetalle(plan)}
           >
-            Ver Detalle
+            Detalles
           </Button>
         </Tooltip>
       </Table.Td>
@@ -215,25 +218,44 @@ export function PlanTratamientoListAdmin() {
               </Center>
             </Paper>
           ) : (
-            <Paper shadow="xs" radius="md" withBorder>
-              <Table.ScrollContainer minWidth={900}>
+            <Paper>
+              
                 <Table verticalSpacing="md" highlightOnHover>
                   <Table.Thead>
                     <Table.Tr>
-                      
                       <Table.Th>Tratamiento</Table.Th>
-                      <Table.Th>Estado</Table.Th>
-                      <Table.Th>Prioridad</Table.Th>
-                      <Table.Th>Costo Estimado</Table.Th>
+                      <Table.Th>Tipo</Table.Th>
+                      <Table.Th>Volumen (L/ha)</Table.Th>
                       <Table.Th>Duración</Table.Th>
-                      <Table.Th>Inicio Sugerido</Table.Th>
+                      <Table.Th>Aplicaciones</Table.Th>
                       <Table.Th>Fecha Creación</Table.Th>
+                      <Table.Th>Última Actualización</Table.Th>
                       <Table.Th>Acciones</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>{rows}</Table.Tbody>
                 </Table>
-              </Table.ScrollContainer>
+              
+
+
+              {/* Ref paginacion Global - Controles de paginación */}
+                      {lista.length > 0 && (
+                        <PaginationControls
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={setPage}
+                          itemsPerPage={itemsPerPage}
+                          onItemsPerPageChange={(value) =>
+                            value && setItemsPerPage(Number(value))
+                          }
+                          startIndex={startIndex}
+                          endIndex={endIndex}
+                          totalItems={totalItems}
+                          searchTerm={searchTerm}
+                          onSearchChange={setSearchTerm}
+                          searchPlaceholder="Buscar por deficiencia, confianza o nutriente..."
+                        />
+                      )}
             </Paper>
           )}
         </Stack>
@@ -243,145 +265,202 @@ export function PlanTratamientoListAdmin() {
       <Modal
         opened={modalDetalle}
         onClose={() => setModalDetalle(false)}
-        title={"Detalle del Plan de Tratamiento"}
+        title="Detalle del Plan de Tratamiento"
         size="xl"
       >
         {planSeleccionado && (
           <Stack gap="md">
             <Group justify="space-between">
               <Group gap="xs">
-                <Badge color={getEstadoColor(planSeleccionado.estado)}>
-                  {planSeleccionado.estado}
+                <Badge 
+                  color={getTipoColor(planSeleccionado.planTratamiento.tratamiento)}
+                  variant="filled"
+                  size="lg"
+                >
+                  {planSeleccionado.planTratamiento.tratamiento}
                 </Badge>
-                <Badge color={getPrioridadColor(planSeleccionado.prioridad)}>
-                  {planSeleccionado.prioridad}
+                <Badge variant="light" size="sm">
+                  ID: {planSeleccionado.id}
+                </Badge>
+                <Badge variant="outline" size="sm">
+                  Análisis: {planSeleccionado.analisisId}
                 </Badge>
               </Group>
             </Group>
 
             <Divider />
 
+            {/* Información General */}
+            <Paper p="md" withBorder>
+              <Stack gap="md">
+                <Text size="sm" fw={500} c="blue">Información del Tratamiento</Text>
+                <Text size="sm">{planSeleccionado.planTratamiento.tratamiento}</Text>
+              </Stack>
+            </Paper>
+
+            {/* Plan de Aplicación */}
+            <Paper p="md" withBorder>
+              <Stack gap="md">
+                <Group gap="xs">
+                  <IconSun size={20} />
+                  <Text size="sm" fw={500} c="orange">Plan de Aplicación</Text>
+                </Group>
+                
+                <Group grow>
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Tipo</Text>
+                    <Text size="sm" fw={500}>{planSeleccionado.planTratamiento.planAplicacion.tipo}</Text>
+                  </Stack>
+                  
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Dosis por Litro</Text>
+                    <Text size="sm" fw={500}>{planSeleccionado.planTratamiento.planAplicacion.dosisPorLitro}</Text>
+                  </Stack>
+                  
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Dosis por Hectárea</Text>
+                    <Text size="sm" fw={500}>{planSeleccionado.planTratamiento.planAplicacion.dosisPorHectareaEstimada}</Text>
+                  </Stack>
+                </Group>
+
+                <Group grow>
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Volumen Estimado</Text>
+                    <Text size="sm" fw={500}>
+                      {planSeleccionado.planTratamiento.planAplicacion.volumenPorHectareaEstimado_L} L/ha
+                    </Text>
+                  </Stack>
+                  
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Frecuencia</Text>
+                    <Text size="sm" fw={500}>
+                      Cada {planSeleccionado.planTratamiento.planAplicacion.frecuenciaDias} días
+                    </Text>
+                  </Stack>
+                  
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Total Aplicaciones</Text>
+                    <Text size="sm" fw={500}>
+                      {planSeleccionado.planTratamiento.planAplicacion.numeroAplicaciones}
+                    </Text>
+                  </Stack>
+                </Group>
+
+                <Group grow>
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Duración Total</Text>
+                    <Text size="sm" fw={500}>
+                      {planSeleccionado.planTratamiento.planAplicacion.duracionTratamientoDias} días
+                    </Text>
+                  </Stack>
+                  
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Hora Recomendada</Text>
+                    <Text size="sm" fw={500}>
+                      {planSeleccionado.planTratamiento.planAplicacion.horaRecomendada}
+                    </Text>
+                  </Stack>
+                </Group>
+
+                <Stack gap="xs">
+                  <Text size="xs" c="dimmed">Precauciones</Text>
+                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                    {planSeleccionado.planTratamiento.planAplicacion.precauciones}
+                  </Text>
+                </Stack>
+              </Stack>
+            </Paper>
+
+            {/* Tratamiento de Suelo */}
+            <Paper p="md" withBorder>
+              <Stack gap="md">
+                <Group gap="xs">
+                  
+                  <Text size="sm" fw={500} c="brown">Tratamiento de Suelo</Text>
+                </Group>
+                
+                <Stack gap="xs">
+                  <Text size="xs" c="dimmed">Acción</Text>
+                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                    {planSeleccionado.planTratamiento.tratamientoSuelo.accion}
+                  </Text>
+                </Stack>
+                
+                <Group grow>
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Producto Sugerido</Text>
+                    <Text size="sm" fw={500}>
+                      {planSeleccionado.planTratamiento.tratamientoSuelo.productoSugerido}
+                    </Text>
+                  </Stack>
+                  
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Dosis Orientativa</Text>
+                    <Text size="sm" fw={500}>
+                      {planSeleccionado.planTratamiento.tratamientoSuelo.dosisOrientativa}
+                    </Text>
+                  </Stack>
+                </Group>
+                
+                <Stack gap="xs">
+                  <Text size="xs" c="dimmed">Método de Aplicación</Text>
+                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                    {planSeleccionado.planTratamiento.tratamientoSuelo.metodo}
+                  </Text>
+                </Stack>
+              </Stack>
+            </Paper>
+
+            {/* Seguimiento */}
+            <Paper p="md" withBorder>
+              <Stack gap="md">
+                <Text size="sm" fw={500} c="green">Seguimiento y Monitoreo</Text>
+                
+                <Stack gap="xs">
+                  <Text size="xs" c="dimmed">Observable de Mejora</Text>
+                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                    {planSeleccionado.planTratamiento.seguimiento.observableMejora}
+                  </Text>
+                </Stack>
+                
+                <Stack gap="xs">
+                  <Text size="xs" c="dimmed">Notas Técnicas</Text>
+                  <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                    {planSeleccionado.planTratamiento.seguimiento.notasTecnico}
+                  </Text>
+                </Stack>
+                
+                {planSeleccionado.planTratamiento.seguimiento.imagenesSeguimiento.length > 0 && (
+                  <Stack gap="xs">
+                    <Text size="xs" c="dimmed">Imágenes de Seguimiento</Text>
+                    <Group gap="xs">
+                      {planSeleccionado.planTratamiento.seguimiento.imagenesSeguimiento.map((img, index) => (
+                        <Badge key={index} variant="outline" size="sm">
+                          Imagen {index + 1}
+                        </Badge>
+                      ))}
+                    </Group>
+                  </Stack>
+                )}
+              </Stack>
+            </Paper>
+
+            {/* Fechas */}
             <Group grow>
               <Paper p="md" withBorder>
                 <Stack gap="xs">
-                  <Group gap="xs">
-                    <IconCurrencyDollar size={16} />
-                    <Text size="sm" c="dimmed">Costo Estimado</Text>
-                  </Group>
-                  <Text fw={500}>
-                    <NumberFormatter 
-                      value={planSeleccionado.costoEstimado || 0} 
-                      thousandSeparator="," 
-                      decimalScale={2}
-                      prefix="$"
-                    />
-                  </Text>
+                  <Text size="xs" c="dimmed">Fecha de Creación</Text>
+                  <Text size="sm" fw={500}>{formatearFecha(planSeleccionado.fechaCreacion)}</Text>
                 </Stack>
               </Paper>
-
+              
               <Paper p="md" withBorder>
                 <Stack gap="xs">
-                  <Group gap="xs">
-                    <IconCalendar size={16} />
-                    <Text size="sm" c="dimmed">Duración</Text>
-                  </Group>
-                  <Text fw={500}>{planSeleccionado.duracionDias || 0} días</Text>
+                  <Text size="xs" c="dimmed">Última Actualización</Text>
+                  <Text size="sm" fw={500}>{formatearFecha(planSeleccionado.fechaActualizacion)}</Text>
                 </Stack>
               </Paper>
             </Group>
-
-            <Paper p="md" withBorder>
-              <Stack gap="xs">
-                <Text size="sm" fw={500}>Fecha Inicio Sugerida</Text>
-                <Text>{formatearFecha(planSeleccionado.fechaInicioSugerida)}</Text>
-              </Stack>
-            </Paper>
-
-            <Paper p="md" withBorder>
-              <Stack gap="xs">
-                <Text size="sm" fw={500}>Instrucciones Detalladas</Text>
-                <Text 
-                  size="sm" 
-                  style={{ whiteSpace: 'pre-wrap' }}
-                >
-                  {planSeleccionado.instruccionesDetalladas || 'No hay instrucciones disponibles'}
-                </Text>
-              </Stack>
-            </Paper>
-
-            {planSeleccionado.actividadesSeguimiento && 
-             planSeleccionado.actividadesSeguimiento.length > 0 && (
-              <Paper p="md" withBorder>
-                <Stack gap="md">
-                  <Group justify="space-between">
-                    <Text size="sm" fw={500}>Actividades de Seguimiento</Text>
-                    <Badge variant="light" size="sm">
-                      {planSeleccionado.actividadesSeguimiento.length} actividades
-                    </Badge>
-                  </Group>
-                  
-                  <Stack gap="sm">
-                    {planSeleccionado.actividadesSeguimiento.map((actividad, index) => (
-                      <Paper key={actividad.id} p="sm" withBorder bg="gray.0">
-                        <Stack gap="xs">
-                          <Group justify="space-between">
-                            <Group gap="xs">
-                              <Text size="sm" fw={500}>Actividad #{index + 1}</Text>
-                              <Badge 
-                                size="sm"
-                                color={actividad.estado === EstadoActividad.PENDIENTE ? 'yellow' : 
-                                       actividad.estado === EstadoActividad.EJECUTADA ? 'green' : 'gray'}
-                                variant="dot"
-                              >
-                                {actividad.estado}
-                              </Badge>
-                            </Group>
-                            <Group gap="xs">
-                              <IconCalendar size={14} />
-                              <Text size="xs" c="dimmed">
-                                {formatearFecha(actividad.fechaProgramada)}
-                              </Text>
-                            </Group>
-                          </Group>
-                          
-                          <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-                            {actividad.descripcion}
-                          </Text>
-                          
-                          {actividad.responsable && (
-                            <Text size="xs" c="dimmed">
-                              Responsable: {actividad.responsable}
-                            </Text>
-                          )}
-                          
-                          {actividad.fechaEjecutada && (
-                            <Group gap="xs">
-                              <Text size="xs" c="dimmed">
-                                Ejecutada: {formatearFecha(actividad.fechaEjecutada)}
-                              </Text>
-                            </Group>
-                          )}
-                          
-                          {actividad.costoReal && (
-                            <Group gap="xs">
-                              <IconCurrencyDollar size={14} />
-                              <Text size="xs" fw={500}>
-                                <NumberFormatter 
-                                  value={actividad.costoReal} 
-                                  thousandSeparator="," 
-                                  decimalScale={2}
-                                  prefix="$"
-                                />
-                              </Text>
-                            </Group>
-                          )}
-                        </Stack>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Stack>
-              </Paper>
-            )}
           </Stack>
         )}
       </Modal>

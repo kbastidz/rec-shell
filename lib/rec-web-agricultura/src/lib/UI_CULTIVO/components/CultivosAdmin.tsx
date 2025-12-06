@@ -34,7 +34,12 @@ import {
 } from '@tabler/icons-react';
 import { useCultivos } from '../hooks/useAgricultura';
 import { CultivoFormData } from '../../types/dto';
-import { ActionButtons, DeleteConfirmModal } from '@rec-shell/rec-web-shared';
+import {
+  ActionButtons,
+  DeleteConfirmModal,
+  PaginationControls,
+  usePagination,
+} from '@rec-shell/rec-web-shared';
 
 export const CultivosAdmin = () => {
   const [opened, { open, close }] = useDisclosure(false);
@@ -175,30 +180,34 @@ export const CultivosAdmin = () => {
     return <Badge color={colores[estado] || 'gray'}>{estado}</Badge>;
   };
 
+  // Ref Paginacion Global
+  const lista = Array.isArray(cultivosFiltrados) ? cultivosFiltrados : [];
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    setPage,
+    setItemsPerPage,
+    itemsPerPage,
+    startIndex,
+    endIndex,
+    totalItems,
+    searchTerm,
+    setSearchTerm,
+  } = usePagination({
+    data: lista,
+    itemsPerPage: 5,
+    searchFields: [
+      'nombreCultivo',
+      'variedadCacao',
+      'areaHectareas',
+      'ubicacionNombre',
+    ],
+  });
+
   return (
     <Box p="md">
       <Stack gap="lg">
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <Title order={1}>
-              <Group>
-                <IconLeaf size={32} />
-                Gestión de Cultivos
-              </Group>
-            </Title>
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Card withBorder>
-              <Text size="sm" c="dimmed">
-                Área Total Activa
-              </Text>
-              <Text size="xl" fw={700}>
-                {areaTotalActiva ? areaTotalActiva.toFixed(2) : '0.00'} ha
-              </Text>
-            </Card>
-          </Grid.Col>
-        </Grid>
-
         {error && (
           <Alert
             icon={<IconAlertCircle size={16} />}
@@ -211,36 +220,37 @@ export const CultivosAdmin = () => {
           </Alert>
         )}
 
-        <Paper p="md" withBorder>
-          <Flex
-            justify="space-between"
-            align="center"
-            direction={{ base: 'column', sm: 'row' }}
-            gap="md"
-          >
-            <TextInput
-              placeholder="Buscar por nombre, variedad o ubicación..."
-              leftSection={<IconSearch size={16} />}
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.currentTarget.value)}
-              style={{ flex: 1, minWidth: 200 }}
-            />
-            <ActionButtons.Modal onClick={handleNuevo} loading={loading} />
-          </Flex>
-        </Paper>
+        <Flex justify="space-between" align="center" mb="lg">
+          <Title order={2}>Gestión de Cultivos</Title>
+          <ActionButtons.Modal onClick={handleNuevo} loading={loading} />
+        </Flex>
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card withBorder>
+              <Text size="sm" c="dimmed">
+                Área Total Activa
+              </Text>
+              <Text size="xl" fw={700}>
+                {areaTotalActiva ? areaTotalActiva.toFixed(2) : '0.00'} ha
+              </Text>
+            </Card>
+          </Grid.Col>
+        </Grid>
 
-        <Paper withBorder>
+        
           {loading ? (
             <Flex justify="center" align="center" py="xl">
               <Loader size="lg" />
             </Flex>
           ) : cultivosFiltrados.length === 0 ? (
             <Text ta="center" c="dimmed" py="xl">
-              No se encontraron registros
+              {searchTerm
+                ? 'No se encontraron resultados para tu búsqueda'
+                : 'No se encontraron registros'}
             </Text>
           ) : (
-            <Table.ScrollContainer minWidth={800}>
-              <Table striped highlightOnHover>
+             <Card shadow="sm" p="lg">
+               <Table striped highlightOnHover>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Nombre</Table.Th>
@@ -253,7 +263,7 @@ export const CultivosAdmin = () => {
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {cultivosFiltrados.map((cultivo) => (
+                  {paginatedData.map((cultivo) => (
                     <Table.Tr key={cultivo.id}>
                       <Table.Td>
                         <Text fw={500}>{cultivo.nombreCultivo}</Text>
@@ -302,9 +312,28 @@ export const CultivosAdmin = () => {
                   ))}
                 </Table.Tbody>
               </Table>
-            </Table.ScrollContainer>
+            </Card>
           )}
-        </Paper>
+
+          {/* Ref paginacion Global - Controles de paginación */}
+          {lista.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) =>
+                value && setItemsPerPage(Number(value))
+              }
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Buscar por código, nombre o nutriente..."
+            />
+          )}
+        
       </Stack>
 
       {/* Modal de Formulario */}
@@ -320,7 +349,7 @@ export const CultivosAdmin = () => {
             <Text size="sm" fw={600} mb="sm" c="dimmed">
               INFORMACIÓN BÁSICA
             </Text>
-            
+
             <Stack gap="sm">
               <Grid>
                 <Grid.Col span={{ base: 12, sm: 6 }}>

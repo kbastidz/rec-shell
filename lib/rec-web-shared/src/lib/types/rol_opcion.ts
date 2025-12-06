@@ -8,6 +8,5 @@ export interface OpcionDTO {
 
 export function ST_GET_ROLE_USER_ID(): string {
   const userStr = window.sessionStorage.getItem('user');
-  console.log('userStr', userStr);
   return userStr ? JSON.parse(userStr).roles?.[0] ?? '' : '';
 }

@@ -45,7 +45,9 @@ import {
   ActionButtons,
   DeleteConfirmModal,
   NOTIFICATION_MESSAGES,
+  PaginationControls,
   useNotifications,
+  usePagination,
 } from '@rec-shell/rec-web-shared';
 import { temporadas, tiposMedida } from '../../utils/utils';
 
@@ -186,6 +188,26 @@ export const MedidaAdmin = () => {
     }
   };
 
+  // Ref Paginacion Global
+  const lista = Array.isArray(medidas) ? medidas : [];
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    setPage,
+    setItemsPerPage,
+    itemsPerPage,
+    startIndex,
+    endIndex,
+    totalItems,
+    searchTerm,
+    setSearchTerm
+  } = usePagination({
+    data: lista,
+    itemsPerPage: 5,
+    searchFields: ['titulo', 'tipoMedida', 'costoEstimado'] 
+  });
+
   if (loading && medidas.length === 0) {
     return (
       <Container size="xl" py="xl">
@@ -225,7 +247,7 @@ export const MedidaAdmin = () => {
                 </Table.Td>
               </Table.Tr>
             ) : (
-              medidas.map((medida) => (
+              paginatedData.map((medida) => (
                 <Table.Tr key={medida.id}>
                   <Table.Td>
                     <Text fw={500}>{medida.titulo}</Text>
@@ -279,6 +301,23 @@ export const MedidaAdmin = () => {
             )}
           </Table.Tbody>
         </Table>
+
+      {/* Ref paginacion Global - Controles de paginación */}
+      {lista.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={(value) => value && setItemsPerPage(Number(value))}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Buscar por código, nombre o nutriente..."
+        />
+      )}
       </Paper>
 
       {/* Modal para Crear/Editar */}

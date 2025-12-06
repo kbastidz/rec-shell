@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   Title,
-  Button,
   Table,
   Modal,
   TextInput,
@@ -18,6 +17,7 @@ import {
   Box,
   Divider,
   Badge,
+  Select,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
@@ -34,7 +34,12 @@ import {
 } from '@tabler/icons-react';
 import { useTratamientos } from '../hooks/useAgricultura';
 import { Tratamiento } from '../../types/model';
-import { ActionButtons, DeleteConfirmModal } from '@rec-shell/rec-web-shared';
+import {
+  ActionButtons,
+  DeleteConfirmModal,
+  PaginationControls,
+  usePagination,
+} from '@rec-shell/rec-web-shared';
 
 export function TratamientosAdmin() {
   const { tratamientos, loading, error, CREAR, ACTUALIZAR, ELIMINAR, BUSCAR } =
@@ -113,6 +118,31 @@ export function TratamientosAdmin() {
     }
   };
 
+  // Ref Paginacion Global
+  const lista = Array.isArray(tratamientos) ? tratamientos : [];
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    setPage,
+    setItemsPerPage,
+    itemsPerPage,
+    startIndex,
+    endIndex,
+    totalItems,
+    searchTerm,
+    setSearchTerm,
+  } = usePagination({
+    data: lista,
+    itemsPerPage: 5,
+    searchFields: [
+      'nombreTratamiento',
+      'tipoTratamiento',
+      'dosisRecomendada',
+      'costoEstimadoPorHectarea',
+    ],
+  });
+
   return (
     <Box p="md">
       <Paper shadow="sm" p="md" radius="md" withBorder>
@@ -130,7 +160,7 @@ export function TratamientosAdmin() {
         <div style={{ position: 'relative' }}>
           <LoadingOverlay visible={loading} />
 
-          <Table striped highlightOnHover withTableBorder withColumnBorders>
+          <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Nombre</Table.Th>
@@ -144,7 +174,7 @@ export function TratamientosAdmin() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {tratamientos.map((tratamiento) => (
+              {paginatedData.map((tratamiento) => (
                 <Table.Tr key={tratamiento.id}>
                   <Table.Td>{tratamiento.nombreTratamiento}</Table.Td>
                   <Table.Td>{tratamiento.tipoTratamiento || '-'}</Table.Td>
@@ -154,7 +184,7 @@ export function TratamientosAdmin() {
                     {tratamiento.tiempoEfectividadDias || '-'}
                   </Table.Td>
                   <Table.Td>
-                    $
+                    ${' '}
                     {tratamiento.costoEstimadoPorHectarea?.toFixed(2) || '0.00'}
                   </Table.Td>
                   <Table.Td>
@@ -187,8 +217,29 @@ export function TratamientosAdmin() {
 
           {tratamientos.length === 0 && !loading && (
             <Text ta="center" py="xl" c="dimmed">
-              No se encontraron registros
+              {searchTerm
+                ? 'No se encontraron resultados para tu búsqueda'
+                : 'No se encontraron registros'}
             </Text>
+          )}
+
+          {/* Ref paginacion Global - Controles de paginación */}
+          {lista.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) =>
+                value && setItemsPerPage(Number(value))
+              }
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Buscar por código, nombre o nutriente..."
+            />
           )}
         </div>
       </Paper>
@@ -259,10 +310,17 @@ export function TratamientosAdmin() {
                 {...form.getInputProps('nombreTratamiento')}
               />
 
-              <TextInput
-                label="Tipo de Tratamiento"
-                placeholder="Ej: Fertilizante, Fungicida"
+              <Select
+                label="Tipo de Deficiencia"
+                placeholder="Selecciona un tipo"
                 leftSection={<IconFlask size={18} stroke={1.5} />}
+                data={[
+                  { value: 'Potasio', label: 'Potasio' },
+                  { value: 'Nitrogeno', label: 'Nitrógeno' },
+                  { value: 'Fosforo', label: 'Fósforo' },
+                ]}
+                searchable
+                clearable
                 styles={{
                   input: {
                     borderRadius: '8px',

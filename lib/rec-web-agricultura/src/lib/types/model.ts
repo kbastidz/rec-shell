@@ -213,3 +213,21 @@ export interface CultivoFilters extends Partial<Cultivo> {
   estadoCultivo?: EstadoCultivo;
   variedadCacao?: string;
 }
+
+export interface AnalisisImagenMCHL {
+    id?: number;
+    success: boolean;
+    data: {
+        deficiencia: string;
+        confianza: number;
+        probabilidades: {
+            Potasio: number;
+            Nitrogeno: number;
+            Fosforo: number;
+        };
+    };
+    archivo: string;
+    imagenBase64: string;
+    fecha: string;
+    recomendaciones: Record<string, any>;
+}

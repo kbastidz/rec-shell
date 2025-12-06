@@ -1,6 +1,6 @@
 import { InvokeApi } from '@rec-shell/rec-web-shared';
 import { AnalisisImagenDTO, ResultadoDetalle, ResultadoDiagnosticoDTO } from '../../../types/dto';
-import { AnalisisImagen, ResultadoDiagnostico } from '../../../types/model';
+import { AnalisisImagen, AnalisisImagenMCHL, ResultadoDiagnostico } from '../../../types/model';
 
 const API_URL_ANALISIS = `/agricultura/analisis-imagenes`;
 

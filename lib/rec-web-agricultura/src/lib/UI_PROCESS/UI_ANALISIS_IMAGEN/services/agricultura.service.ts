@@ -1,20 +1,19 @@
 import { InvokeApi } from '@rec-shell/rec-web-shared';
-import { GenerarPlanRequest, PlanGeneradoResponse } from '../../../types/dto';
+import { GenerarPlanAnalisisRequest, PlanGeneradoResponse, PlanTratamientoNuevo } from '../../../types/dto';
 import { PlanTratamiento } from '../../../types/model';
 
 const API_URL_ANALISIS = `/agricultura/planes-tratamiento`;
+const API_URL_ANALISIS_V1 = `/agricultura/planes-tratamiento-analisis`;
 
 export class ConexionService extends InvokeApi {
 
-  async GET(): Promise<PlanTratamiento[]> {
-    const response = await this.get<PlanTratamiento[]>(API_URL_ANALISIS);
-    console.log('response', response);
+  async GET(): Promise<PlanTratamientoNuevo[]> {
+    const response = await this.get<PlanTratamientoNuevo[]>(API_URL_ANALISIS_V1);
     return response;
   }
 
-   async POST(request: GenerarPlanRequest): Promise<PlanGeneradoResponse> {
-    const response = await this.post<PlanGeneradoResponse>(`${API_URL_ANALISIS}/generar`, request);
-    console.log('response', response);
+   async POST(request: GenerarPlanAnalisisRequest): Promise<PlanGeneradoResponse> {
+    const response = await this.post<PlanGeneradoResponse>(`${API_URL_ANALISIS_V1}/generar-analisis`, request);
     return response;
   }
   

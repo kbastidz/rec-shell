@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 import { GET_ERROR } from '../../../utils/utils';
-import { GenerarPlanRequest, PlanGeneradoResponse } from '../../../types/dto';
+import { GenerarPlanAnalisisRequest, GenerarPlanRequest, PlanGeneradoResponse, PlanTratamientoNuevo } from '../../../types/dto';
 import { service } from '../services/agricultura.service';
 import { PlanTratamiento } from '../../../types/model';
 
 export function usePlanesTratamiento() {
   const [loading, setLoading] = useState(false);
   const [planGenerado, setPlanGenerado] = useState<PlanGeneradoResponse | null>(null);
-  const [listaPlanes, setListaPlanes] = useState<PlanTratamiento[]>([]);
+  const [listaPlanes, setListaPlanes] = useState<PlanTratamientoNuevo[]>([]);
   const notifications = useNotifications();
 
   const obtenerTodosPlanes = async (): Promise<void> => {
@@ -28,15 +28,10 @@ export function usePlanesTratamiento() {
     }
   };
 
-  const generarPlan = async (cultivoId: number, analisisId: number): Promise<PlanGeneradoResponse | null> => {
+    const generarPlan = async (request: GenerarPlanAnalisisRequest): Promise<PlanGeneradoResponse | null> => {
     setLoading(true);
 
     try {
-      const request: GenerarPlanRequest = {
-        cultivoId,
-        id: analisisId
-      };
-
       const response = await service.POST(request);
       setPlanGenerado(response);
       
@@ -45,7 +40,7 @@ export function usePlanesTratamiento() {
         'El plan de tratamiento se ha generado exitosamente'
       );
 
-      // Refrescar lista después de generar
+      // Refreschar lista después de generar
       await obtenerTodosPlanes();
 
       return response;

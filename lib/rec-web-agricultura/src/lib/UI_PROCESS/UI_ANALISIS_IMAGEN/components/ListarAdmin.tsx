@@ -1,235 +1,287 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Container,
   Title,
+  Table,
   Text,
   Badge,
   Group,
   Stack,
   Loader,
+  Alert,
   Center,
-  Paper,
-  ActionIcon,
-  Table,
-  Avatar,
   Button,
+  ThemeIcon,
+  Box,
   Tooltip,
 } from '@mantine/core';
 import {
-  IconRefresh,
-  IconPlant,
+  IconAlertCircle,
+  IconLeaf,
+  IconCalendar,
   IconFileText,
 } from '@tabler/icons-react';
-import { useGuardarAnalisis } from '../../UI_CARGA_IMAGEN/hook/useAgricultura';
 import { usePlanesTratamiento } from '../hooks/useAgricultura';
+import { AnalisisImagenMCHLDTO, GenerarPlanAnalisisRequest, GenerarPlanRequest, PlanTratamientoResponse } from '../../../types/dto';
+import {
+  ActionButtons,
+  handleModelResponse,
+  PaginationControls,
+  useGemini,
+  usePagination,
+} from '@rec-shell/rec-web-shared';
+import { useAnalisisImagen } from '../../UI_CARGA_IMAGEN/hook/useAgriculturaMchl';
+import { fallbackPlan, generarPromptPlanTratamiento } from '../../../utils/generarPromptPlanTratamiento';
+import { formatDate } from '@rec-shell/rec-web-usuario';
+import { getDeficienciaColor, getConfianzaColor } from '../../../utils/utils';
+
 
 export function ListarAdmin() {
-  const { 
-    loading, 
-    listaAnalisis, 
-    obtenerTodosAnalisis
-  } = useGuardarAnalisis();
-
+  const { loading, error, analisisList, OBTENER } = useAnalisisImagen();
   const {
     loading: loadingPlan,
     generarPlan
   } = usePlanesTratamiento();
 
+  const [planTratamientoGenerado, setPlanTratamientoGenerado] = useState<PlanTratamientoResponse>(fallbackPlan);
+  
+  const analisisActualRef = useRef<AnalisisImagenMCHLDTO | null>(null);
+
+  // ✅ Función helper para guardar el plan
+  const guardarPlanTratamiento = (plan: PlanTratamientoResponse) => {
+    if (analisisActualRef.current) {
+      const request: GenerarPlanAnalisisRequest = {
+        analisisId: analisisActualRef.current.id,
+        planTratamiento: plan,
+      };
+      generarPlan(request);
+      analisisActualRef.current = null;
+    }
+  };
+
+  const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
+    onSuccess: (text: string) =>
+      handleModelResponse<PlanTratamientoResponse>({
+        text,
+        onParsed: (data: PlanTratamientoResponse) => {
+          setPlanTratamientoGenerado(data);
+          guardarPlanTratamiento(data); // ✅ Guardar plan exitoso
+        },
+        onError: (err) => {
+          console.error('❌ Error al parsear plan de tratamiento:', err);          
+          setPlanTratamientoGenerado(fallbackPlan);
+          guardarPlanTratamiento(fallbackPlan); // ✅ Guardar fallback
+        },
+        onFinally: () => {
+          console.log('✨ Finalizó el procesamiento del plan de tratamiento');
+        },
+      }),
+    onError: (err: string) => {
+      console.error('❌ Error de Gemini API:', err);
+      setPlanTratamientoGenerado(fallbackPlan);
+      guardarPlanTratamiento(fallbackPlan); // ✅ Guardar fallback
+    },
+  });
+  
+
   useEffect(() => {
-    obtenerTodosAnalisis();
+    OBTENER();
   }, []);
 
-  const handleRefresh = () => {
-    obtenerTodosAnalisis();
-  };
+  const handleGenerarPlan = async (analisis: AnalisisImagenMCHLDTO) => {
+    try {
+      analisisActualRef.current = analisis; 
+      analisis.imagenBase64 = "";
+      const prompt = generarPromptPlanTratamiento(analisis);
 
-  const handleGenerarPlan = async (analisis: any) => {
-    if (!analisis.cultivoId || !analisis.id) {
-      console.error('Datos incompletos para generar plan');
-      return;
-    }
-
-    await generarPlan(analisis.cultivoId, analisis.id);
-  };
-
-  const getEstadoColor = (estado: string) => {
-    const est = estado?.toUpperCase() || '';
-    switch (est) {
-      case 'COMPLETADO':
-        return 'green';
-      case 'PROCESANDO':
-        return 'blue';
-      case 'FALLIDO':
-        return 'red';
-      case 'PENDIENTE':
-        return 'gray';
-      default:
-        return 'gray';
+      console.log('🚀 Generando plan de tratamiento para:', analisis.archivo);
+      await generateText(prompt);
+      
+      // ❌ NO guardar aquí - el estado aún no se ha actualizado
+      // La llamada a generarPlan ahora está en onParsed del callback de useGemini
+      
+    } catch (error) {
+      console.error('❌ Error al generar plan:', error);
+      analisisActualRef.current = null;
     }
   };
 
-  const formatearFecha = (fecha?: string) => {
-    if (!fecha) return 'Sin fecha';
-    return new Date(fecha).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  // Ref Paginacion Global
+  const lista = Array.isArray(analisisList) ? analisisList : [];
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    setPage,
+    setItemsPerPage,
+    itemsPerPage,
+    startIndex,
+    endIndex,
+    totalItems,
+    searchTerm,
+    setSearchTerm,
+  } = usePagination({
+    data: lista,
+    itemsPerPage: 5,
+    searchFields: ['deficiencia', 'confianza', 'probabilidades'],
+  });
 
-  if (loading && (!listaAnalisis || listaAnalisis.length === 0)) {
+  
+
+  if (loading) {
     return (
-      <Center h="100vh">
-        <Stack align="center" gap="md">
-          <Loader size="xl" />
-          <Text c="dimmed">Cargando análisis...</Text>
-        </Stack>
-      </Center>
+      <Container size="lg" py="xl">
+        <Center h={400}>
+          <Stack align="center" gap="md">
+            <Loader size="xl" />
+            <Text c="dimmed">Cargando análisis...</Text>
+          </Stack>
+        </Center>
+      </Container>
     );
   }
 
-  const rows = listaAnalisis?.map((analisis: any) => {
-    const baseUrl = '';
-    const imagenUrl = analisis.rutaImagenProcesada 
-      ? `${baseUrl}${analisis.rutaImagenProcesada}`
-      : `${baseUrl}${analisis.rutaImagenOriginal}`;
-
-    const diagnosticoPrincipal = analisis.resultadosDiagnostico?.find(
-      (r: any) => r.diagnosticoPrincipal
-    );
-
+  if (error) {
     return (
-      <Table.Tr key={analisis.id}>
-        <Table.Td>
-          <Group gap="sm">
-            <Avatar src={imagenUrl} size="md" radius="sm" />
-            <div>
-              <Text size="sm" fw={500}>
-                {analisis.nombreImagen}
-              </Text>
-              {diagnosticoPrincipal?.deficienciaNutriente && (
-                <Text size="xs" c="dimmed">
-                  {diagnosticoPrincipal.deficienciaNutriente.nombre}
-                </Text>
-              )}
-            </div>
-          </Group>
-        </Table.Td>
-        
-        <Table.Td>
-          <Text size="sm">{analisis.nombreCultivo || 'N/A'}</Text>
-        </Table.Td>
-        
-        <Table.Td>
-          <Badge
-            color={getEstadoColor(analisis.estadoProcesamiento)}
-            variant="dot"
-          >
-            {analisis.estadoProcesamiento}
-          </Badge>
-        </Table.Td>
-        
-        <Table.Td>
-          <Text size="sm">{analisis.condicionesClima || 'N/A'}</Text>
-        </Table.Td>
-        
-        <Table.Td>
-          <Text size="sm">{analisis.notasUsuario || 'N/A'}</Text>
-        </Table.Td>
-        
-        <Table.Td>
-          <Text size="sm">{formatearFecha(analisis.fechaAnalisis)}</Text>
-        </Table.Td>
-        
-        <Table.Td>
-          {analisis.tiempoProcesamintoSegundos ? (
-            <Text size="sm">{analisis.tiempoProcesamintoSegundos}s</Text>
-          ) : (
-            <Text size="sm" c="dimmed">-</Text>
-          )}
-        </Table.Td>
-
-        <Table.Td>
-          <Tooltip label="Generar plan de tratamiento">
-            <Button
-              size="xs"
-              variant="light"
-              color="blue"
-              leftSection={<IconFileText size={16} />}
-              onClick={() => handleGenerarPlan(analisis)}
-              loading={loadingPlan}
-              disabled={analisis.estadoProcesamiento !== 'COMPLETADO'}
-            >
-              Generar Plan
-            </Button>
-          </Tooltip>
-        </Table.Td>
-      </Table.Tr>
+      <Container size="lg" py="xl">
+        <Alert icon={<IconAlertCircle size={20} />} title="Error" color="red">
+          {error}
+        </Alert>
+      </Container>
     );
-  });
+  }
 
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="xl">
-        {/* Header */}
-        <Group justify="space-between">
+    <Box p="md">
+      <Stack gap="lg">
+        <Group justify="space-between" align="center">
           <div>
-            <Title order={1}>Generación de plan de tratamiento</Title>
+            <Title order={2}>Generar planes de Tratamiento</Title>
             <Text c="dimmed" size="sm">
-              Visualiza todos los análisis realizados
+              Análisis de Imágenes
             </Text>
           </div>
-          <ActionIcon
-            size="lg"
-            variant="light"
-            onClick={handleRefresh}
-            loading={loading}
+          <ActionButtons.Refresh onClick={OBTENER} />
+        </Group>
+
+        {analisisList.length === 0 ? (
+          <Alert
+            icon={<IconAlertCircle size={20} />}
+            title="Sin registros"
+            color="blue"
           >
-            <IconRefresh size={20} />
-          </ActionIcon>
-        </Group>
-
-        {/* Contador de resultados */}
-        <Group justify="space-between">
-          <Text size="sm" c="dimmed">
-            {listaAnalisis?.length || 0} {listaAnalisis?.length === 1 ? 'análisis' : 'análisis'}
-          </Text>
-        </Group>
-
-        {/* Tabla de análisis */}
-        {!listaAnalisis || listaAnalisis.length === 0 ? (
-          <Paper shadow="xs" p="xl" radius="md">
-            <Center>
-              <Stack align="center" gap="md">
-                <IconPlant size={48} stroke={1.5} style={{ color: 'gray' }} />
-                <Text c="dimmed">No se encontraron análisis</Text>
-              </Stack>
-            </Center>
-          </Paper>
+            No hay análisis registrados. Realiza tu primer análisis para
+            comenzar.
+          </Alert>
         ) : (
-          <Paper shadow="xs" radius="md" withBorder>
-            <Table.ScrollContainer minWidth={900}>
-              <Table verticalSpacing="md" highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Imagen / Diagnóstico</Table.Th>
-                    <Table.Th>Cultivo</Table.Th>
-                    <Table.Th>Estado</Table.Th>
-                    <Table.Th>Condiciones clima</Table.Th>
-                    <Table.Th>Notas</Table.Th>
-                    <Table.Th>Fecha</Table.Th>
-                    <Table.Th>Procesamiento</Table.Th>
-                    <Table.Th>Acciones</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>{rows}</Table.Tbody>
-              </Table>
-            </Table.ScrollContainer>
-          </Paper>
+          <Table striped highlightOnHover withTableBorder withColumnBorders>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Archivo</Table.Th>
+                <Table.Th>Deficiencia</Table.Th>
+                <Table.Th>Confianza</Table.Th>
+                <Table.Th>Probabilidades</Table.Th>
+                <Table.Th>Fecha</Table.Th>
+                <Table.Th>Acciones</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {paginatedData.map((analisis) => (
+                <Table.Tr key={analisis.id}>
+                  <Table.Td>
+                    <Text size="sm" lineClamp={2} style={{ maxWidth: 200 }}>
+                      {analisis.archivo}
+                    </Text>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <Badge
+                      color={getDeficienciaColor(analisis.deficiencia)}
+                      variant="filled"
+                      leftSection={<IconLeaf size={14} />}
+                    >
+                      {analisis.deficiencia}
+                    </Badge>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <Badge
+                      color={getConfianzaColor(analisis.confianza)}
+                      variant="light"
+                      size="lg"
+                    >
+                      {analisis.confianza.toFixed(1)}%
+                    </Badge>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <Stack gap={2}>
+                      {Object.entries(analisis.probabilidades).map(
+                        ([nutriente, valor]) => (
+                          <Group
+                            key={nutriente}
+                            justify="space-between"
+                            gap="xs"
+                          >
+                            <Text size="xs">{nutriente}:</Text>
+                            <Text size="xs" fw={500}>
+                              {valor.toFixed(1)}%
+                            </Text>
+                          </Group>
+                        )
+                      )}
+                    </Stack>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <Group gap="xs">
+                      <ThemeIcon size="sm" variant="light" color="gray">
+                        <IconCalendar size={14} />
+                      </ThemeIcon>
+                      <Text size="xs">{formatDate(analisis.fecha)}</Text>
+                    </Group>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <Group gap="xs">
+                      <Tooltip label="Generar plan de tratamiento">
+                        <Button
+                          size="xs"
+                          variant="light"
+                          color="green"
+                          leftSection={<IconFileText size={16} />}
+                          onClick={() => handleGenerarPlan(analisis)}
+                          loading={loadingGemini}
+                          disabled={loadingGemini}
+                        >
+                          Plan
+                        </Button>
+                      </Tooltip>
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        )}
+        {lista.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) =>
+              value && setItemsPerPage(Number(value))
+            }
+            startIndex={startIndex}
+            endIndex={endIndex}
+            totalItems={totalItems}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Buscar por deficiencia, confianza o nutriente..."
+          />
         )}
       </Stack>
-    </Container>
+    </Box>
   );
 }

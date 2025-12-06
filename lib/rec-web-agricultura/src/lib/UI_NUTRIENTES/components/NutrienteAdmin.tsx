@@ -81,7 +81,7 @@ export const NutrienteAdmin = () => {
   } = usePagination({
     data: lista,
     itemsPerPage: 5,
-    searchFields: ['codigo', 'nombre', 'nutrienteDeficiente'] // Campos específicos para buscar
+    searchFields: ['codigo', 'nombre', 'nutrienteDeficiente'] 
   });
 
   const limpiarFormulario = () => {
@@ -150,6 +150,7 @@ export const NutrienteAdmin = () => {
 
   const cambiarEstado = async (deficiencia: DeficienciaNutriente) => {
     let resultado;
+    
     if (deficiencia.activo) {
       resultado = await desactivar(deficiencia.id.toString());
     } else {
@@ -157,9 +158,17 @@ export const NutrienteAdmin = () => {
     }
     
     if (resultado) {
-      notifications.success(NOTIFICATION_MESSAGES.GENERAL.STATE.message, `Registro ${deficiencia.activo ? 'desactivado' : 'activado'} correctamente`);
+      await BUSCAR();
+      
+      notifications.success(
+        NOTIFICATION_MESSAGES.GENERAL.STATE.message, 
+        `Registro ${deficiencia.activo ? 'desactivado' : 'activado'} correctamente`
+      );
     } else {
-      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, error || 'No se pudo cambiar el estado');
+      notifications.error(
+        NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 
+        error || 'No se pudo cambiar el estado'
+      );
     }
   };
 
@@ -168,8 +177,6 @@ export const NutrienteAdmin = () => {
     setModalDetalle(true);
   };
 
-  
-  //const rows = lista.map((deficiencia) => (
   const rows = paginatedData.map((deficiencia) => (
     <Table.Tr key={deficiencia.id}>
       <Table.Td>{deficiencia.codigo}</Table.Td>
@@ -222,7 +229,6 @@ export const NutrienteAdmin = () => {
     <Box p="md">
       <Flex justify="space-between" align="center" mb="lg">
         <Title order={2}>Gestión de Deficiencias de Nutrientes</Title>
-        
         <ActionButtons.Modal 
           onClick={() => abrirModal()}               
         />

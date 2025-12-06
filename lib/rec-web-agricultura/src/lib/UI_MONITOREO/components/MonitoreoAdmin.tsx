@@ -16,18 +16,32 @@ import {
   Grid,
   LoadingOverlay,
   Alert,
-  Pagination,
   Flex,
   Text,
   Tooltip,
   Box,
-  Divider
+  Divider,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconPlus, IconEdit, IconTrash, IconEye, IconAlertCircle, IconRefresh } from '@tabler/icons-react';
+import {
+  IconEdit,
+  IconTrash,
+  IconEye,
+  IconAlertCircle,
+} from '@tabler/icons-react';
 import { ParametroMonitoreo } from '../../types/model';
-import { useParametrosMonitoreo, useParametrosMonitoreoCRUD } from '../hooks/useAgricultura';
-import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import {
+  useParametrosMonitoreo,
+  useParametrosMonitoreoCRUD,
+} from '../hooks/useAgricultura';
+import {
+  ActionButtons,
+  DeleteConfirmModal,
+  NOTIFICATION_MESSAGES,
+  PaginationControls,
+  useNotifications,
+  usePagination,
+} from '@rec-shell/rec-web-shared';
 import { useCultivos } from '../../UI_CULTIVO/hooks/useAgricultura';
 
 const ParametroModal: React.FC<{
@@ -37,11 +51,9 @@ const ParametroModal: React.FC<{
   onSubmit: (data: any) => void;
   loading: boolean;
 }> = ({ opened, onClose, parametro, onSubmit, loading }) => {
-  
   const form = useForm({
     initialValues: {
       cultivoId: '',
-      //fechaMedicion: new Date(),
       fechaMedicion: new Date().toISOString().split('T')[0],
       humedadSuelo: 0,
       humedadAmbiente: 0,
@@ -51,36 +63,36 @@ const ParametroModal: React.FC<{
       horasSol: 0,
       velocidadVientoKmh: 0,
       fuenteDatos: '',
-      coordenadasGps: ''
+      coordenadasGps: '',
     },
     validate: {
       cultivoId: (value) => (value ? null : 'Cultivo es requerido'),
       fuenteDatos: (value) => (value ? null : 'Fuente de datos es requerida'),
       temperatura: (value) => {
-        if (typeof value === "number" && (value < -50 || value > 60)) {
+        if (typeof value === 'number' && (value < -50 || value > 60)) {
           return 'Temperatura debe estar entre -50°C y 60°C';
         }
         return null;
       },
       humedadSuelo: (value) => {
-        if (typeof value === "number" && (value < 0 || value > 100)) {
+        if (typeof value === 'number' && (value < 0 || value > 100)) {
           return 'Humedad debe estar entre 0% y 100%';
         }
         return null;
       },
       humedadAmbiente: (value) => {
-        if (typeof value === "number" && (value < 0 || value > 100)) {
+        if (typeof value === 'number' && (value < 0 || value > 100)) {
           return 'Humedad debe estar entre 0% y 100%';
         }
         return null;
       },
       phSuelo: (value) => {
-        if (typeof value === "number" && (value < 0 || value > 14)) {
+        if (typeof value === 'number' && (value < 0 || value > 14)) {
           return 'pH debe estar entre 0 y 14';
         }
         return null;
-      }
-    }
+      },
+    },
   });
 
   useEffect(() => {
@@ -88,10 +100,9 @@ const ParametroModal: React.FC<{
       if (parametro) {
         form.setValues({
           cultivoId: parametro.cultivoId ? parametro.cultivoId.toString() : '',
-          //fechaMedicion: parametro.fechaMedicion ? new Date(parametro.fechaMedicion) : new Date(),
-          fechaMedicion: parametro.fechaMedicion 
-          ? parametro.fechaMedicion.split('T')[0] 
-          : new Date().toISOString().split('T')[0],
+          fechaMedicion: parametro.fechaMedicion
+            ? parametro.fechaMedicion.split('T')[0]
+            : new Date().toISOString().split('T')[0],
           humedadSuelo: parametro.humedadSuelo,
           humedadAmbiente: parametro.humedadAmbiente,
           temperatura: parametro.temperatura,
@@ -106,32 +117,35 @@ const ParametroModal: React.FC<{
         form.reset();
       }
     }
-  }, [opened, parametro?.id]); 
+  }, [opened, parametro?.id]);
 
   const handleSubmit = (values: any) => {
     const formData = {
       ...values,
-      cultivo: { id: values.cultivoId }
+      cultivo: { id: values.cultivoId },
     };
     console.log(formData);
     onSubmit(formData);
   };
 
-  const fuentesOptions = useMemo(() => [
-    { value: 'Sensor Automático', label: 'Sensor Automático' },
-    { value: 'Medición Manual', label: 'Medición Manual' },
-    { value: 'Estación Meteorológica', label: 'Estación Meteorológica' },
-    { value: 'Satelital', label: 'Satelital' }
-  ], []);
+  const fuentesOptions = useMemo(
+    () => [
+      { value: 'Sensor Automático', label: 'Sensor Automático' },
+      { value: 'Medición Manual', label: 'Medición Manual' },
+      { value: 'Estación Meteorológica', label: 'Estación Meteorológica' },
+      { value: 'Satelital', label: 'Satelital' },
+    ],
+    []
+  );
 
   //Ref 1 Consumir hook para combo v1
   const { cultivos, LISTAR } = useCultivos();
   useEffect(() => {
     LISTAR();
   }, []);
-  const listCultivos = cultivos.map(cultivo => ({
-    value: cultivo.id.toString(), 
-    label: `${cultivo.nombreCultivo} - ${cultivo.variedadCacao}` 
+  const listCultivos = cultivos.map((cultivo) => ({
+    value: cultivo.id.toString(),
+    label: `${cultivo.nombreCultivo} - ${cultivo.variedadCacao}`,
   }));
   //Ref 1 Consumir hook para combo v1
 
@@ -148,7 +162,9 @@ const ParametroModal: React.FC<{
         <Stack gap="md">
           {/* Información General */}
           <div>
-            <Text size="sm" fw={600} mb="xs" c="dimmed">Información General</Text>
+            <Text size="sm" fw={600} mb="xs" c="dimmed">
+              Información General
+            </Text>
             <Grid>
               <Grid.Col span={6}>
                 <Select
@@ -191,7 +207,9 @@ const ParametroModal: React.FC<{
 
           {/* Condiciones del Suelo */}
           <div>
-            <Text size="sm" fw={600} mb="xs" c="dimmed">Condiciones del Suelo</Text>
+            <Text size="sm" fw={600} mb="xs" c="dimmed">
+              Condiciones del Suelo
+            </Text>
             <Grid>
               <Grid.Col span={6}>
                 <NumberInput
@@ -220,7 +238,9 @@ const ParametroModal: React.FC<{
 
           {/* Condiciones Ambientales */}
           <div>
-            <Text size="sm" fw={600} mb="xs" c="dimmed">Condiciones Ambientales</Text>
+            <Text size="sm" fw={600} mb="xs" c="dimmed">
+              Condiciones Ambientales
+            </Text>
             <Grid>
               <Grid.Col span={6}>
                 <NumberInput
@@ -274,17 +294,14 @@ const ParametroModal: React.FC<{
           </div>
 
           <Group justify="center" mt="md">
-            <ActionButtons.Cancel 
-              onClick={onClose} 
-              loading={loading} 
-            />
-            <ActionButtons.Save 
-              onClick={() => form.onSubmit(handleSubmit)()} 
-              loading={loading} 
+            <ActionButtons.Cancel onClick={onClose} loading={loading} />
+            <ActionButtons.Save
+              onClick={() => form.onSubmit(handleSubmit)()}
+              loading={loading}
             />
           </Group>
         </Stack>
-      </Box>     
+      </Box>
     </Modal>
   );
 };
@@ -294,25 +311,35 @@ const DetalleParametroModal: React.FC<{
   onClose: () => void;
   parametro?: ParametroMonitoreo;
 }> = ({ opened, onClose, parametro }) => {
-  
   if (!parametro) return null;
 
   const formatValue = (value: number | undefined, unit: string) => {
     return value !== undefined ? `${value} ${unit}` : 'No registrado';
   };
 
-  const MetricCard: React.FC<{ label: string; value: string; icon?: React.ReactNode }> = ({ label, value, icon }) => (
+  const MetricCard: React.FC<{
+    label: string;
+    value: string;
+    icon?: React.ReactNode;
+  }> = ({ label, value, icon }) => (
     <Box
       p="md"
       style={{
-        background: 'linear-gradient(135deg, rgba(34, 139, 230, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
+        background:
+          'linear-gradient(135deg, rgba(34, 139, 230, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
         borderRadius: '12px',
         border: '1px solid rgba(34, 139, 230, 0.1)',
         transition: 'all 0.3s ease',
-      }}      
+      }}
     >
       <Flex direction="column" gap={4}>
-        <Text size="xs" c="dimmed" tt="uppercase" fw={600} style={{ letterSpacing: '0.5px' }}>
+        <Text
+          size="xs"
+          c="dimmed"
+          tt="uppercase"
+          fw={600}
+          style={{ letterSpacing: '0.5px' }}
+        >
           {label}
         </Text>
         <Flex align="center" gap="xs">
@@ -329,21 +356,29 @@ const DetalleParametroModal: React.FC<{
     <Modal
       opened={opened}
       onClose={onClose}
-      title={"Detalle del Parámetro"}
+      title={'Detalle del Parámetro'}
       size="lg"
       centered
     >
       <Stack gap="lg" pt="md">
         {/* Información General */}
         <Box>
-          <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+          <Text
+            size="sm"
+            fw={700}
+            mb="md"
+            c="dimmed"
+            tt="uppercase"
+            style={{ letterSpacing: '0.5px' }}
+          >
             Información General
           </Text>
-          <Card 
-            withBorder 
+          <Card
+            withBorder
             p="lg"
             style={{
-              background: 'linear-gradient(135deg, rgba(34, 139, 230, 0.02) 0%, rgba(139, 92, 246, 0.02) 100%)',
+              background:
+                'linear-gradient(135deg, rgba(34, 139, 230, 0.02) 0%, rgba(139, 92, 246, 0.02) 100%)',
               borderColor: 'rgba(34, 139, 230, 0.15)',
               borderRadius: '12px',
             }}
@@ -351,26 +386,44 @@ const DetalleParametroModal: React.FC<{
             <Grid gutter="md">
               <Grid.Col span={6}>
                 <Stack gap={4}>
-                  <Text size="xs" c="dimmed" fw={600}>Cultivo</Text>
-                  <Text fw={600} size="md">{parametro.nombreCultivo}</Text>
+                  <Text size="xs" c="dimmed" fw={600}>
+                    Cultivo
+                  </Text>
+                  <Text fw={600} size="md">
+                    {parametro.nombreCultivo}
+                  </Text>
                 </Stack>
               </Grid.Col>
               <Grid.Col span={6}>
                 <Stack gap={4}>
-                  <Text size="xs" c="dimmed" fw={600}>Ubicación</Text>
-                  <Text fw={600} size="md">{parametro.ubicacionNombre}</Text>
+                  <Text size="xs" c="dimmed" fw={600}>
+                    Ubicación
+                  </Text>
+                  <Text fw={600} size="md">
+                    {parametro.ubicacionNombre}
+                  </Text>
                 </Stack>
               </Grid.Col>
               <Grid.Col span={6}>
                 <Stack gap={4}>
-                  <Text size="xs" c="dimmed" fw={600}>Fecha de Medición</Text>
-                  <Text fw={600} size="md">{parametro.fechaMedicion}</Text>
+                  <Text size="xs" c="dimmed" fw={600}>
+                    Fecha de Medición
+                  </Text>
+                  <Text fw={600} size="md">
+                    {parametro.fechaMedicion}
+                  </Text>
                 </Stack>
               </Grid.Col>
               <Grid.Col span={6}>
                 <Stack gap={4}>
-                  <Text size="xs" c="dimmed" fw={600}>Fuente de Datos</Text>
-                  <Badge variant="gradient" gradient={{ from: 'blue', to: 'violet' }} size="lg">
+                  <Text size="xs" c="dimmed" fw={600}>
+                    Fuente de Datos
+                  </Text>
+                  <Badge
+                    variant="gradient"
+                    gradient={{ from: 'blue', to: 'violet' }}
+                    size="lg"
+                  >
                     {parametro.fuenteDatos}
                   </Badge>
                 </Stack>
@@ -381,39 +434,74 @@ const DetalleParametroModal: React.FC<{
 
         {/* Mediciones Ambientales */}
         <Box>
-          <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+          <Text
+            size="sm"
+            fw={700}
+            mb="md"
+            c="dimmed"
+            tt="uppercase"
+            style={{ letterSpacing: '0.5px' }}
+          >
             Mediciones Ambientales
           </Text>
           <Grid gutter="md">
             <Grid.Col span={6}>
-              <MetricCard label="Temperatura" value={formatValue(parametro.temperatura, '°C')} />
+              <MetricCard
+                label="Temperatura"
+                value={formatValue(parametro.temperatura, '°C')}
+              />
             </Grid.Col>
             <Grid.Col span={6}>
-              <MetricCard label="Humedad Ambiente" value={formatValue(parametro.humedadAmbiente, '%')} />
+              <MetricCard
+                label="Humedad Ambiente"
+                value={formatValue(parametro.humedadAmbiente, '%')}
+              />
             </Grid.Col>
             <Grid.Col span={4}>
-              <MetricCard label="Precipitación" value={formatValue(parametro.precipitacionMm, 'mm')} />
+              <MetricCard
+                label="Precipitación"
+                value={formatValue(parametro.precipitacionMm, 'mm')}
+              />
             </Grid.Col>
             <Grid.Col span={4}>
-              <MetricCard label="Horas de Sol" value={formatValue(parametro.horasSol, 'h')} />
+              <MetricCard
+                label="Horas de Sol"
+                value={formatValue(parametro.horasSol, 'h')}
+              />
             </Grid.Col>
             <Grid.Col span={4}>
-              <MetricCard label="Velocidad Viento" value={formatValue(parametro.velocidadVientoKmh, 'km/h')} />
+              <MetricCard
+                label="Velocidad Viento"
+                value={formatValue(parametro.velocidadVientoKmh, 'km/h')}
+              />
             </Grid.Col>
           </Grid>
         </Box>
 
         {/* Mediciones del Suelo */}
         <Box>
-          <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+          <Text
+            size="sm"
+            fw={700}
+            mb="md"
+            c="dimmed"
+            tt="uppercase"
+            style={{ letterSpacing: '0.5px' }}
+          >
             Mediciones del Suelo
           </Text>
           <Grid gutter="md">
             <Grid.Col span={6}>
-              <MetricCard label="Humedad del Suelo" value={formatValue(parametro.humedadSuelo, '%')} />
+              <MetricCard
+                label="Humedad del Suelo"
+                value={formatValue(parametro.humedadSuelo, '%')}
+              />
             </Grid.Col>
             <Grid.Col span={6}>
-              <MetricCard label="pH del Suelo" value={formatValue(parametro.phSuelo, '')} />
+              <MetricCard
+                label="pH del Suelo"
+                value={formatValue(parametro.phSuelo, '')}
+              />
             </Grid.Col>
           </Grid>
         </Box>
@@ -421,14 +509,22 @@ const DetalleParametroModal: React.FC<{
         {/* Coordenadas GPS */}
         {parametro.coordenadasGps && (
           <Box>
-            <Text size="sm" fw={700} mb="md" c="dimmed" tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+            <Text
+              size="sm"
+              fw={700}
+              mb="md"
+              c="dimmed"
+              tt="uppercase"
+              style={{ letterSpacing: '0.5px' }}
+            >
               Ubicación GPS
             </Text>
-            <Card 
-              withBorder 
+            <Card
+              withBorder
               p="md"
               style={{
-                background: 'linear-gradient(135deg, rgba(34, 139, 230, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
+                background:
+                  'linear-gradient(135deg, rgba(34, 139, 230, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
                 borderColor: 'rgba(34, 139, 230, 0.15)',
                 borderRadius: '12px',
               }}
@@ -445,28 +541,28 @@ const DetalleParametroModal: React.FC<{
 };
 
 export const MonitoreoAdmin: React.FC = () => {
-  const { parametros, loading: loadingList, error, refetch } = useParametrosMonitoreo();
-  const { 
-    CREAR, 
-    ACTUALIZAR, 
-    ELIMINAR, 
+  const {
+    parametros,
+    loading: loadingList,
+    error,
+    refetch,
+  } = useParametrosMonitoreo();
+  const {
+    CREAR,
+    ACTUALIZAR,
+    ELIMINAR,
     loading: loadingCRUD,
-    clearError 
+    clearError,
   } = useParametrosMonitoreoCRUD();
 
   const [modalOpened, setModalOpened] = useState(false);
   const [detalleModalOpened, setDetalleModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
-  const [selectedParametro, setSelectedParametro] = useState<ParametroMonitoreo | undefined>();
+  const [selectedParametro, setSelectedParametro] = useState<
+    ParametroMonitoreo | undefined
+  >();
   const [editMode, setEditMode] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
-  const itemsPerPage = 10;
-
-  const totalPages = Math.ceil(parametros.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = parametros.slice(startIndex, endIndex);
 
   const notifications = useNotifications();
 
@@ -492,7 +588,7 @@ export const MonitoreoAdmin: React.FC = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await refetch();  
+      await refetch();
     } catch (error: unknown) {
       console.error('Error:', error);
     } finally {
@@ -510,18 +606,21 @@ export const MonitoreoAdmin: React.FC = () => {
 
     const success = await ELIMINAR(selectedParametro.id);
     if (success) {
-      notifications.success(); 
+      notifications.success();
       setDeleteModalOpened(false);
       refetch();
     } else {
-      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 'No se pudo eliminar el parámetro');
+      notifications.error(
+        NOTIFICATION_MESSAGES.GENERAL.ERROR.title,
+        'No se pudo eliminar el parámetro'
+      );
     }
   };
 
   const handleSubmit = async (data: any) => {
     try {
       let result;
-      
+
       if (editMode && selectedParametro) {
         result = await ACTUALIZAR(selectedParametro.id, data);
       } else {
@@ -529,17 +628,17 @@ export const MonitoreoAdmin: React.FC = () => {
       }
 
       if (result) {
-        notifications.success(); 
+        notifications.success();
         setModalOpened(false);
         refetch();
       } else {
         notifications.error(
           NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title,
           `No se pudo ${editMode ? 'actualizar' : 'crear'} el parámetro`
-        ); 
+        );
       }
     } catch (error) {
-      console.error('Error en handleSubmit:', error);   
+      console.error('Error en handleSubmit:', error);
     }
   };
 
@@ -547,6 +646,26 @@ export const MonitoreoAdmin: React.FC = () => {
     setModalOpened(false);
     clearError();
   };
+
+  // Ref Paginacion Global
+  const lista = Array.isArray(parametros) ? parametros : [];
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    setPage,
+    setItemsPerPage,
+    itemsPerPage,
+    startIndex,
+    endIndex,
+    totalItems,
+    searchTerm,
+    setSearchTerm,
+  } = usePagination({
+    data: lista,
+    itemsPerPage: 5,
+    searchFields: ['nombreCultivo', 'fechaMedicion', 'fuenteDatos'],
+  });
 
   if (error) {
     return (
@@ -569,20 +688,18 @@ export const MonitoreoAdmin: React.FC = () => {
         <Flex justify="space-between" align="center">
           <Title order={2}>Parámetros de Monitoreo</Title>
           <Group>
-            <ActionButtons.Refresh 
+            <ActionButtons.Refresh
               onClick={handleRefresh}
-              loading={refreshing} 
+              loading={refreshing}
             />
-            
-            <ActionButtons.Modal 
-              onClick={handleCreate}             
-            />
+
+            <ActionButtons.Modal onClick={handleCreate} />
           </Group>
         </Flex>
 
         <Card withBorder>
           <LoadingOverlay visible={loadingList} />
-          
+
           <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
@@ -596,7 +713,7 @@ export const MonitoreoAdmin: React.FC = () => {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {currentItems.map((parametro) => (
+              {paginatedData.map((parametro) => (
                 <Table.Tr key={parametro.id}>
                   <Table.Td>{parametro.nombreCultivo}</Table.Td>
                   <Table.Td>{parametro.fechaMedicion}</Table.Td>
@@ -604,7 +721,9 @@ export const MonitoreoAdmin: React.FC = () => {
                     {parametro.temperatura ? `${parametro.temperatura}°C` : '-'}
                   </Table.Td>
                   <Table.Td>
-                    {parametro.humedadSuelo ? `${parametro.humedadSuelo}%` : '-'}
+                    {parametro.humedadSuelo
+                      ? `${parametro.humedadSuelo}%`
+                      : '-'}
                   </Table.Td>
                   <Table.Td>
                     {parametro.phSuelo ? parametro.phSuelo : '-'}
@@ -655,18 +774,29 @@ export const MonitoreoAdmin: React.FC = () => {
 
           {parametros.length === 0 && !loadingList && (
             <Text ta="center" py="xl" c="dimmed">
-              No se encontraron registros
+              {searchTerm
+                ? 'No se encontraron resultados para tu búsqueda'
+                : 'No se encontraron registros'}
             </Text>
           )}
 
-          {totalPages > 1 && (
-            <Flex justify="center" mt="md">
-              <Pagination
-                value={currentPage}
-                onChange={setCurrentPage}
-                total={totalPages}
-              />
-            </Flex>
+          {/* Ref paginacion Global - Controles de paginación */}
+          {lista.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(value) =>
+                value && setItemsPerPage(Number(value))
+              }
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Buscar por código, nombre o nutriente..."
+            />
           )}
         </Card>
       </Stack>
@@ -692,7 +822,11 @@ export const MonitoreoAdmin: React.FC = () => {
         opened={deleteModalOpened}
         onClose={() => setDeleteModalOpened(false)}
         onConfirm={handleDeleteConfirm}
-        itemName={selectedParametro ? `${selectedParametro.nombreCultivo} - ${selectedParametro.fechaMedicion}` : ""}
+        itemName={
+          selectedParametro
+            ? `${selectedParametro.nombreCultivo} - ${selectedParametro.fechaMedicion}`
+            : ''
+        }
         itemType="parámetro de monitoreo"
       />
     </Box>

@@ -85,6 +85,32 @@ export const temporadas = [
     { value: 'TODO_AÑO', label: 'Todo el año' }
   ];
 
+  export const getDeficienciaColor = (deficiencia: string): string => {
+    const colors: Record<string, string> = {
+      Nitrógeno: 'yellow',
+      Nitrogeno: 'yellow',
+      Fósforo: 'orange',
+      Fosforo: 'orange',
+      Potasio: 'red',
+    };
+    return colors[deficiencia] || 'gray';
+  };
+
+  export const getConfianzaColor = (confianza: number): string => {
+    if (confianza >= 80) return 'teal';
+    if (confianza >= 60) return 'yellow';
+    return 'red';
+  };
+
+  export const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
 /*
 const menuItems = [

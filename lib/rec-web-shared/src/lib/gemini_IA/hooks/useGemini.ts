@@ -25,7 +25,6 @@ export const useGemini = ({
         temperature,
         maxTokens
       });
-
       setResponse(result);
       onSuccess?.(result);
 

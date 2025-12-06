@@ -197,3 +197,128 @@ export interface PlanGeneradoResponse {
   tratamientoId: number;
   actividadesSeguimiento: ActividadSeguimientoResponse[];
 }
+
+export interface AnalisisImagenMCHLDTO {
+    id?: number;
+    deficiencia: string;
+    confianza: number;
+    probabilidades: {
+        Potasio: number;
+        Nitrogeno: number;
+        Fosforo: number;
+    };
+    archivo: string;
+    imagenBase64: string;
+    fecha: string;
+    recomendaciones: Record<string, any>;
+}
+
+// types/planTratamiento.types.ts
+
+/**
+ * Interface para el plan de aplicación
+ */
+export interface PlanAplicacion {
+  tipo: string;
+  dosisPorLitro: string;
+  volumenPorHectareaEstimado_L: number;
+  dosisPorHectareaEstimada: string;
+  frecuenciaDias: number;
+  numeroAplicaciones: number;
+  duracionTratamientoDias: number;
+  horaRecomendada: string;
+  precauciones: string;
+}
+
+/**
+ * Interface para el tratamiento de suelo
+ */
+export interface TratamientoSuelo {
+  accion: string;
+  productoSugerido: string;
+  dosisOrientativa: string;
+  metodo: string;
+}
+
+/**
+ * Interface para el seguimiento
+ */
+export interface Seguimiento {
+  observableMejora: string | null;
+  notasTecnico: string;
+  imagenesSeguimiento: string[];
+}
+
+/**
+ * Interface completa para la respuesta del plan de tratamiento de Gemini
+ */
+export interface PlanTratamientoResponse {
+  tratamiento: string;
+  planAplicacion: PlanAplicacion;
+  tratamientoSuelo: TratamientoSuelo;
+  seguimiento: Seguimiento;
+}
+
+/**
+ * Interface para el request que se enviará al backend
+ */
+export interface GenerarPlanAnalisisRequest {
+  analisisId?: number;
+  planTratamiento: PlanTratamientoResponse;
+}
+
+/**
+ * Interface para la respuesta del backend
+ */
+export interface GenerarPlanBackendResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    id: number;
+    analisisId: number;
+    planTratamiento: PlanTratamientoResponse;
+    fechaCreacion: string;
+  };
+  error?: string;
+}
+
+/**
+ * Interface para errores de la API
+ */
+export interface ApiError {
+  message: string;
+  statusCode: number;
+  details?: any;
+}
+
+export interface PlanTratamientoNuevo {
+  id: number;
+  analisisId: number;
+  planTratamiento: {
+    tratamiento: string;
+    seguimiento: {
+      observableMejora: string;
+      notasTecnico: string;
+      imagenesSeguimiento: string[];
+    };
+    planAplicacion: {
+      tipo: string;
+      dosisPorLitro: string;
+      volumenPorHectareaEstimado_L: number;
+      dosisPorHectareaEstimada: string;
+      frecuenciaDias: number;
+      numeroAplicaciones: number;
+      duracionTratamientoDias: number;
+      horaRecomendada: string;
+      precauciones: string;
+    };
+    tratamientoSuelo: {
+      accion: string;
+      productoSugerido: string;
+      dosisOrientativa: string;
+      metodo: string;
+    };
+  };
+  fechaCreacion: string;
+  fechaActualizacion: string;
+}

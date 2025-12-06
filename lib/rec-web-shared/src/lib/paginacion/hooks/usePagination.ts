@@ -33,28 +33,28 @@ export function usePagination<T extends Record<string, any>>({
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filtrar datos según el término de búsqueda
-  const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) return data;
+  // En usePagination, modifica la parte de filtrado:
+const filteredData = useMemo(() => {
+  if (!searchTerm.trim()) return data;
 
-    const searchLower = searchTerm.toLowerCase().trim();
+  const searchLower = searchTerm.toLowerCase().trim();
 
-    return data.filter(item => {
-      // Si hay campos específicos de búsqueda, buscar solo en esos campos
-      if (searchFields.length > 0) {
-        return searchFields.some(field => {
-          const value = item[field];
-          if (value === null || value === undefined) return false;
-          return String(value).toLowerCase().includes(searchLower);
-        });
-      }
-
-      // Si no hay campos específicos, buscar en todos los campos del objeto
-      return Object.values(item).some(value => {
+  return data.filter(item => {
+    if (searchFields.length > 0) {
+      return searchFields.some(field => {
+        // Soportar rutas anidadas con notación de punto
+        const value = field.toString().split('.').reduce((obj, key) => obj?.[key], item);
         if (value === null || value === undefined) return false;
         return String(value).toLowerCase().includes(searchLower);
       });
+    }
+
+    return Object.values(item).some(value => {
+      if (value === null || value === undefined) return false;
+      return String(value).toLowerCase().includes(searchLower);
     });
-  }, [data, searchTerm, searchFields]);
+  });
+}, [data, searchTerm, searchFields]);
 
   const totalPages = useMemo(() => 
     Math.ceil(filteredData.length / itemsPerPage) || 1,

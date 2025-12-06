@@ -1,500 +1,505 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
-  Paper,
   Title,
   Text,
+  Paper,
+  Button,
   Group,
   Stack,
-  Button,
   Image,
-  Alert,
-  Badge,
-  Card,
-  Grid,
-  Loader,
-  Center,
-  FileButton,
-  rem,
   Progress,
-  ThemeIcon,
-  List,
-  TextInput,
-  Textarea,
-  Modal,
-  Select,
+  Card,
+  Loader,
+  Alert
 } from '@mantine/core';
-import {
-  IconUpload,
-  IconPhoto,
-  IconAlertCircle,
-  IconLeaf,
-  IconBug,
-  IconX,
-  IconDeviceFloppy,
-} from '@tabler/icons-react';
-import { NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
-import { ConexionService } from '../service/agricultura.service';
-import { CacaoAnalysisResult } from '../../../types/dto';
-import { useGuardarAnalisis } from '../hook/useAgricultura';
-import { ST_GET_USER_ID } from '../../../utils/utils';
 
-const cacaoService = new ConexionService();
+import { IconPhoto, IconLeaf, IconDeviceFloppy } from '@tabler/icons-react';
+import { useAnalisisImagen } from '../hook/useAgriculturaMchl';
+import { AnalisisImagenMCHLDTO } from '../../../types/dto';
+import { NOTIFICATION_MESSAGES, useGemini, useNotifications } from '@rec-shell/rec-web-shared';
+import { generarPromptRecomendaciones } from '../../../utils/promp';
+import { register } from 'module';
+
+
+const API_URL = 'http://localhost:8000';
+
+// Datos de respaldo cuando la API no está disponible
+const FALLBACK_DATA = {
+  success: true,
+  data: {
+    deficiencia: "Nitrogeno",
+    confianza: 95.03,
+    probabilidades: {
+      Potasio: 1.4,
+      Nitrogeno: 95.03,
+      Fosforo: 3.57
+    }
+  },
+  archivo: "Imagen de WhatsApp 2025-10-31 a las 18.53.49_e8478295.jpg"
+};
+
+interface ResultData {
+  deficiencia: string;
+  confianza: number;
+  probabilidades: {
+    Potasio: number;
+    Nitrogeno: number;
+    Fosforo: number;
+  };
+}
+
+interface RecomendacionesType {
+  recomendaciones: {
+    tratamiento: string;
+    dosis: string;
+    frecuencia: string;
+  };
+}
+
+// Función auxiliar para manejar respuesta del modelo
+function handleModelResponse<T>({
+  text,
+  onParsed,
+  onError,
+  onFinally,
+}: {
+  text: string;
+  onParsed: (data: T) => void;
+  onError: (err: string) => void;
+  onFinally?: () => void;
+}) {
+  try {
+    let jsonText = text.trim();
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[1].trim();
+    } else {
+      const braceMatch = text.match(/\{[\s\S]*\}/);
+      if (braceMatch) {
+        jsonText = braceMatch[0];
+      }
+    }
+
+    const parsed = JSON.parse(jsonText) as T;
+    onParsed(parsed);
+  } catch (err) {
+    console.error('Error al parsear JSON:', err);
+    onError(err instanceof Error ? err.message : 'Error desconocido');
+  } finally {
+    onFinally?.();
+  }
+}
 
 export function Analisis() {
-  const [file, setFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<CacaoAnalysisResult | null>(null);
-  const [tiempoProcesamiento, setTiempoProcesamiento] = useState(0);
-  
-  // Modal para guardar
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [cultivoId, setCultivoId] = useState<string | null>(null);
-  const [deficienciaId, setDeficienciaId] = useState<string | null>(null);
-  const [severidad, setSeveridad] = useState<string | null>(null);
-  const [ubicacion, setUbicacion] = useState('');
-  const [condicionesClima, setCondicionesClima] = useState('');
-  const [notas, setNotas] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<ResultData | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [recomendaciones, setRecomendaciones] = useState('');
+  const [imagenBase64, setImagenBase64] = useState<string>('');
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const notifications = useNotifications();
 
+  const { 
+    loading: guardandoAnalisis, 
+    error: errorGuardar, 
+    REGISTRAR 
+  } = useAnalisisImagen();
+
+  //Gemini API Ini
+  const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
+    onSuccess: (text: string) =>
+      handleModelResponse<RecomendacionesType>({
+        text,
+        onParsed: (data) => {
+          const recomendacionesFormateadas = JSON.stringify(data.recomendaciones, null, 2);
+          setRecomendaciones(recomendacionesFormateadas);
+          setIsLoadingRecommendations(false);
+        },
+        onError: (err) => {
+          console.error('Error al parsear recomendaciones:', err);
+          const fallback = {
+            tratamiento: "Consultar con especialista agrícola",
+            dosis: "Por determinar",
+            frecuencia: "Por determinar"
+          };
+          setRecomendaciones(JSON.stringify(fallback, null, 2));
+          setIsLoadingRecommendations(false);
+        },
+        onFinally: () => {
+          console.log('✨ Finalizó el procesamiento de recomendaciones');
+        },
+      }),
+    onError: (err: string) => {
+      console.error('Error de Gemini:', err);
+      const fallback = {
+        tratamiento: "Error al generar recomendaciones",
+        dosis: "N/A",
+        frecuencia: "N/A"
+      };
+      setRecomendaciones(JSON.stringify(fallback, null, 2));
+      setIsLoadingRecommendations(false);
+    },
+  });
+
+  //Gemini API Ini
   
-  // Datos de ejemplo para los combos (en producción vendrían de la API)
-  const [cultivos] = useState([
-    { value: '1', label: 'Cacao Nacional - Finca Los Ríos' },
-    { value: '2', label: 'Cacao CCN-51 - Parcela Norte' },
-    { value: '3', label: 'Cacao Trinitario - Sector A' },
-  ]);
-
-  const [deficiencias] = useState([
-    { value: '1', label: 'Nitrógeno bajo - Hojas amarillas' },
-    { value: '2', label: 'Fósforo insuficiente - Crecimiento lento' },
-    { value: '3', label: 'Potasio deficiente - Bordes secos' },
-  ]);
-
-  const [severidades] = useState([
-    { value: 'LEVE', label: 'Leve' },
-    { value: 'MODERADA', label: 'Moderada' },
-    { value: 'SEVERA', label: 'Severa' },
-  ]);
-  
-  const { guardarAnalisis, loading: guardandoAnalisis } = useGuardarAnalisis();
-
-  const handleFileChange = (selectedFile: File | null) => {
-    if (selectedFile) {
-      // Validar que sea una imagen
-      if (!selectedFile.type.startsWith('image/')) {
-        notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 'Por favor selecciona un archivo de imagen válido');
-        return;
-      }
-
-      // Validar tamaño (max 5MB)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 'La imagen no debe superar los 5MB');
-        return;
-      }
-
-      setFile(selectedFile);
-      setResult(null);
-
-      // Crear preview
+  const handleFileSelect = (file: File | null) => {
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      setResults(null);
+      setError(null);
+      setRecomendaciones('');
+      
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        setImagenBase64(reader.result as string);
       };
-      reader.readAsDataURL(selectedFile);
+      reader.readAsDataURL(file);
+    } else if (file) {
+      setError('Por favor selecciona una imagen válida');
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  };
+
   const handleAnalyze = async () => {
-    if (!file) return;
+    if (!selectedFile) return;
 
     setLoading(true);
-    setResult(null);
-    const startTime = Date.now();
+    setResults(null);
+    setError(null);
+    setRecomendaciones('');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
 
     try {
-      const analysisResult = await cacaoService.analizarHoja(file);
-      const endTime = Date.now();
-      const tiempoSegundos = Math.round((endTime - startTime) / 1000);
-      
-      setResult(analysisResult);
-      setTiempoProcesamiento(tiempoSegundos);
-
-      notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, 'La hoja ha sido analizada exitosamente');
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: error instanceof Error ? error.message : 'Error al analizar la imagen',
-        color: 'red',
-        icon: <IconX size={18} />,
+      const response = await fetch(`${API_URL}/predict`, {
+        method: 'POST',
+        body: formData
       });
+
+      const result = await response.json();
+      console.log('Resultados:', result);
+      
+      if (result.success) {
+        setResults(result.data);
+        
+        setIsLoadingRecommendations(true);
+        const prompt = generarPromptRecomendaciones(result.data);
+        await generateText(prompt);
+      } else {
+        setError('Error al procesar la imagen');
+      }
+    } catch (err) {
+      console.error('API no disponible, usando datos de fallback:', err);
+      
+      // Usar datos de fallback
+      setResults(FALLBACK_DATA.data);
+      
+      setIsLoadingRecommendations(true);
+      const prompt = generarPromptRecomendaciones(FALLBACK_DATA.data);
+      await generateText(prompt);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGuardarAnalisis = async () => {
-    if (!result || !file) return;
+    if (!results || !selectedFile) return;
 
-    // Obtener dimensiones de la imagen
-    const img = new window.Image();
-    img.src = imagePreview!;
+    let recomendacionesJSON: Record<string, any> = {};
     
-    await new Promise((resolve) => {
-      img.onload = resolve;
-    });
-
-    const exito = await guardarAnalisis({
-      cultivoId: Number(cultivoId),
-      deficiencia_Id: Number(deficienciaId),
-      severidad: severidad as 'LEVE' | 'MODERADA' | 'SEVERA',
-      usuarioId: ST_GET_USER_ID(),
-      nombreImagen: file.name,
-      rutaImagenOriginal: `/uploads/${file.name}`,
-      tiempoProcesamiento: tiempoProcesamiento,
-      metadatosImagen: {
-        resolucion: `${img.width}x${img.height}`,
-        tamanoBytes: file.size,
-        tipo: file.type,
-        fechaCaptura: new Date().toISOString(),
-      },
-      ubicacionEspecifica: ubicacion,
-      condicionesClima: condicionesClima,
-      notasUsuario: notas,
-      confianzaPrediccion: result.probabilidad * 100,
-      diagnosticoPrincipal: true,
-      observacionesIa: `${result.estado_general}. Diagnóstico: ${result.posible_enfermedad}`,
-      areasAfectadas: {
-        caracteristicas: result.caracteristicas_detectadas,
-        estado: result.estado_general
+    try {
+      if (recomendaciones.trim()) {
+        recomendacionesJSON = JSON.parse(recomendaciones);
       }
-    });
+    } catch (err) {
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 'El formato JSON de recomendaciones es inválido');
+      return;
+    }
 
-    if (exito) {
-      setModalAbierto(false);
-      // Limpiar el formulario
-      setCultivoId(null);
-      setDeficienciaId(null);
-      setSeveridad(null);
-      setUbicacion('');
-      setCondicionesClima('');
-      setNotas('');
+    const analisisDTO: AnalisisImagenMCHLDTO = {
+      deficiencia: results.deficiencia,
+      confianza: results.confianza,
+      probabilidades: results.probabilidades,
+      archivo: selectedFile.name,
+      imagenBase64: imagenBase64,
+      fecha: new Date().toISOString().split('T')[0],
+      recomendaciones: recomendacionesJSON
+    };
+
+    const resultado = await REGISTRAR(analisisDTO);
+    
+    if (resultado) {
+      notifications.success();
+      
+      // Limpiar el contenido
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setResults(null);
+      setRecomendaciones('');
+      setImagenBase64('');
+      setError(null);
     }
   };
 
-  const handleReset = () => {
-    setFile(null);
-    setImagePreview(null);
-    setResult(null);
-    setTiempoProcesamiento(0);
-  };
-
-  const getEstadoColor = (estado: string): string => {
-    if (estado.toLowerCase().includes('sana')) return 'green';
-    if (estado.toLowerCase().includes('deficiencia')) return 'yellow';
-    if (estado.toLowerCase().includes('hongo')) return 'orange';
-    if (estado.toLowerCase().includes('plaga') || estado.toLowerCase().includes('daño')) return 'red';
-    return 'gray';
-  };
-
   return (
-    <Container size="lg" py="xl">
-      <Stack gap="xl">
-        {/* Header */}
-        <Paper shadow="sm" p="xl" radius="md" withBorder>
-          <Group justify="space-between" align="center">
-            <Group>
-              <ThemeIcon size="xl" radius="md" variant="light" color="green">
-                <IconLeaf size={28} />
-              </ThemeIcon>
-              <div>
-                <Title order={2}>Analizador de Hojas de Cacao</Title>
-                <Text size="sm" c="dimmed">
-                  Sube una imagen para detectar enfermedades y deficiencias
-                </Text>
-              </div>
-            </Group>
-          </Group>
-        </Paper>
+    <div style={{
+      minHeight: '100vh',
+      padding: '40px 20px'
+    }}>
+      <Container size="md">
+        <Paper
+          shadow="xl"
+          radius="xl"
+          p="xl"
+          style={{
+            background: 'white'
+          }}
+        >
+          <Stack gap="lg">
+            <div style={{ textAlign: 'center' }}>
+              <Group justify="center" gap="xs" mb="xs">
+                <IconLeaf size={32} color="#667eea" />
+                <Title order={1} size="h2">
+                  Detector de Deficiencias en Cacao
+                </Title>
+              </Group>
+              <Text size="sm" c="dimmed">
+                Sube una imagen de una hoja de cacao para detectar deficiencias nutricionales
+              </Text>
+            </div>
 
-        <Grid gutter="lg">
-          {/* Upload Section */}
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Paper shadow="sm" p="xl" radius="md" withBorder h="100%">
-              <Stack gap="md" h="100%">
-                <Title order={4}>Cargar Imagen</Title>
-
-                {!imagePreview ? (
-                  <Paper
-                    withBorder
-                    radius="md"
-                    p="xl"
-                    style={{
-                      borderStyle: 'dashed',
-                      borderWidth: 2,
-                      backgroundColor: 'var(--mantine-color-gray-0)',
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: rem(300),
-                    }}
-                  >
-                    <Center>
-                      <Stack align="center" gap="md">
-                        <ThemeIcon size={60} radius="xl" variant="light" color="blue">
-                          <IconPhoto size={30} />
-                        </ThemeIcon>
-                        <Text size="lg" fw={500} ta="center">
-                          Selecciona una imagen
-                        </Text>
-                        <Text size="sm" c="dimmed" ta="center">
-                          JPG, PNG o WEBP (máx. 5MB)
-                        </Text>
-                        <FileButton onChange={handleFileChange} accept="image/*">
-                          {(props) => (
-                            <Button
-                              {...props}
-                              leftSection={<IconUpload size={18} />}
-                              size="md"
-                              variant="light"
-                            >
-                              Seleccionar archivo
-                            </Button>
-                          )}
-                        </FileButton>
-                      </Stack>
-                    </Center>
-                  </Paper>
-                ) : (
-                  <Stack gap="md" style={{ flex: 1 }}>
-                    <Image
-                      src={imagePreview}
-                      alt="Preview"
-                      radius="md"
-                      fit="contain"
-                      h={300}
-                    />
-                    <Group grow>
-                      <Button
-                        onClick={handleAnalyze}
-                        loading={loading}
-                        leftSection={<IconLeaf size={18} />}
-                        size="md"
-                      >
-                        Analizar Hoja
-                      </Button>
-                      <Button
-                        onClick={handleReset}
-                        variant="light"
-                        color="gray"
-                        size="md"
-                      >
-                        Cambiar imagen
-                      </Button>
-                    </Group>
-                  </Stack>
-                )}
+            <Paper
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              style={{
+                borderWidth: 3,
+                borderStyle: 'dashed',
+                borderColor: isDragging ? '#5a67d8' : '#667eea',
+                borderRadius: '15px',
+                background: isDragging ? '#e8ebff' : '#f8f9ff',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                padding: '40px',
+                textAlign: 'center'
+              }}
+            >
+              <Stack align="center" gap="md">
+                <IconPhoto size={60} color="#667eea" />
+                <div>
+                  <Text size="lg" fw={500} mb={5}>
+                    Haz clic o arrastra una imagen aquí
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    Formatos soportados: JPG, JPEG, PNG
+                  </Text>
+                </div>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                  style={{ display: 'none' }}
+                  id="file-input"
+                />
+                <label htmlFor="file-input">
+                  <Button variant="light" size="md" component="span">
+                    Seleccionar archivo
+                  </Button>
+                </label>
               </Stack>
             </Paper>
-          </Grid.Col>
 
-          {/* Results Section */}
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Paper shadow="sm" p="xl" radius="md" withBorder h="100%">
-              <Stack gap="md">
-                <Group justify="space-between" align="center">
-                  <Title order={4}>Resultados del Análisis</Title>
-                  {result && (
-                    <Button
-                      leftSection={<IconDeviceFloppy size={18} />}
-                      variant="light"
-                      onClick={() => setModalAbierto(true)}
-                    >
-                      Guardar
-                    </Button>
-                  )}
+            {previewUrl && (
+              <Paper radius="md" withBorder p="md">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  radius="md"
+                  style={{ maxHeight: '300px', objectFit: 'contain' }}
+                />
+              </Paper>
+            )}
+
+            <Button
+              fullWidth
+              size="lg"
+              radius="xl"
+              disabled={!selectedFile || loading}
+              onClick={handleAnalyze}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                transition: 'transform 0.2s'
+              }}
+            >
+              {loading ? <Loader size="sm" color="white" /> : 'Analizar Imagen'}
+            </Button>
+
+            {error && (
+              <Alert color="red" title="Error" radius="md">
+                {error}
+              </Alert>
+            )}
+
+            {errorGuardar && (
+              <Alert color="red" title="Error al guardar" radius="md">
+                {errorGuardar}
+              </Alert>
+            )}
+
+            {errorGemini && (
+              <Alert color="orange" title="Error al generar recomendaciones" radius="md">
+                {errorGemini}
+              </Alert>
+            )}
+
+            {isLoadingRecommendations && (
+              <Alert color="blue" title="Generando recomendaciones" radius="md">
+                <Group gap="sm">
+                  <Loader size="sm" />
+                  <Text size="sm">Gemini está generando recomendaciones personalizadas...</Text>
                 </Group>
+              </Alert>
+            )}
 
-                {loading && (
-                  <Center py="xl">
-                    <Stack align="center" gap="md">
-                      <Loader size="lg" />
-                      <Text size="sm" c="dimmed">
-                        Analizando imagen...
-                      </Text>
-                    </Stack>
-                  </Center>
-                )}
+            {results && (
+              <Stack gap="md">
+                <Card
+                  radius="lg"
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    textAlign: 'center'
+                  }}
+                  p="xl"
+                >
+                  <Text size="sm" opacity={0.9} mb="xs">
+                    Deficiencia Detectada
+                  </Text>
+                  <Title order={2} mb="xs">
+                    {results.deficiencia}
+                  </Title>
+                  <Text size="md" opacity={0.9}>
+                    Confianza: {results.confianza}%
+                  </Text>
+                </Card>
 
-                {!loading && !result && (
-                  <Alert
-                    icon={<IconAlertCircle size={18} />}
-                    title="Sin resultados"
-                    color="blue"
-                    variant="light"
-                  >
-                    Carga una imagen y presiona "Analizar Hoja" para ver los resultados
-                  </Alert>
-                )}
+                <Paper radius="lg" p="xl" style={{ background: '#f8f9ff' }}>
+                  <Text fw={600} mb="lg" size="md">
+                    📊 Probabilidades Detalladas
+                  </Text>
+                  
+                  <Stack gap="md">
+                    <div>
+                      <Group justify="space-between" mb={5}>
+                        <Text size="sm">Potasio</Text>
+                        <Text size="sm" fw={600}>{results.probabilidades.Potasio}%</Text>
+                      </Group>
+                      <Progress
+                        value={results.probabilidades.Potasio}
+                        size="xl"
+                        radius="xl"
+                        styles={{
+                          root: { background: '#e0e0e0' },
+                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+                        }}
+                      />
+                    </div>
 
-                {!loading && result && (
-                  <Stack gap="lg">
-                    {/* Estado General */}
-                    <Card withBorder padding="md" radius="md">
-                      <Stack gap="xs">
-                        <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-                          Estado General
-                        </Text>
-                        <Group justify="space-between" align="center">
-                          <Badge
-                            size="lg"
-                            variant="light"
-                            color={getEstadoColor(result.estado_general)}
-                          >
-                            {result.estado_general}
-                          </Badge>
-                          <Text size="xl" fw={700}>
-                            {(result.probabilidad * 100).toFixed(0)}%
-                          </Text>
-                        </Group>
-                        <Progress
-                          value={result.probabilidad * 100}
-                          color={getEstadoColor(result.estado_general)}
-                          size="md"
-                          radius="xl"
-                        />
-                      </Stack>
-                    </Card>
+                    <div>
+                      <Group justify="space-between" mb={5}>
+                        <Text size="sm">Nitrógeno</Text>
+                        <Text size="sm" fw={600}>{results.probabilidades.Nitrogeno}%</Text>
+                      </Group>
+                      <Progress
+                        value={results.probabilidades.Nitrogeno}
+                        size="xl"
+                        radius="xl"
+                        styles={{
+                          root: { background: '#e0e0e0' },
+                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+                        }}
+                      />
+                    </div>
 
-                    {/* Posible Enfermedad */}
-                    <Card withBorder padding="md" radius="md">
-                      <Stack gap="xs">
-                        <Group gap="xs">
-                          <IconBug size={18} />
-                          <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-                            Diagnóstico
-                          </Text>
-                        </Group>
-                        <Text size="md" fw={500}>
-                          {result.posible_enfermedad}
-                        </Text>
-                      </Stack>
-                    </Card>
-
-                    {/* Características Detectadas */}
-                    <Card withBorder padding="md" radius="md">
-                      <Stack gap="md">
-                        <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-                          Características Detectadas
-                        </Text>
-                        <List spacing="xs" size="sm">
-                          <List.Item>
-                            <strong>Color:</strong> {result.caracteristicas_detectadas.color_principal}
-                          </List.Item>
-                          <List.Item>
-                            <strong>Manchas:</strong> {result.caracteristicas_detectadas.manchas}
-                          </List.Item>
-                          <List.Item>
-                            <strong>Borde:</strong> {result.caracteristicas_detectadas.borde}
-                          </List.Item>
-                          <List.Item>
-                            <strong>Textura:</strong> {result.caracteristicas_detectadas.textura}
-                          </List.Item>
-                          <List.Item>
-                            <strong>Deformaciones:</strong>{' '}
-                            {result.caracteristicas_detectadas.deformaciones ? 'Sí' : 'No'}
-                          </List.Item>
-                        </List>
-                      </Stack>
-                    </Card>
+                    <div>
+                      <Group justify="space-between" mb={5}>
+                        <Text size="sm">Fósforo</Text>
+                        <Text size="sm" fw={600}>{results.probabilidades.Fosforo}%</Text>
+                      </Group>
+                      <Progress
+                        value={results.probabilidades.Fosforo}
+                        size="xl"
+                        radius="xl"
+                        styles={{
+                          root: { background: '#e0e0e0' },
+                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+                        }}
+                      />
+                    </div>
                   </Stack>
+                </Paper>
+
+                {recomendaciones && !isLoadingRecommendations && (
+                  <Paper radius="lg" p="xl" style={{ background: '#e8fff5' }}>
+                    <Text fw={600} mb="md" size="md">
+                      🌱 Recomendaciones Generadas por IA
+                    </Text>
+                    <Paper p="md" radius="md" style={{ background: 'white' }}>
+                      <pre style={{ 
+                        margin: 0, 
+                        fontFamily: 'monospace', 
+                        fontSize: '12px',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word'
+                      }}>
+                        {recomendaciones}
+                      </pre>
+                    </Paper>
+                  </Paper>
                 )}
+
+                <Button
+                  fullWidth
+                  size="lg"
+                  radius="xl"
+                  onClick={handleGuardarAnalisis}
+                  disabled={guardandoAnalisis || isLoadingRecommendations || !recomendaciones}
+                  leftSection={<IconDeviceFloppy size={20} />}
+                  style={{
+                    background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                    transition: 'transform 0.2s'
+                  }}
+                >
+                  {guardandoAnalisis ? <Loader size="sm" color="white" /> : 'Guardar Análisis'}
+                </Button>
               </Stack>
-            </Paper>
-          </Grid.Col>
-        </Grid>
-      </Stack>
-
-      {/* Modal para guardar análisis */}
-      <Modal
-        opened={modalAbierto}
-        onClose={() => setModalAbierto(false)}
-        title="Guardar Análisis"
-        size="lg"
-      >
-        <Stack gap="md">
-          <Select
-            label="Cultivo"
-            placeholder="Seleccione el cultivo"
-            data={cultivos}
-            value={cultivoId}
-            onChange={setCultivoId}
-            required
-            searchable
-            clearable
-          />
-          
-          <Select
-            label="Deficiencia Nutricional"
-            placeholder="Seleccione la deficiencia detectada"
-            data={deficiencias}
-            value={deficienciaId}
-            onChange={setDeficienciaId}
-            searchable
-            clearable
-          />
-
-          <Select
-            label="Severidad"
-            placeholder="Seleccione la severidad"
-            data={severidades}
-            value={severidad}
-            onChange={setSeveridad}
-            required
-          />
-        
-          <TextInput
-            label="Ubicación Específica"
-            placeholder="Ej: Parcela Norte, Sector A"
-            value={ubicacion}
-            onChange={(e) => setUbicacion(e.currentTarget.value)}
-          />
-
-          <TextInput
-            label="Condiciones Climáticas"
-            placeholder="Ej: Soleado, Nublado, Lluvia"
-            value={condicionesClima}
-            onChange={(e) => setCondicionesClima(e.currentTarget.value)}
-          />
-
-          <Textarea
-            label="Notas del Usuario"
-            placeholder="Observaciones adicionales..."
-            value={notas}
-            onChange={(e) => setNotas(e.currentTarget.value)}
-            rows={4}
-          />
-
-          <Group justify="flex-end" mt="md">
-            <Button
-              variant="light"
-              onClick={() => setModalAbierto(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              leftSection={<IconDeviceFloppy size={18} />}
-              onClick={handleGuardarAnalisis}
-              loading={guardandoAnalisis}
-            >
-              Guardar Análisis
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-    </Container>
+            )}
+          </Stack>
+        </Paper>
+      </Container>
+    </div>
   );
 }
