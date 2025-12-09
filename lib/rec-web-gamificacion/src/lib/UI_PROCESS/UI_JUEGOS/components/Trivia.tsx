@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Center, Paper, ThemeIcon, Alert, Box } from '@mantine/core';
-import { IconBrain, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
+import { Container, Card, Text, Button, Progress, Badge, Group, Stack, Title, Center, Paper, ThemeIcon, Alert, Box, List } from '@mantine/core';
+import { IconBrain, IconTrophy, IconClock,  IconSparkles, IconPlayCard, IconTarget, IconFlame, IconInfoCircle } from '@tabler/icons-react';
+import { IconCheck, IconX } from '@tabler/icons-react';
 
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { TipoTransaccion } from '../../../enums/Enums';
@@ -10,9 +11,8 @@ import { handleModelError, handleModelResponse, useGemini } from '@rec-shell/rec
 import { promptTemplate, SUBJECTS } from '../../../utils/CONSTANTE';
 import { CurrentQuestion, SubjectsType } from '../interface/interface';
 
-
-
 export function Trivia() {
+  const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -23,47 +23,35 @@ export function Trivia() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [gameFinished, setGameFinished] = useState(false);
 
-  
-
-  // Hook de Gemini para generar preguntas Ini  
-  
   // Estado para preguntas generadas por Gemini
   const [generatedSubjects, setGeneratedSubjects] = useState<SubjectsType | null>(null);
-  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
   const { loading, error, generateText } = useGemini({
-  onSuccess: (text: string) =>
-    handleModelResponse<SubjectsType>({
-      text,
-      onParsed: (data) => {
-        setGeneratedSubjects(data);
-        setIsLoadingQuestions(false);
-      },
-      onError: (err) => {
-        handleModelError(err, SUBJECTS, setGeneratedSubjects);
-        setIsLoadingQuestions(false);
-      },
-      onFinally: () => {
-        console.log('✨ Finalizó el procesamiento del texto');
-      },
-    }),
-
+    onSuccess: (text: string) =>
+      handleModelResponse<SubjectsType>({
+        text,
+        onParsed: (data) => {
+          console.log(text);
+          setGeneratedSubjects(data);
+          setIsLoadingQuestions(false);
+        },
+        onError: (err) => {
+          handleModelError(err, SUBJECTS, setGeneratedSubjects);
+          setIsLoadingQuestions(false);
+        },
+        onFinally: () => {
+          console.log('✨ Finalizó el procesamiento del texto');
+        },
+      }),
     onError: (err: string) =>
       handleModelError(err, SUBJECTS, (fallback) => {
         setGeneratedSubjects(fallback);
         setIsLoadingQuestions(false);
-    }),
+      }),
   });
 
-  // Disparar la petición al cargar el componente
-  useEffect(() => {
-    console.log('🚀 Iniciando generación de preguntas con Gemini...');
-    generateText(promptTemplate);
-  }, []);
-  // Hook de Gemini para generar preguntas Fin
-
-  
-  //Hook para invocar las reglas del juego Ini
+  // Hook para invocar las reglas del juego
   const { CREAR, OBTENER_REGLA_POR_TIPO, loading: savingPoints, error: errorSavingPoints, regla } = useTransaccionPuntos();
   
   useEffect(() => {
@@ -72,12 +60,18 @@ export function Trivia() {
     };
     cargarRegla();
   }, []);
-  //Hook para invocar las reglas del juego Ini
 
+  // Función para iniciar el juego
+  const handleStartGame = () => {
+    console.log('🚀 Iniciando generación de preguntas con Gemini...');
+    setGameStarted(true);
+    setIsLoadingQuestions(true);
+    console.log("Ingreso");
+    generateText(promptTemplate);
+  };
 
-  // Cuando el juego termina y guardas los puntos
   const handleSavePoints = async () => {
-    const tipoPunto = { id: regla?.id_tipo_punto || 1 ,  nombre: "", nombreMostrar:""};
+    const tipoPunto = { id: regla?.id_tipo_punto || 1, nombre: "", nombreMostrar: "" };
     const puntosCalculados = regla?.puntosOtorgados ? regla.puntosOtorgados : score;
 
     const transaccionData: CrearTransaccionDTO = {
@@ -130,10 +124,10 @@ export function Trivia() {
   };
 
   useEffect(() => {
-    if (!currentQuestion && !isLoadingQuestions && generatedSubjects) {
+    if (!currentQuestion && !isLoadingQuestions && generatedSubjects && gameStarted) {
       startNewQuestion();
     }
-  }, [isLoadingQuestions, generatedSubjects]);
+  }, [isLoadingQuestions, generatedSubjects, gameStarted]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -172,7 +166,6 @@ export function Trivia() {
       if (newScore >= 10) {
         setTimeout(() => {
           setGameFinished(true);
-          // Guardar puntos automáticamente al terminar
           handleSavePoints();
         }, 2000);
       }
@@ -194,11 +187,121 @@ export function Trivia() {
     setStreak(0);
     setTotalQuestions(0);
     setGameFinished(false);
-    startNewQuestion();
+    setGameStarted(false);
+    setCurrentQuestion(null);
+    setGeneratedSubjects(null);
   };
 
+  // Pantalla de bienvenida con reglas
+  if (!gameStarted) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Container size="md">
+          <Card shadow="xl" padding="xl" radius="lg" style={{ background: 'white' }}>
+            <Stack gap="xl">
+              <Center>
+                <ThemeIcon size={120} radius="xl" color="violet" variant="gradient" gradient={{ from: 'violet', to: 'grape' }}>
+                  <IconBrain size={80} />
+                </ThemeIcon>
+              </Center>
+              
+              <div style={{ textAlign: 'center' }}>
+                <Title order={1} c="violet" mb="xs">
+                  Trivia Relámpago
+                </Title>
+                <Text size="lg" c="dimmed" fw={500}>
+                  Pon a prueba tus conocimientos y gana puntos
+                </Text>
+              </div>
+
+              <Paper p="xl" radius="md" style={{ background: '#f8f9fa' }}>
+                <Group mb="lg">
+                  <IconInfoCircle size={24} color="#667eea" />
+                  <Title order={3} c="violet">Reglas del Juego</Title>
+                </Group>
+                
+                <List spacing="md" size="md" center>
+                  <List.Item icon={
+                    <ThemeIcon color="violet" size={24} radius="xl">
+                      <IconTarget size={16} />
+                    </ThemeIcon>
+                  }>
+                    <Text fw={500}>Objetivo:</Text> Alcanza 10 puntos para ganar
+                  </List.Item>
+                  
+                  <List.Item icon={
+                    <ThemeIcon color="blue" size={24} radius="xl">
+                      <IconClock size={16} />
+                    </ThemeIcon>
+                  }>
+                    <Text fw={500}>Tiempo:</Text> Tienes 15 segundos por pregunta
+                  </List.Item>
+                  
+                  <List.Item icon={
+                    <ThemeIcon color="green" size={24} radius="xl">
+                      <IconPlayCard size={16} />
+                    </ThemeIcon>
+                  }>
+                    <Text fw={500}>Puntuación:</Text>
+                    <List withPadding>
+                      <List.Item><span role="img" aria-label="estrella">⭐</span> Fácil = 1 punto</List.Item>
+                      <List.Item><span role="img" aria-label="estrellas">⭐⭐</span> Media = 2 puntos</List.Item>
+                      <List.Item><span role="img" aria-label="estrellas">⭐⭐⭐</span> Difícil = 3 puntos</List.Item>
+                    </List>
+                  </List.Item>
+                  
+                  <List.Item icon={
+                    <ThemeIcon color="orange" size={24} radius="xl">
+                      <IconFlame size={16} />
+                    </ThemeIcon>
+                  }>
+                    <Text fw={500}>Racha:</Text> Responde correctamente varias seguidas para mantener tu racha
+                  </List.Item>
+                  
+                  <List.Item icon={
+                    <ThemeIcon color="red" size={24} radius="xl">
+                      <IconX size={16} />
+                    </ThemeIcon>
+                  }>
+                    <Text fw={500}>Penalización:</Text> Una respuesta incorrecta o tiempo agotado reinicia tu racha
+                  </List.Item>
+                </List>
+              </Paper>
+
+              <Alert color="violet" variant="light" icon={<IconSparkles size={20} />}>
+                <Text size="sm" fw={500}>
+                  Las preguntas son generadas con Inteligencia Artificial para ofrecerte una experiencia única cada vez
+                </Text>
+              </Alert>
+
+              <Button 
+                size="xl" 
+                onClick={handleStartGame}
+                color="violet"
+                variant="gradient"
+                gradient={{ from: 'violet', to: 'grape' }}
+                fullWidth
+                leftSection={<IconPlayCard size={24} />}
+                style={{ height: '60px' }}
+              >
+                <Text size="lg" fw={700}>Comenzar Trivia</Text>
+              </Button>
+            </Stack>
+          </Card>
+        </Container>
+      </div>
+    );
+  }
+
   // Pantalla de carga mientras se generan las preguntas
-  if (!currentQuestion || isLoadingQuestions) {
+  if (isLoadingQuestions) {
     return (
       <div style={{ 
         minHeight: '100vh', 
@@ -347,6 +450,8 @@ export function Trivia() {
       </div>
     );
   }
+
+  if (!currentQuestion) return null;
 
   const Icon = currentQuestion.subjectData.icon;
   const isCorrect = selectedAnswer === currentQuestion.correct;

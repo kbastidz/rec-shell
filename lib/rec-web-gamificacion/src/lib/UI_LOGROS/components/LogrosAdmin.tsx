@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Title,
-  Table,
-  TextInput,
   Group,
-  ActionIcon,
   Modal,
   Stack,
   Select,
@@ -14,20 +11,18 @@ import {
   Badge,
   Text,
   Loader,
-  Alert,
-  Pagination,
   Flex,
   Box,
   Paper,
   ThemeIcon,
   Divider,
   Avatar,
-  Tooltip
+  Alert,
+  TextInput
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import {
-  IconSearch,
   IconPlus,
   IconEdit,
   IconTrash,
@@ -44,8 +39,7 @@ import { useLogros } from '../hooks/useGamificacion';
 import { Rareza } from '../../enums/Enums';
 import { Logro } from '../../types/model';
 import { rarezaColors, rarezaOptions } from '../../utils/utilidad';
-import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
-
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, PaginatedTable, useNotifications } from '@rec-shell/rec-web-shared';
 
 interface LogroFormData {
   nombre: string;
@@ -63,23 +57,20 @@ export const LogrosAdmin: React.FC = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [detailsOpened, { open: openDetails, close: closeDetails }] = useDisclosure(false);
   const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [editingLogro, setEditingLogro] = useState<Logro | null>(null);
   const [selectedLogro, setSelectedLogro] = useState<Logro | null>(null);
   const [itemToDelete, setItemToDelete] = useState<Logro | null>(null);
-  const [activePage, setActivePage] = useState(1);
   const notifications = useNotifications();
-  const itemsPerPage = 10;
-
+  
   const {
     logros,
     loading,
+    procesando,
     error,
     GET,
     CREAR,
     ACTUALIZAR,
     ELIMINAR,
-    buscarPorTexto,
     clearError
   } = useLogros();
 
@@ -109,32 +100,10 @@ export const LogrosAdmin: React.FC = () => {
 
   useEffect(() => {
     if (error) {
-      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title,error); 
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, error); 
       clearError();
     }
   }, [error, clearError, notifications]);
-
-  const filteredLogros = logros.filter(logro =>
-    logro.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    logro.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const paginatedLogros = filteredLogros.slice(
-    (activePage - 1) * itemsPerPage,
-    activePage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredLogros.length / itemsPerPage);
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setActivePage(1);
-    if (value.trim()) {
-      buscarPorTexto(value);
-    } else {
-      GET();
-    }
-  };
 
   const handleCreate = () => {
     setEditingLogro(null);
@@ -211,6 +180,96 @@ export const LogrosAdmin: React.FC = () => {
     }
   };
 
+  /* Columnas Dinamica Ini */
+  const columns = [
+    {
+      key: 'nombre',
+      label: 'Logro',
+      render: (logro: Logro) => (
+        <Group gap="sm">
+          <Avatar src={logro.urlImagenInsignia} size={50} radius="md">
+            <IconPhoto size={24} />
+          </Avatar>
+          <div>
+            <Text fw={600} size="sm">{logro.nombre}</Text>
+            {logro.esSecreto && (
+              <Badge size="xs" color="orange" variant="light" leftSection={<IconLock size={10} />}>
+                Secreto
+              </Badge>
+            )}
+          </div>
+        </Group>
+      )
+    },
+    {
+      key: 'descripcion',
+      label: 'Descripción',
+      render: (logro: Logro) => (
+        <Text lineClamp={2} size="sm" c="dimmed">
+          {logro.descripcion}
+        </Text>
+      )
+    },
+    {
+      key: 'rareza',
+      label: 'Rareza',
+      render: (logro: Logro) => (
+        <Badge
+          color={getBadgeColor(logro.rareza)}
+          variant="dot"
+          size="lg"
+          leftSection={getRarezaIcon(logro.rareza)}
+        >
+          {rarezaOptions.find(r => r.value === logro.rareza)?.label}
+        </Badge>
+      )
+    },
+    {
+      key: 'recompensaPuntos',
+      label: 'Puntos',
+      render: (logro: Logro) => (
+        <Badge variant="light" color="blue" size="lg" leftSection={<IconSparkles size={14} />}>
+          {logro.recompensaPuntos}
+        </Badge>
+      )
+    },
+    {
+      key: 'estaActivo',
+      label: 'Estado',
+      render: (logro: Logro) => (
+        <Badge 
+          color={logro.estaActivo ? 'green' : 'gray'} 
+          variant="light"
+          size="md"
+        >
+          {logro.estaActivo ? 'Activo' : 'Inactivo'}
+        </Badge>
+      )
+    }
+  ];
+
+  const actions = [
+    {
+      icon: <IconEye size={18} />,
+      label: 'Ver detalles',
+      color: 'blue',
+      onClick: handleView
+    },
+    {
+      icon: <IconEdit size={18} />,
+      label: 'Editar',
+      color: 'yellow',
+      onClick: handleEdit
+    },
+    {
+      icon: <IconTrash size={18} />,
+      label: 'Eliminar',
+      color: 'red',
+      onClick: handleDeleteClick
+    }
+  ];
+  /* Columnas Dinamica Fin */
+
   return (
     <Box size="xl" py="xl">
       <Stack gap="xl">
@@ -228,7 +287,7 @@ export const LogrosAdmin: React.FC = () => {
             </Group>
             <ActionButtons.Modal 
               onClick={handleCreate} 
-              loading={loading} 
+              loading={procesando} 
             />
           </Group>
         </Paper>
@@ -272,157 +331,30 @@ export const LogrosAdmin: React.FC = () => {
           </Paper>
         </Group>
 
-        {/* Búsqueda Mejorada */}
-        <Paper shadow="xs" p="md" radius="md" withBorder>
-          <TextInput
-            placeholder="Buscar por nombre o descripción..."
-            leftSection={<IconSearch size={18} />}
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            size="md"
-            radius="md"
-          />
-        </Paper>
-
-        {/* Tabla Mejorada */}
-        <Paper shadow="sm" radius="md" withBorder>
-          {loading ? (
+        {/* Tabla con Paginación */}
+        {loading && logros.length === 0 ? (
+          <Paper shadow="sm" radius="md" withBorder>
             <Flex justify="center" align="center" h={300}>
               <Stack align="center" gap="md">
                 <Loader size="lg" type="dots" />
                 <Text c="dimmed">Cargando logros...</Text>
               </Stack>
             </Flex>
-          ) : paginatedLogros.length === 0 ? (
-            <Flex justify="center" align="center" h={200}>
-              <Stack align="center" gap="md">
-                <ThemeIcon size={60} radius="md" variant="light" color="gray">
-                  <IconTrophy size={30} />
-                </ThemeIcon>
-                <Text c="dimmed" size="lg">No se encontraron logros</Text>
-              </Stack>
-            </Flex>
-          ) : (
-            <>
-              <Box style={{ overflowX: 'auto' }}>
-                <Table striped highlightOnHover withTableBorder={false}>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Logro</Table.Th>
-                      <Table.Th>Descripción</Table.Th>
-                      <Table.Th>Rareza</Table.Th>
-                      <Table.Th>Puntos</Table.Th>
-                      <Table.Th>Estado</Table.Th>
-                      <Table.Th style={{ textAlign: 'right' }}>Acciones</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {paginatedLogros.map((logro) => (
-                      <Table.Tr key={logro.id}>
-                        <Table.Td>
-                          <Group gap="sm">
-                            <Avatar
-                              src={logro.urlImagenInsignia}
-                              size={50}
-                              radius="md"
-                            >
-                              <IconPhoto size={24} />
-                            </Avatar>
-                            <div>
-                              <Text fw={600} size="sm">{logro.nombre}</Text>
-                              {logro.esSecreto && (
-                                <Badge size="xs" color="orange" variant="light" leftSection={<IconLock size={10} />}>
-                                  Secreto
-                                </Badge>
-                              )}
-                            </div>
-                          </Group>
-                        </Table.Td>
-                        <Table.Td style={{ maxWidth: 300 }}>
-                          <Text lineClamp={2} size="sm" c="dimmed">
-                            {logro.descripcion}
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge
-                            color={getBadgeColor(logro.rareza)}
-                            variant="dot"
-                            size="lg"
-                            leftSection={getRarezaIcon(logro.rareza)}
-                          >
-                            {rarezaOptions.find(r => r.value === logro.rareza)?.label}
-                          </Badge>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge variant="light" color="blue" size="lg" leftSection={<IconSparkles size={14} />}>
-                            {logro.recompensaPuntos}
-                          </Badge>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge 
-                            color={logro.estaActivo ? 'green' : 'gray'} 
-                            variant="light"
-                            size="md"
-                          >
-                            {logro.estaActivo ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                        </Table.Td>
-                        <Table.Td>
-                          <Group gap={4} justify="flex-end">
-                            <Tooltip label="Ver detalles">
-                              <ActionIcon
-                                variant="light"
-                                color="blue"
-                                size="lg"
-                                onClick={() => handleView(logro)}
-                              >
-                                <IconEye size={18} />
-                              </ActionIcon>
-                            </Tooltip>
-                            <Tooltip label="Editar">
-                              <ActionIcon
-                                variant="light"
-                                color="yellow"
-                                size="lg"
-                                onClick={() => handleEdit(logro)}
-                              >
-                                <IconEdit size={18} />
-                              </ActionIcon>
-                            </Tooltip>
-                            <Tooltip label="Eliminar">
-                              <ActionIcon
-                                variant="light"
-                                color="red"
-                                size="lg"
-                                onClick={() => handleDeleteClick(logro)}
-                              >
-                                <IconTrash size={18} />
-                              </ActionIcon>
-                            </Tooltip>
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </Box>
-
-              {totalPages > 1 && (
-                <Box p="md">
-                  <Group justify="center">
-                    <Pagination
-                      value={activePage}
-                      onChange={setActivePage}
-                      total={totalPages}
-                      size="md"
-                      radius="md"
-                    />
-                  </Group>
-                </Box>
-              )}
-            </>
-          )}
-        </Paper>
+          </Paper>
+        ) : (
+          /* Columnas Dinamica Ini */
+          <PaginatedTable
+            data={logros}
+            columns={columns}
+            actions={actions}
+            loading={loading || procesando}
+            searchFields={['nombre', 'descripcion']}
+            itemsPerPage={10}
+            searchPlaceholder="Buscar por nombre o descripción..."
+            getRowKey={(item) => item.id}
+          />
+          /* Columnas Dinamica Ini */
+        )}
 
         {/* Modal de Creación/Edición Mejorado */}
         <Modal
@@ -520,11 +452,11 @@ export const LogrosAdmin: React.FC = () => {
             <Group justify="center" gap="sm" mt="md">
               <ActionButtons.Cancel 
                 onClick={close} 
-                loading={loading} 
+                loading={procesando} 
               />
               <ActionButtons.Save 
                 onClick={form.onSubmit(handleSubmit)} 
-                loading={loading} 
+                loading={procesando} 
               />
             </Group>
           </Stack>

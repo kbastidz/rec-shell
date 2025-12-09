@@ -24,7 +24,7 @@ import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { CategoriaInput } from '../../types/dto';
 import { CategoriaLogro } from '../../types/model';
 import { useCategorias } from '../hooks/useGamificacion';
-import { ActionButtons, DeleteConfirmModal } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, PaginatedTable } from '@rec-shell/rec-web-shared';
 
 export function CategoriaAdmin() {
   const {
@@ -125,6 +125,64 @@ export function CategoriaAdmin() {
     }
   };
 
+  //Columnas Dinamica Ini
+  const columns = [
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'nombreMostrar', label: 'Nombre Mostrar' },
+    {
+      key: 'descripcion',
+      label: 'Descripción',
+      render: (categoria: CategoriaLogro) => (
+        <Text size="sm" lineClamp={2}>
+          {categoria.descripcion || '-'}
+        </Text>
+      ),
+    },
+    {
+      key: 'color',
+      label: 'Color',
+      render: (categoria: CategoriaLogro) => (
+        <Group gap="xs">
+          <Box
+            w={20}
+            h={20}
+            style={{
+              backgroundColor: categoria.color || '#228BE6',
+              borderRadius: 4,
+            }}
+          />
+          <Text size="xs">{categoria.color}</Text>
+        </Group>
+      ),
+    },
+    { key: 'ordenClasificacion', label: 'Orden' },
+    {
+      key: 'estaActivo',
+      label: 'Estado',
+      render: (categoria: CategoriaLogro) => (
+        <Badge color={categoria.estaActivo ? 'green' : 'red'}>
+          {categoria.estaActivo ? 'Activo' : 'Inactivo'}
+        </Badge>
+      ),
+    },
+  ];
+
+  const actions = [
+    {
+      icon: <IconEdit size={16} />,
+      label: 'Editar',
+      color: 'blue',
+      onClick: abrirModalEditar,
+    },
+    {
+      icon: <IconTrash size={16} />,
+      label: 'Eliminar',
+      color: 'red',
+      onClick: abrirModalEliminar,
+    },
+  ];
+  //Columnas Dinamica Fin
+
   if (loading && categorias.length === 0) {
     return (
       <Center h={400}>
@@ -140,79 +198,20 @@ export function CategoriaAdmin() {
           <Title order={2}>Gestión de Categorías</Title>          
           <ActionButtons.Modal 
             onClick={abrirModalCrear} 
-            loading={loading} 
+            loading={procesando} 
           />
         </Group>
 
-        <Table striped highlightOnHover withTableBorder withColumnBorders>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Nombre</Table.Th>
-              <Table.Th>Nombre Mostrar</Table.Th>
-              <Table.Th>Descripción</Table.Th>
-              <Table.Th>Color</Table.Th>
-              <Table.Th>Orden</Table.Th>
-              <Table.Th>Estado</Table.Th>
-              <Table.Th>Acciones</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {categorias.map((categoria) => (
-              <Table.Tr key={categoria.id}>
-                <Table.Td>{categoria.nombre}</Table.Td>
-                <Table.Td>{categoria.nombreMostrar}</Table.Td>
-                <Table.Td>
-                  <Text size="sm" lineClamp={2}>
-                    {categoria.descripcion || '-'}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    <Box
-                      w={20}
-                      h={20}
-                      style={{
-                        backgroundColor: categoria.color || '#228BE6',
-                        borderRadius: 4,
-                      }}
-                    />
-                    <Text size="xs">{categoria.color}</Text>
-                  </Group>
-                </Table.Td>
-                <Table.Td>{categoria.ordenClasificacion}</Table.Td>
-                <Table.Td>
-                  <Badge color={categoria.estaActivo ? 'green' : 'red'}>
-                    {categoria.estaActivo ? 'Activo' : 'Inactivo'}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    <ActionIcon
-                      variant="light"
-                      color="blue"
-                      onClick={() => abrirModalEditar(categoria)}
-                    >
-                      <IconEdit size={16} />
-                    </ActionIcon>
-                    <ActionIcon
-                      variant="light"
-                      color="red"
-                      onClick={() => abrirModalEliminar(categoria)}
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </Group>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-
-        {categorias.length === 0 && (
-          <Center p="xl">
-            <Text c="dimmed">No hay categorías registradas</Text>
-          </Center>
-        )}
+        <PaginatedTable
+          data={categorias}
+          columns={columns}
+          actions={actions}
+          loading={loading || procesando}
+          searchFields={['nombre', 'nombreMostrar', 'descripcion']}
+          itemsPerPage={10}
+          searchPlaceholder="Buscar por nombre o descripción..."
+          getRowKey={(item) => item.id}
+        />
       </Paper>
 
       <Modal

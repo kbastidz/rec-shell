@@ -3,7 +3,6 @@ import {
   Container,
   Paper,
   Title,
-  Table,
   Badge,
   Select,
   Group,
@@ -21,7 +20,21 @@ import {
 import { IconAlertCircle, IconMinus } from '@tabler/icons-react';
 import { useTransaccionPuntos } from '../hook/useGamificacion';
 import { TransaccionPuntos } from '../../../types/model';
-import { useNotifications } from '@rec-shell/rec-web-shared';
+import { PaginatedTable, useNotifications } from '@rec-shell/rec-web-shared';
+
+interface Column<T> {
+  key: string;
+  label: string;
+  render?: (item: T) => React.ReactNode;
+  width?: string;
+}
+
+interface Action<T> {
+  icon: React.ReactNode;
+  label: string;
+  color?: string;
+  onClick: (item: T) => void;
+}
 
 export const TransaccionPuntosAdmin = () => {
   const { transacciones, loading, error, users, OBTENER, ACTUALIZAR } = useTransaccionPuntos();
@@ -32,10 +45,112 @@ export const TransaccionPuntosAdmin = () => {
   const [fechaHasta, setFechaHasta] = useState<string>('');
   const notifications = useNotifications();
   
-
   const [modalOpened, setModalOpened] = useState(false);
   const [transaccionSeleccionada, setTransaccionSeleccionada] = useState<TransaccionPuntos | null>(null);
   const [cantidadARestar, setCantidadARestar] = useState<number>(0);
+
+  // Función helper para obtener el color del badge
+  const getBadgeColor = (tipo: string) => {
+    switch (tipo?.toLowerCase()) {
+      case 'ganancia':
+      case 'ingreso':
+        return 'green';
+      case 'gasto':
+      case 'egreso':
+        return 'red';
+      case 'ajuste':
+        return 'blue';
+      default:
+        return 'gray';
+    }
+  };
+
+  // Función helper para formatear fechas
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // Configuración de columnas dinámicas
+  const columns: Column<TransaccionPuntos>[] = useMemo(() => [
+    {
+      key: 'tipoPuntoNombre',
+      label: 'Tipo Punto',
+      width: '150px',
+      render: (item) => (
+        <Badge variant="light" size="sm">
+          {item.tipoPuntoNombre}
+        </Badge>
+      ),
+    },
+    {
+      key: 'tipoTransaccion',
+      label: 'Tipo Transacción',
+      width: '150px',
+      render: (item) => (
+        <Badge color={getBadgeColor(item.tipoTransaccion)} size="sm">
+          {item.tipoTransaccion}
+        </Badge>
+      ),
+    },
+    {
+      key: 'cantidad',
+      label: 'Cantidad',
+      width: '120px',
+      render: (item) => (
+        <Text 
+          size="sm" 
+          fw={500}
+          c={item.cantidad >= 0 ? 'green' : 'red'}
+        >
+          {item.cantidad >= 0 ? '+' : ''}{item.cantidad}
+        </Text>
+      ),
+    },
+    {
+      key: 'balanceDespues',
+      label: 'Balance',
+      width: '120px',
+      render: (item) => (
+        <Text size="sm" fw={500}>{item.balanceDespues}</Text>
+      ),
+    },
+    {
+      key: 'descripcion',
+      label: 'Descripción',
+      width: '250px',
+      render: (item) => (
+        <Text size="sm" lineClamp={2}>
+          {item.descripcion || '-'}
+        </Text>
+      ),
+    },
+    {
+      key: 'creadoEn',
+      label: 'Fecha',
+      width: '150px',
+      render: (item) => (
+        <Text size="xs" c="dimmed">
+          {formatDate(item.creadoEn)}
+        </Text>
+      ),
+    },
+  ], []);
+
+  // Configuración de acciones
+  const actions: Action<TransaccionPuntos>[] = useMemo(() => [
+    {
+      icon: <IconMinus size={16} />,
+      label: 'Restar cantidad y balance',
+      color: 'red',
+      onClick: handleOpenModalRestar,
+    },
+  ], []);
 
   // Convertir usuarios a formato Select
   const usuariosOptions = useMemo(() => {
@@ -70,6 +185,7 @@ export const TransaccionPuntosAdmin = () => {
 
   useEffect(() => {
     let filtered = transacciones;
+    
     if (selectedUsuario !== 'all') {
       filtered = filtered.filter(t => t.usuarioId === Number(selectedUsuario));
     }
@@ -96,48 +212,24 @@ export const TransaccionPuntosAdmin = () => {
 
     setFilteredTransacciones(filtered);
   }, [selectedUsuario, selectedTipoPunto, transacciones, fechaDesde, fechaHasta]);
-  const getBadgeColor = (tipo: string) => {
-    switch (tipo?.toLowerCase()) {
-      case 'ganancia':
-      case 'ingreso':
-        return 'green';
-      case 'gasto':
-      case 'egreso':
-        return 'red';
-      case 'ajuste':
-        return 'blue';
-      default:
-        return 'gray';
-    }
-  };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const handleOpenModalRestar = (transaccion: TransaccionPuntos) => {
+  function handleOpenModalRestar(transaccion: TransaccionPuntos) {
     setTransaccionSeleccionada(transaccion);
     setCantidadARestar(Math.abs(transaccion.cantidad));
     setModalOpened(true);
-  };
+  }
 
   const handleRestarTransaccion = async () => {
     if (!transaccionSeleccionada || cantidadARestar <= 0) {
       return;
     }
+    
     transaccionSeleccionada.cantidad = transaccionSeleccionada.cantidad - cantidadARestar;
     transaccionSeleccionada.balanceDespues = transaccionSeleccionada.balanceDespues - cantidadARestar;
     
     console.log('Restando transacción:', {
       transaccionId: transaccionSeleccionada.id,
       cantidadOriginal: transaccionSeleccionada.cantidad - cantidadARestar,
-      //cantidadARestar: cantidadARestar,
       balanceAntes: transaccionSeleccionada.balanceDespues,
       balanceNuevo: transaccionSeleccionada.balanceDespues - cantidadARestar,
     });
@@ -244,84 +336,17 @@ export const TransaccionPuntosAdmin = () => {
           </Text>
         </Paper>
 
-        <Paper shadow="xs" withBorder>
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Tipo Punto</Table.Th>
-                <Table.Th>Tipo Transacción</Table.Th>
-                <Table.Th>Cantidad</Table.Th>
-                <Table.Th>Balance</Table.Th>
-                <Table.Th>Descripción</Table.Th>
-                <Table.Th>Fecha</Table.Th>
-                <Table.Th style={{ width: 80 }}>Acción</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {filteredTransacciones.length === 0 ? (
-                <Table.Tr>
-                  <Table.Td colSpan={7}>
-                    <Text ta="center" c="dimmed" py="xl">
-                      No hay transacciones para mostrar
-                    </Text>
-                  </Table.Td>
-                </Table.Tr>
-              ) : (
-                filteredTransacciones.map((transaccion) => (
-                  <Table.Tr key={transaccion.id}>
-                    <Table.Td>
-                      <Badge variant="light" size="sm">
-                        {transaccion.tipoPuntoNombre}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge 
-                        color={getBadgeColor(transaccion.tipoTransaccion)} 
-                        size="sm"
-                      >
-                        {transaccion.tipoTransaccion}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text 
-                        size="sm" 
-                        fw={500}
-                        c={transaccion.cantidad >= 0 ? 'green' : 'red'}
-                      >
-                        {transaccion.cantidad >= 0 ? '+' : ''}{transaccion.cantidad}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{transaccion.balanceDespues}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" lineClamp={2}>
-                        {transaccion.descripcion || '-'}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" c="dimmed">
-                        {formatDate(transaccion.creadoEn)}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Tooltip label="Restar cantidad y balance">
-                        <ActionIcon
-                          color="red"
-                          variant="light"
-                          size="sm"
-                          onClick={() => handleOpenModalRestar(transaccion)}
-                        >
-                          <IconMinus size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Table.Td>
-                  </Table.Tr>
-                ))
-              )}
-            </Table.Tbody>
-          </Table>
-        </Paper>
+        <PaginatedTable
+          data={filteredTransacciones}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          itemsPerPage={20}
+          searchFields={['tipoPuntoNombre', 'tipoTransaccion', 'descripcion']}
+          searchPlaceholder="Buscar por tipo de punto, transacción o descripción..."
+          emptyMessage="No hay transacciones para mostrar"
+          getRowKey={(item) => item.id}
+        />
       </Stack>
 
       {/* Modal para restar transacción */}

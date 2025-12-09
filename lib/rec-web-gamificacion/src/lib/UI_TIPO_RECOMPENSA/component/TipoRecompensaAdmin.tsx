@@ -5,7 +5,6 @@ import {
   Button,
   Group,
   TextInput,
-  Table,
   ActionIcon,
   Modal,
   Stack,
@@ -33,7 +32,7 @@ import {
 import { TipoRecompensa } from '../../types/model';
 import { useTipoRecompensa } from '../hooks/useGamificacion';
 import { TipoRecompensaForm } from '../../types/dto';
-import { ActionButtons, DeleteConfirmModal, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, PaginatedTable, useNotifications } from '@rec-shell/rec-web-shared';
 import { getBadgeColor, getBadgeText } from '../../utils/utilidad';
 
 export const TipoRecompensaAdmin: React.FC = () => {
@@ -175,39 +174,57 @@ export const TipoRecompensaAdmin: React.FC = () => {
     open();
   };
 
-  const rows = tiposRecompensa.map((item) => (
-    <Table.Tr key={item.id}>
-      <Table.Td>{item.nombre}</Table.Td>
-      <Table.Td>{item.nombreMostrar}</Table.Td>
-      <Table.Td>
+  // Configuración de columnas
+  const columns = [
+    {
+      key: 'nombre',
+      label: 'Nombre',
+      width: '20%',
+    },
+    {
+      key: 'nombreMostrar',
+      label: 'Nombre a Mostrar',
+      width: '20%',
+    },
+    {
+      key: 'tipo',
+      label: 'Tipo',
+      width: '15%',
+      render: (item: TipoRecompensa) => (
         <Badge color={getBadgeColor(item)} variant="light">
           {getBadgeText(item)}
         </Badge>
-      </Table.Td>
-      <Table.Td>{item.descripcion || 'Sin descripción'}</Table.Td>
-      <Table.Td>{item.recompensas?.length || 0}</Table.Td>
-      <Table.Td>
-        <Group gap="xs">
-          <ActionIcon
-            variant="subtle"
-            color="blue"
-            onClick={() => handleEdit(item)}
-            loading={loading}
-          >
-            <IconEdit style={{ width: rem(16), height: rem(16) }} />
-          </ActionIcon>
-          <ActionIcon
-            variant="subtle"
-            color="red"
-            onClick={() => handleDelete(item)}
-            loading={loading}
-          >
-            <IconTrash style={{ width: rem(16), height: rem(16) }} />
-          </ActionIcon>
-        </Group>
-      </Table.Td>
-    </Table.Tr>
-  ));
+      ),
+    },
+    {
+      key: 'descripcion',
+      label: 'Descripción',
+      width: '25%',
+      render: (item: TipoRecompensa) => item.descripcion || 'Sin descripción',
+    },
+    {
+      key: 'recompensas',
+      label: 'Recompensas',
+      width: '10%',
+      render: (item: TipoRecompensa) => item.recompensas?.length || 0,
+    },
+  ];
+
+  // Configuración de acciones
+  const actions = [
+    {
+      icon: <IconEdit style={{ width: rem(16), height: rem(16) }} />,
+      label: 'Editar',
+      color: 'blue',
+      onClick: (item: TipoRecompensa) => handleEdit(item),
+    },
+    {
+      icon: <IconTrash style={{ width: rem(16), height: rem(16) }} />,
+      label: 'Eliminar',
+      color: 'red',
+      onClick: (item: TipoRecompensa) => handleDelete(item),
+    },
+  ];
 
   return (
     <Box p="md">
@@ -219,7 +236,6 @@ export const TipoRecompensaAdmin: React.FC = () => {
           onClick={handleNewItem} 
           loading={loading} 
         />
-        
       </Group>
 
       {error && (
@@ -236,6 +252,11 @@ export const TipoRecompensaAdmin: React.FC = () => {
             onChange={(event) => setSearchQuery(event.currentTarget.value)}
             style={{ flex: 1 }}
             leftSection={<IconSearch size={16} />}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
           />
           <Button onClick={handleSearch} loading={loading}>
             Buscar
@@ -261,25 +282,17 @@ export const TipoRecompensaAdmin: React.FC = () => {
       </Tabs>
 
       <Card withBorder mt="md">
-        <Table striped highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Nombre</Table.Th>
-              <Table.Th>Nombre a Mostrar</Table.Th>
-              <Table.Th>Tipo</Table.Th>
-              <Table.Th>Descripción</Table.Th>
-              <Table.Th>Recompensas</Table.Th>
-              <Table.Th>Acciones</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
-
-        {tiposRecompensa.length === 0 && !loading && (
-          <Alert mt="md" color="blue">
-            No se encontraron registros
-          </Alert>
-        )}
+        <PaginatedTable
+          data={tiposRecompensa}
+          columns={columns}
+          actions={actions}
+          loading={loading}
+          searchFields={['nombre', 'nombreMostrar', 'descripcion']}
+          itemsPerPage={10}
+          emptyMessage="No se encontraron tipos de recompensa registrados"
+          searchPlaceholder="Buscar por nombre, nombre a mostrar o descripción..."
+          getRowKey={(item) => item.id}
+        />
       </Card>
 
       {/* Modal de formulario */}
@@ -289,53 +302,52 @@ export const TipoRecompensaAdmin: React.FC = () => {
         title={editingItem ? 'Editar Registro' : 'Nuevo Registro'}
         size="md"
       >
-        
-          <Stack>
-            <TextInput
-              label="Nombre"
-              placeholder="Nombre del tipo de recompensa"
-              required
-              {...form.getInputProps('nombre')}
-            />
+        <Stack>
+          <TextInput
+            label="Nombre"
+            placeholder="Nombre del tipo de recompensa"
+            required
+            {...form.getInputProps('nombre')}
+          />
 
-            <TextInput
-              label="Nombre a Mostrar"
-              placeholder="Nombre que se mostrará al usuario"
-              required
-              {...form.getInputProps('nombreMostrar')}
-            />
+          <TextInput
+            label="Nombre a Mostrar"
+            placeholder="Nombre que se mostrará al usuario"
+            required
+            {...form.getInputProps('nombreMostrar')}
+          />
 
-            <Textarea
-              label="Descripción"
-              placeholder="Descripción opcional del tipo de recompensa"
-              rows={3}
-              {...form.getInputProps('descripcion')}
-            />
+          <Textarea
+            label="Descripción"
+            placeholder="Descripción opcional del tipo de recompensa"
+            rows={3}
+            {...form.getInputProps('descripcion')}
+          />
 
-            <Switch
-              label="Es Físico"
-              color="teal"
-              size="md"
-              description="Indica si la recompensa es de tipo físico"
-              {...form.getInputProps('esFisico', { type: 'checkbox' })}
-            />
+          <Switch
+            label="Es Físico"
+            color="teal"
+            size="md"
+            description="Indica si la recompensa es de tipo físico"
+            {...form.getInputProps('esFisico', { type: 'checkbox' })}
+          />
 
-            <Switch
-              label="Es Digital"
-              color="teal"
-              size="md"
-              description="Indica si la recompensa es de tipo digital"
-              {...form.getInputProps('esDigital', { type: 'checkbox' })}
-            />
+          <Switch
+            label="Es Digital"
+            color="teal"
+            size="md"
+            description="Indica si la recompensa es de tipo digital"
+            {...form.getInputProps('esDigital', { type: 'checkbox' })}
+          />
 
-            <Group justify="center" mt="md">
-              <ActionButtons.Cancel onClick={handleCloseModal} />
-              <ActionButtons.Save 
-                onClick={form.onSubmit(handleSubmit)} 
-                loading={loading} />              
-            </Group>
-          </Stack>
-       
+          <Group justify="center" mt="md">
+            <ActionButtons.Cancel onClick={handleCloseModal} />
+            <ActionButtons.Save 
+              onClick={form.onSubmit(handleSubmit)} 
+              loading={loading} 
+            />              
+          </Group>
+        </Stack>
       </Modal>
 
       {/* Modal genérico de confirmación para Eliminar */}

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Container, Title, Text, Card, Group, Stack, Badge, Button, Progress, Modal, Grid, ThemeIcon, Paper, TextInput, Tabs, Divider, Center, Box, RingProgress } from '@mantine/core';
+import { Container, Title, Text, Card, Group, Stack, Badge, Button, Progress, Modal, Grid, ThemeIcon, Paper, TextInput, Tabs, Divider, Center, Box, RingProgress, List, Alert } from '@mantine/core';
+import { IconInfoCircle, IconPlayerPlay } from '@tabler/icons-react';
 
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
 import { CrearTransaccionDTO } from '../../../types/dto';
@@ -197,6 +198,10 @@ export  function RaspaGana() {
   const [notification, setNotification] = useState<NotificationType | null>(null);
   const { CREAR, OBTENER_REGLA_POR_TIPO, regla } = useTransaccionPuntos();
   const [materiasCompletadas, setMateriasCompletadas] = useState<Set<string>>(new Set());
+  
+  // NUEVO ESTADO: Controlar si el juego ha iniciado
+  const [juegoIniciado, setJuegoIniciado] = useState(false);
+  const [mostrarReglas, setMostrarReglas] = useState(true); // Mostrar reglas al inicio
 
   //Hook para invocar las reglas del juego Ini
   useEffect(() => {
@@ -220,7 +225,7 @@ export  function RaspaGana() {
   
   // Estados para Gemini
   const [materiasGeneradas, setMateriasGeneradas] = useState<Subject[]>(MATERIAS_DEFAULT);
-  const [cargandoActividades, setCargandoActividades] = useState(true);
+  const [cargandoActividades, setCargandoActividades] = useState(false); // Cambiado a false inicialmente
   const [errorCargaIA, setErrorCargaIA] = useState(false);
   
   const { loading, error, generateText } = useGemini({
@@ -257,16 +262,20 @@ export  function RaspaGana() {
     }
   });
 
-  // Cargar materias al montar el componente
-  useEffect(() => {
-    const cargarMaterias = async () => {
+  // NUEVA FUNCIÓN: Iniciar el juego y cargar las misiones
+  const iniciarJuego = async () => {
+    setCargandoActividades(true);
+    setMostrarReglas(false);
+    
+    try {
       await generateText(promptTemplateRaspa);
-    };
-
-    cargarMaterias();
-  }, [generateText]);
-
-  // Hook de Gemini Ini
+      setJuegoIniciado(true);
+    } catch (error) {
+      console.error('Error al iniciar el juego:', error);
+      setErrorCargaIA(true);
+      setJuegoIniciado(true); // Aún así mostrar el juego con materias default
+    }
+  };
 
   const generateReward = (subjectId: string): Reward => {
     const rand = Math.random();
@@ -433,15 +442,113 @@ useEffect(() => {
     return subject.missions.find(m => !completedMissions[`${subject.id}-${m.id}`]);
   };
 
-  // Mostrar loader mientras carga
+  // Mostrar reglas del juego al inicio
+  if (mostrarReglas) {
+    return (
+      <Container size="md" py="xl">
+        <Stack gap="xl">
+          {/* Card de Reglas del Juego */}
+          <Card withBorder shadow="md" padding="xl" radius="lg">
+            <Stack gap="lg">
+              <Group justify="center" mb="md">
+                <ThemeIcon size="xl" radius="xl" color="blue" variant="light">
+                  <IconInfoCircle size={30} />
+                </ThemeIcon>
+                <Title order={2} ta="center">
+                  Reglas del Juego: Misiones Educativas
+                </Title>
+              </Group>
+              
+              <Alert color="blue" title="¡Bienvenido a la Aventura!" icon={<IconInfoCircle />}>
+                Completa misiones educativas, gana puntos y desbloquea tarjetas sorpresa.
+              </Alert>
+              
+              <Paper p="lg" withBorder style={{ background: '#f8f9fa' }}>
+                <Title order={3} mb="md">📋 Cómo Jugar:</Title>
+                <List spacing="sm" size="md" center>
+                  <List.Item icon="🎯">
+                    <Text fw={500}>Elige una materia</Text>
+                    <Text size="sm" c="dimmed">Selecciona entre diferentes áreas de conocimiento</Text>
+                  </List.Item>
+                  <List.Item icon="❓">
+                    <Text fw={500}>Responde preguntas</Text>
+                    <Text size="sm" c="dimmed">Cada misión tiene una pregunta educativa para resolver</Text>
+                  </List.Item>
+                  <List.Item icon="✅">
+                    <Text fw={500}>Verifica tu respuesta</Text>
+                    <Text size="sm" c="dimmed">Obtén retroalimentación inmediata</Text>
+                  </List.Item>
+                  <List.Item icon="🎴">
+                    <Text fw={500}>Rasca y gana</Text>
+                    <Text size="sm" c="dimmed">Desbloquea tarjetas sorpresa con recompensas</Text>
+                  </List.Item>
+                  <List.Item icon="🏆">
+                    <Text fw={500}>Colecciona recompensas</Text>
+                    <Text size="sm" c="dimmed">Acumula puntos, insignias y tarjetas especiales</Text>
+                  </List.Item>
+                </List>
+              </Paper>
+              
+              <Paper p="lg" withBorder style={{ background: '#fff9e6' }}>
+                <Title order={3} mb="md">🏅 Sistema de Recompensas:</Title>
+                <Grid>
+                  {rewardTypes.map((rarity, index) => (
+                    <Grid.Col key={index} span={{ base: 12, sm: 4 }}>
+                      <Card p="sm" withBorder>
+                        <Stack align="center" gap="xs">
+                          <Text size="30px">{rarity.emoji}</Text>
+                          <Badge color={rarity.color}>{rarity.name}</Badge>
+                          <Text size="xs" ta="center">
+                            {rarity.minPoints}-{rarity.maxPoints} puntos
+                          </Text>
+                          <Text size="xs" c="dimmed" ta="center">
+                            Probabilidad: {(rarity.probability * 100)}%
+                          </Text>
+                        </Stack>
+                      </Card>
+                    </Grid.Col>
+                  ))}
+                </Grid>
+              </Paper>
+              
+              <Group justify="center" mt="xl">
+                <Button 
+                  size="xl" 
+                  color="blue" 
+                  radius="xl"
+                  leftSection={<IconPlayerPlay  size={24} />}
+                  onClick={iniciarJuego}
+                  loading={cargandoActividades}
+                >
+                  {cargandoActividades ? 'Generando misiones...' : '¡Comenzar Juego!'}
+                </Button>
+              </Group>
+              
+              {errorCargaIA && (
+                <Alert color="yellow" title="Nota" mt="md">
+                  <Text size="sm">
+                    Las misiones se cargarán con contenido por defecto. Esto no afectará tu experiencia de juego.
+                  </Text>
+                </Alert>
+              )}
+            </Stack>
+          </Card>
+        </Stack>
+      </Container>
+    );
+  }
+
+  // Mostrar loader mientras carga las misiones
   if (cargandoActividades) {
     return (
       <Container size="lg" py="xl">
         <Center style={{ minHeight: '400px' }}>
           <Stack align="center" gap="md">
-            <Loader size="xl" />
-            <Text size="lg" fw={500}>Generando misiones con IA...</Text>
+            <Loader size={48} />
+            <Title order={3}>Generando misiones con IA</Title>
+            <Text size="lg" fw={500}>Estamos creando contenido educativo personalizado...</Text>
             <Text size="sm" c="dimmed">Esto puede tomar unos segundos</Text>
+            <Progress value={100} striped animated size="xl" w="80%" />
           </Stack>
         </Center>
       </Container>
@@ -451,6 +558,17 @@ useEffect(() => {
   return ( 
     <Container size="lg" py="xl">
       <Stack gap="lg">
+        {/* Botón para volver a ver reglas */}
+        <Group justify="flex-end">
+          <Button 
+            variant="subtle" 
+            color="gray" 
+            size="sm"
+            onClick={() => setMostrarReglas(true)}
+          >
+            📖 Ver reglas del juego
+          </Button>
+        </Group>
         
         {/* Header */}
         <Paper p="xl" withBorder style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>

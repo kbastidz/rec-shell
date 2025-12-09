@@ -4,7 +4,6 @@ import {
   Paper,
   Title,
   Button,
-  Table,
   Group,
   TextInput,
   Textarea,
@@ -35,7 +34,7 @@ import {
 } from '@tabler/icons-react';
 import { Recompensa } from '../../types/model';
 import { useCrear, useActualizar, useReducirStock, useRecompensasAdmin, useEliminar, useActivarRecompensa, useDesactivarRecompensa } from '../hooks/useGamificacion';
-import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
+import { ActionButtons, DeleteConfirmModal, NOTIFICATION_MESSAGES, PaginatedTable, useNotifications } from '@rec-shell/rec-web-shared';
 import { useTipoRecompensa } from '../../UI_TIPO_RECOMPENSA/hooks/useGamificacion';
 
 interface RecompensaFormModalProps {
@@ -44,8 +43,6 @@ interface RecompensaFormModalProps {
   recompensa: Recompensa | null;
   onSuccess: () => void;
 }
-
-
 
 function RecompensaFormModal({ 
   opened, 
@@ -58,17 +55,15 @@ function RecompensaFormModal({
   const loading = creando || actualizando;
   const notifications = useNotifications();
   
-
-  //Ref 1 Consumir hook para combo v1
   const { tipoRecompensas, LISTAR } = useTipoRecompensa();
   useEffect(() => {
     LISTAR();
   }, []);
+  
   const listTipoRecompensas = tipoRecompensas.map(tipoRecompensa => ({
     value: tipoRecompensa.id.toString(), 
     label: `${tipoRecompensa.nombre} - ${tipoRecompensa.nombreMostrar}` 
   }));
-  //Ref 1 Consumir hook para combo v1
 
   interface FormValues {
     tipoRecompensaId: string;
@@ -128,7 +123,6 @@ function RecompensaFormModal({
       }
     }
   }, [opened, recompensa]);
-
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
@@ -251,7 +245,6 @@ function RecompensaFormModal({
               {...form.getInputProps('validoHasta')}
               required
             /> 
-            
           </Grid.Col>
         </Grid>
 
@@ -362,7 +355,7 @@ function ReducirStockModal({
   );
 }
 
-export  function RecompensasAdmin() {
+export function RecompensasAdmin() {
   const { recompensas, loading, error, refetch } = useRecompensasAdmin();
   const { eliminar } = useEliminar();
   const { activar } = useActivarRecompensa();
@@ -436,15 +429,136 @@ export  function RecompensasAdmin() {
     setStockModalOpened(true);
   };
 
-  if (loading) {
-    return (
-      <Container size="xl" py="xl">
-        <Group justify="center">
-          <Loader size="lg" />
+  // Configuración de columnas
+  const columns = [
+    
+    {
+      key: 'nombre',
+      label: 'Nombre',
+      width: '15%',
+      render: (recompensa: Recompensa) => (
+        <Text fw={500}>{recompensa.nombre}</Text>
+      )
+    },
+    {
+      key: 'descripcion',
+      label: 'Descripción',
+      width: '20%',
+      render: (recompensa: Recompensa) => (
+        <Text size="sm" lineClamp={2}>
+          {recompensa.descripcion || '-'}
+        </Text>
+      )
+    },
+    {
+      key: 'costoPuntos',
+      label: 'Costo',
+      width: '10%',
+      render: (recompensa: Recompensa) => (
+        <Badge color="blue" variant="light">
+          {recompensa.costoPuntos} pts
+        </Badge>
+      )
+    },
+    {
+      key: 'stock',
+      label: 'Stock',
+      width: '10%',
+      render: (recompensa: Recompensa) => (
+        recompensa.esIlimitado ? (
+          <Badge color="green" variant="light">
+            Ilimitado
+          </Badge>
+        ) : (
+          <Text size="sm">{recompensa.cantidadStock}</Text>
+        )
+      )
+    },
+    {
+      key: 'estaActivo',
+      label: 'Estado',
+      width: '10%',
+      render: (recompensa: Recompensa) => (
+        <Badge
+          color={recompensa.estaActivo ? 'green' : 'red'}
+          variant="filled"
+        >
+          {recompensa.estaActivo ? 'Activo' : 'Inactivo'}
+        </Badge>
+      )
+    },
+    {
+      key: 'vigencia',
+      label: 'Vigencia',
+      width: '15%',
+      render: (recompensa: Recompensa) => (
+        <Text size="xs">
+          {recompensa.validoDesde && recompensa.validoHasta
+            ? `${recompensa.validoDesde} - ${recompensa.validoHasta}`
+            : 'Sin límite'}
+        </Text>
+      )
+    },
+    {
+      key: 'acciones',
+      label: 'Acciones',
+      width: '10%',
+      render: (recompensa: Recompensa) => (
+        <Group justify="center" gap="xs" wrap="nowrap">
+          <ActionIcon
+            variant="subtle"
+            color="blue"
+            onClick={() => handleEditar(recompensa)}
+            title="Editar"
+          >
+            <IconEdit size="1rem" />
+          </ActionIcon>
+
+          <Menu shadow="md" width={200} position="bottom-end">
+            <Menu.Target>
+              <ActionIcon variant="subtle" color="gray">
+                <IconDotsVertical size="1rem" />
+              </ActionIcon>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={
+                  recompensa.estaActivo ? (
+                    <IconToggleLeft size="0.875rem" />
+                  ) : (
+                    <IconToggleRight size="0.875rem" />
+                  )
+                }
+                onClick={() => handleToggleEstado(recompensa)}
+              >
+                {recompensa.estaActivo ? 'Desactivar' : 'Activar'}
+              </Menu.Item>
+
+              {!recompensa.esIlimitado && (
+                <Menu.Item
+                  leftSection={<IconMinus size="0.875rem" />}
+                  onClick={() => handleReducirStock(recompensa)}
+                >
+                  Reducir Stock
+                </Menu.Item>
+              )}
+
+              <Menu.Divider />
+
+              <Menu.Item
+                color="red"
+                leftSection={<IconTrash size="0.875rem" />}
+                onClick={() => handleEliminar(recompensa)}
+              >
+                Eliminar
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
-      </Container>
-    );
-  }
+      )
+    }
+  ];
 
   if (error) {
     return (
@@ -465,160 +579,18 @@ export  function RecompensasAdmin() {
             onClick={handleNueva} 
             loading={loading} 
           />
-          
         </Group>
 
-        <Box style={{ overflowX: 'auto' }}>
-          <Table striped highlightOnHover withTableBorder withColumnBorders>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Imagen</Table.Th>
-                <Table.Th>Nombre</Table.Th>
-                <Table.Th>Descripción</Table.Th>
-                <Table.Th>Costo</Table.Th>
-                <Table.Th>Stock</Table.Th>
-                <Table.Th>Estado</Table.Th>
-                <Table.Th>Vigencia</Table.Th>
-                <Table.Th style={{ textAlign: 'center' }}>Acciones</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {recompensas.length === 0 ? (
-                <Table.Tr>
-                  <Table.Td colSpan={8} style={{ textAlign: 'center' }}>
-                    <Text c="dimmed" size="sm" py="xl">
-                      No se encontraron registros
-                    </Text>
-                  </Table.Td>
-                </Table.Tr>
-              ) : (
-                recompensas.map((recompensa) => (
-                  <Table.Tr key={recompensa.id}>
-                    <Table.Td>
-                      {recompensa.urlImagen ? (
-                        <Image
-                          src={recompensa.urlImagen}
-                          alt={recompensa.nombre}
-                          w={50}
-                          h={50}
-                          fit="cover"
-                          radius="sm"
-                        />
-                      ) : (
-                        <Box 
-                          w={50} 
-                          h={50} 
-                          bg="gray.2" 
-                          style={{ 
-                            borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <Text size="xs" c="dimmed">Sin img</Text>
-                        </Box>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Text fw={500}>{recompensa.nombre}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" lineClamp={2}>
-                        {recompensa.descripcion || '-'}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge color="blue" variant="light">
-                        {recompensa.costoPuntos} pts
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      {recompensa.esIlimitado ? (
-                        <Badge color="green" variant="light">
-                          Ilimitado
-                        </Badge>
-                      ) : (
-                        <Text size="sm">{recompensa.cantidadStock}</Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge
-                        color={recompensa.estaActivo ? 'green' : 'red'}
-                        variant="filled"
-                      >
-                        {recompensa.estaActivo ? 'Activo' : 'Inactivo'}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs">
-                        {recompensa.validoDesde && recompensa.validoHasta
-                        ? `${recompensa.validoDesde} - ${recompensa.validoHasta}`
-                        : 'Sin límite'}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Group justify="center" gap="xs" wrap="nowrap">
-                        <ActionIcon
-                          variant="subtle"
-                          color="blue"
-                          onClick={() => handleEditar(recompensa)}
-                          title="Editar"
-                        >
-                          <IconEdit size="1rem" />
-                        </ActionIcon>
-
-                        <Menu shadow="md" width={200} position="bottom-end">
-                          <Menu.Target>
-                            <ActionIcon variant="subtle" color="gray">
-                              <IconDotsVertical size="1rem" />
-                            </ActionIcon>
-                          </Menu.Target>
-
-                          <Menu.Dropdown>
-                            <Menu.Item
-                              leftSection={
-                                recompensa.estaActivo ? (
-                                  <IconToggleLeft size="0.875rem" />
-                                ) : (
-                                  <IconToggleRight size="0.875rem" />
-                                )
-                              }
-                              onClick={() => handleToggleEstado(recompensa)}
-                            >
-                              {recompensa.estaActivo
-                                ? 'Desactivar'
-                                : 'Activar'}
-                            </Menu.Item>
-
-                            {!recompensa.esIlimitado && (
-                              <Menu.Item
-                                leftSection={<IconMinus size="0.875rem" />}
-                                onClick={() => handleReducirStock(recompensa)}
-                              >
-                                Reducir Stock
-                              </Menu.Item>
-                            )}
-
-                            <Menu.Divider />
-
-                            <Menu.Item
-                              color="red"
-                              leftSection={<IconTrash size="0.875rem" />}
-                              onClick={() => handleEliminar(recompensa)}
-                            >
-                              Eliminar
-                            </Menu.Item>
-                          </Menu.Dropdown>
-                        </Menu>
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
-                ))
-              )}
-            </Table.Tbody>
-          </Table>
-        </Box>
+        <PaginatedTable
+          data={recompensas}
+          columns={columns}
+          loading={loading}
+          searchFields={['nombre', 'descripcion']}
+          itemsPerPage={10}
+          emptyMessage="No se encontraron recompensas registradas"
+          searchPlaceholder="Buscar por nombre o descripción..."
+          getRowKey={(recompensa) => recompensa.id}
+        />
       </Paper>
 
       {/* Modales */}

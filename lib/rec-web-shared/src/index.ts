@@ -27,4 +27,5 @@ export { handleModelResponse, handleModelError } from './lib/gemini_IA/handler/h
 export {ChatbotAdmin} from './lib/chatbot/ChatbotAdmin';
 export * from './lib/types/rol_opcion';
 export * from './lib/paginacion/components/PaginationControls';
+export * from './lib/paginacion/components/PaginatedTable';
 export * from './lib/paginacion/hooks/usePagination';

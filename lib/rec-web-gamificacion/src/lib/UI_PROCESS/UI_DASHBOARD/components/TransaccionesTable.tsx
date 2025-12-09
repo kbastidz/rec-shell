@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Table,
   TextInput,
@@ -8,157 +8,304 @@ import {
   Text,
   Card,
   ScrollArea,
-  Avatar,
   Badge,
+  Stack,
+  Title,
+  Tooltip,
 } from '@mantine/core';
-import { Search } from 'lucide-react';
-import { TransaccionDetalleDTO } from '../dtos/dtos';
-import { TransaccionesTableLogic } from '../hook/useTransaccionesTableLogic';
+import { Search, Filter, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 
-interface Props {
-  transacciones: TransaccionDetalleDTO[];
+interface TransaccionPunto {
+  id: number;
+  usuarioId?: number;
+  usuario_id?: number;
+  cantidad: number;
+  balanceDespues: number;
+  tipoTransaccion?: 'GANAR' | 'GASTAR';
+  tipo_transaccion?: 'GANAR' | 'GASTAR';
+  tipoOrigen?: string;
+  tipo_origen?: string;
+  idOrigen?: number;
+  id_origen?: number;
+  idTipoPunto?: number;
+  id_tipo_punto?: number;
+  descripcion: string;
+  metadatos: Record<string, any>;
+  creadoEn?: string;
+  creado_en?: string;
+  expiraEn?: string | null;
+  expira_en?: string | null;
 }
 
-export const TransaccionesTable = ({ transacciones }: Props) => {
-  const logic = new TransaccionesTableLogic();
+interface Props {
+  transacciones: TransaccionPunto[];
+}
 
+const ITEMS_PER_PAGE = 10;
+
+// Helper para normalizar datos (soporta camelCase y snake_case)
+const normalizarTransaccion = (t: TransaccionPunto) => ({
+  id: t.id,
+  cantidad: t.cantidad,
+  balanceDespues: t.balanceDespues,
+  tipoTransaccion: t.tipoTransaccion || t.tipo_transaccion || 'GANAR',
+  tipoOrigen: t.tipoOrigen || t.tipo_origen || '',
+  descripcion: t.descripcion,
+  metadatos: t.metadatos,
+  creadoEn: t.creadoEn || t.creado_en || '',
+});
+
+export const TransaccionesTable = ({ transacciones }: Props) => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [tipoFilter, setTipoFilter] = useState('todos');
+  const [tipoFilter, setTipoFilter] = useState<string>('todos');
+  const [origenFilter, setOrigenFilter] = useState<string>('todos');
 
-  // 1. Aplicar filtro
-  const transaccionesFiltradas = logic.filtrarTransacciones(
-    transacciones,
-    searchTerm,
-    tipoFilter
+  // Normalizar todas las transacciones
+  const transaccionesNormalizadas = useMemo(
+    () => transacciones.map(normalizarTransaccion),
+    [transacciones]
   );
 
-  // 2. Paginación
-  const totalPages = logic.getTotalPages(transaccionesFiltradas);
-  const transaccionesPaginadas = logic.paginarTransacciones(
-    transaccionesFiltradas,
-    page
-  );
+  // Filtrar transacciones
+  const transaccionesFiltradas = transaccionesNormalizadas.filter((tx) => {
+    const matchSearch = tx.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchTipo = tipoFilter === 'todos' || tx.tipoTransaccion === tipoFilter;
+    const matchOrigen = origenFilter === 'todos' || tx.tipoOrigen === origenFilter;
+    return matchSearch && matchTipo && matchOrigen;
+  });
+
+  // Paginación
+  const totalPages = Math.ceil(transaccionesFiltradas.length / ITEMS_PER_PAGE);
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const transaccionesPaginadas = transaccionesFiltradas.slice(startIndex, endIndex);
+
+  // Obtener tipos de origen únicos
+  const origenesUnicos = useMemo(() => {
+    return [
+      'todos',
+      ...Array.from(
+        new Set(
+          transaccionesNormalizadas
+            .map((t) => t.tipoOrigen)
+            .filter((origen) => origen && origen.trim() !== '')
+        )
+      ),
+    ];
+  }, [transaccionesNormalizadas]);
 
   const tipoTransaccionColor: Record<string, string> = {
     GANAR: 'green',
     GASTAR: 'red',
-    BONUS: 'blue',
+  };
+
+  const origenColors: Record<string, string> = {
+    TRIVIA: 'blue',
+    RULETA: 'grape',
+    BINGO: 'orange',
+    MATERIA_COMPLETA: 'green',
+    DESAFIO: 'cyan',
+    RECOMPENSA: 'pink',
+  };
+
+  // Reset page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setPage(1);
+  };
+
+  const handleTipoFilterChange = (value: string | null) => {
+    setTipoFilter(value || 'todos');
+    setPage(1);
+  };
+
+  const handleOrigenFilterChange = (value: string | null) => {
+    setOrigenFilter(value || 'todos');
+    setPage(1);
   };
 
   return (
-    <Card withBorder shadow="sm" radius="md" padding="lg">
-      <Group justify="space-between" mb="md">
-        <Text fw={700}>Transacciones Recientes</Text>
-      </Group>
+    <Card shadow="sm" padding="lg" radius="md" withBorder>
+      <Stack gap="md">
+        {/* Header */}
+        <Group justify="space-between">
+          <div>
+            <Title order={3}>Historial de Transacciones</Title>
+            <Text size="sm" c="dimmed">
+              {transaccionesFiltradas.length} de {transacciones.length} transacciones
+            </Text>
+          </div>
+        </Group>
 
-      {/* filtros */}
-      <Group grow mb="md">
-        <TextInput
-          placeholder="Buscar usuario o descripción..."
-          leftSection={<Search size={16} />}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        {/* Filtros */}
+        <Group grow>
+          <TextInput
+            placeholder="Buscar en descripción..."
+            leftSection={<Search size={16} />}
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
 
-        <Select
-          label="Tipo"
-          placeholder="Todos"
-          data={[
-            { value: 'todos', label: 'Todos' },
-            { value: 'Puntos de Trivia', label: 'Puntos de Trivia' },
-            { value: 'Puntos de Raspa Gana', label: 'Puntos de Raspa Gana' },
-          ]}
-          value={tipoFilter}
-          onChange={(v) => setTipoFilter(v || 'todos')}
-        />
-      </Group>
+          <Select
+            placeholder="Tipo de transacción"
+            leftSection={<Filter size={16} />}
+            data={[
+              { value: 'todos', label: 'Todas' },
+              { value: 'GANAR', label: 'Ganancias' },
+              { value: 'GASTAR', label: 'Gastos' },
+            ]}
+            value={tipoFilter}
+            onChange={handleTipoFilterChange}
+            clearable
+          />
 
-      {/* tabla */}
-      <ScrollArea h={300}>
-        <Table highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Usuario</Table.Th>
-              <Table.Th>Tipo</Table.Th>
-              <Table.Th>Cantidad</Table.Th>
-              <Table.Th>Tipo Punto</Table.Th>
-              <Table.Th>Descripción</Table.Th>
-              <Table.Th>Fecha</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
+          <Select
+            placeholder="Origen"
+            leftSection={<Filter size={16} />}
+            data={origenesUnicos.map((origen) => ({
+              value: origen,
+              label: origen === 'todos' ? 'Todos los orígenes' : origen,
+            }))}
+            value={origenFilter}
+            onChange={handleOrigenFilterChange}
+            clearable
+          />
+        </Group>
 
-          <Table.Tbody>
-            {transaccionesPaginadas.length > 0 ? (
-              transaccionesPaginadas.map((tx, index) => (
-                <Table.Tr key={tx.transaccionId || `tx-${index}`}>
-                  <Table.Td>
-                    <Group gap="sm">
-                      <Avatar color="blue" radius="xl" size="sm">
-                        {tx.nombreUsuario.charAt(0)}
-                      </Avatar>
-                      <Text size="sm" fw={500}>
-                        {tx.nombreUsuario}
-                      </Text>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge
-                      color={tipoTransaccionColor[tx.tipoTransaccion]}
-                      variant="light"
-                      size="sm"
-                    >
-                      {tx.tipoTransaccion}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text
-                      fw={700}
-                      c={tx.cantidad > 0 ? 'green' : 'red'}
-                      size="sm"
-                    >
-                      {tx.cantidad > 0 ? '+' : ''}
-                      {tx.cantidad}
+        {/* Tabla */}
+        <ScrollArea>
+          <Table highlightOnHover striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>
+                  <Group gap="xs">
+                    <Calendar size={14} />
+                    <Text size="xs" fw={700}>
+                      Fecha
                     </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge variant="outline" size="sm">
-                      {tx.tipoPunto}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm" c="dimmed" lineClamp={2} w={220}>
-                      {tx.descripcion}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="xs" c="dimmed">
-                      {new Date(tx.fecha).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                  </Group>
+                </Table.Th>
+                <Table.Th>Tipo</Table.Th>
+                <Table.Th>Origen</Table.Th>
+                <Table.Th>Descripción</Table.Th>
+                <Table.Th ta="right">Cantidad</Table.Th>
+                <Table.Th ta="right">Balance</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+
+            <Table.Tbody>
+              {transaccionesPaginadas.length > 0 ? (
+                transaccionesPaginadas.map((tx) => {
+                  const fecha = new Date(tx.creadoEn);
+                  const fechaValida = !isNaN(fecha.getTime());
+
+                  return (
+                    <Table.Tr key={tx.id}>
+                      <Table.Td>
+                        <Stack gap={0}>
+                          <Text size="sm" fw={500}>
+                            {fechaValida
+                              ? fecha.toLocaleDateString('es-ES', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
+                              : 'Fecha inválida'}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {fechaValida
+                              ? fecha.toLocaleTimeString('es-ES', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : '--:--'}
+                          </Text>
+                        </Stack>
+                      </Table.Td>
+
+                      <Table.Td>
+                        <Badge
+                          color={tipoTransaccionColor[tx.tipoTransaccion]}
+                          variant="light"
+                          size="sm"
+                          leftSection={
+                            tx.tipoTransaccion === 'GANAR' ? (
+                              <TrendingUp size={12} />
+                            ) : (
+                              <TrendingDown size={12} />
+                            )
+                          }
+                        >
+                          {tx.tipoTransaccion}
+                        </Badge>
+                      </Table.Td>
+
+                      <Table.Td>
+                        <Badge
+                          color={origenColors[tx.tipoOrigen] || 'gray'}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {tx.tipoOrigen || 'N/A'}
+                        </Badge>
+                      </Table.Td>
+
+                      <Table.Td>
+                        <Tooltip label={tx.descripcion} multiline w={300}>
+                          <Text size="sm" lineClamp={2} maw={300}>
+                            {tx.descripcion}
+                          </Text>
+                        </Tooltip>
+                      </Table.Td>
+
+                      <Table.Td ta="right">
+                        <Text
+                          fw={700}
+                          c={tx.tipoTransaccion === 'GANAR' ? 'green' : 'red'}
+                          size="sm"
+                        >
+                          {tx.tipoTransaccion === 'GANAR' ? '+' : '-'}
+                          {Math.abs(tx.cantidad).toLocaleString()}
+                        </Text>
+                      </Table.Td>
+
+                      <Table.Td ta="right">
+                        <Text size="sm" fw={500} c="blue">
+                          {tx.balanceDespues.toLocaleString()}
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })
+              ) : (
+                <Table.Tr>
+                  <Table.Td colSpan={6}>
+                    <Text ta="center" c="dimmed" py="xl">
+                      No se encontraron transacciones con los filtros aplicados
                     </Text>
                   </Table.Td>
                 </Table.Tr>
-              ))
-            ) : (
-              <Table.Tr>
-                <Table.Td colSpan={6}>
-                  <Text ta="center" c="dimmed" py="xl">
-                    No se encontraron transacciones
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
-      </ScrollArea>
+              )}
+            </Table.Tbody>
+          </Table>
+        </ScrollArea>
 
-      {/* paginación */}
-      <Pagination mt="md" total={totalPages} value={page} onChange={setPage} />
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <Group justify="space-between" mt="md">
+            <Text size="sm" c="dimmed">
+              Página {page} de {totalPages}
+            </Text>
+            <Pagination
+              total={totalPages}
+              value={page}
+              onChange={setPage}
+              size="sm"
+            />
+          </Group>
+        )}
+      </Stack>
     </Card>
   );
 };

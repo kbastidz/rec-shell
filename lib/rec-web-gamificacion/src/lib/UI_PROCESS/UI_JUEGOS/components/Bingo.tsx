@@ -18,7 +18,10 @@ import {
   Loader,
   Alert,
   Center,
+  List,
+  ThemeIcon,
 } from '@mantine/core';
+import { IconCheck, IconSchool, IconTrophy, IconStars, IconClock, IconBulb } from '@tabler/icons-react';
 
 import { CrearTransaccionDTO } from '../../../types/dto';
 import { ST_GET_USER_ID } from '../../../utils/utilidad';
@@ -26,7 +29,6 @@ import { TipoTransaccion } from '../../../enums/Enums';
 import { useTransaccionPuntos } from '../hooks/useGamificacion';
 import { ACCIONES_BASE, promptTemplateBingo } from '../../../utils/CONSTANTE';
 import { useGemini } from '@rec-shell/rec-web-shared';
-
 
 const MATERIAS = {
   ESPANOL: { nombre: 'Español', color: '#e74c3c', icon: '📚' },
@@ -70,11 +72,9 @@ function generarTablero(acciones: AccionesGeneradas): Casilla[] {
   const materiasKeys: MateriaKey[] = ['ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', 'ARTES'];
   
   for (let i = 0; i < 25; i++) {
-    // Seleccionar una materia aleatoria
     const materiaKey = materiasKeys[Math.floor(Math.random() * materiasKeys.length)];
     const accionesMateria = acciones[materiaKey] || [];
     
-    // Seleccionar una acción aleatoria de esa materia
     const accion = accionesMateria.length > 0
       ? accionesMateria[Math.floor(Math.random() * accionesMateria.length)]
       : 'Acción pendiente';
@@ -147,6 +147,7 @@ export function Bingo() {
   const [cargandoActividades, setCargandoActividades] = useState(false);
   const [errorIA, setErrorIA] = useState<string | null>(null);
   const [bingoIniciado, setBingoIniciado] = useState(false);
+  const [mostrarPantallaInicial, setMostrarPantallaInicial] = useState(true);
 
   //Hook para invocar las reglas del juego
   useEffect(() => {
@@ -163,7 +164,8 @@ export function Bingo() {
       console.log('✅ Regla cargada:', regla);
     }
   }, [regla]);
-  
+
+  // Configurar useGemini pero NO llamarlo automáticamente
   const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
     temperature: 0.8,
     maxTokens: 8000,
@@ -200,16 +202,31 @@ export function Bingo() {
           setAccionesGeneradas(accionesIA);
           sessionStorage.setItem(`acciones_bingo_${usuarioId}`, JSON.stringify(accionesIA));
           setErrorIA(null);
+          
+          // Ocultar pantalla inicial y generar tablero
+          setMostrarPantallaInicial(false);
+          setBingoIniciado(true);
+          setTablero(generarTablero(accionesIA));
         } else {
           console.warn('⚠️ Respuesta incompleta de Gemini. Materias válidas:', materiasValidas.length);
           setAccionesGeneradas(ACCIONES_BASE);
           setErrorIA('Respuesta incompleta, usando actividades predefinidas');
+          
+          // Ocultar pantalla inicial y generar tablero con acciones base
+          setMostrarPantallaInicial(false);
+          setBingoIniciado(true);
+          setTablero(generarTablero(ACCIONES_BASE));
         }
       } catch (error) {
         console.error('❌ Error al procesar respuesta de Gemini:', error);
         console.log('Respuesta recibida:', result);
         setAccionesGeneradas(ACCIONES_BASE);
         setErrorIA('Error al generar actividades, usando predefinidas');
+        
+        // Ocultar pantalla inicial y generar tablero con acciones base
+        setMostrarPantallaInicial(false);
+        setBingoIniciado(true);
+        setTablero(generarTablero(ACCIONES_BASE));
       } finally {
         setCargandoActividades(false);
       }
@@ -219,6 +236,11 @@ export function Bingo() {
       setCargandoActividades(false);
       setAccionesGeneradas(ACCIONES_BASE);
       setErrorIA('No se pudo conectar con IA, usando actividades predefinidas');
+      
+      // Ocultar pantalla inicial y generar tablero con acciones base
+      setMostrarPantallaInicial(false);
+      setBingoIniciado(true);
+      setTablero(generarTablero(ACCIONES_BASE));
     }
   });
 
@@ -231,38 +253,19 @@ export function Bingo() {
         const acciones = JSON.parse(accionesGuardadas);
         setAccionesGeneradas(acciones);
         setBingoIniciado(true);
+        setMostrarPantallaInicial(false);
+        setTablero(generarTablero(acciones));
       } catch (error) {
         console.error('Error al cargar acciones guardadas:', error);
       }
     }
   }, [usuarioId]);
 
-  // Generar tablero cuando las acciones estén listas
-  useEffect(() => {
-    if (accionesGeneradas && tablero.length === 0) {
-      setTablero(generarTablero(accionesGeneradas));
-    }
-  }, [accionesGeneradas, tablero.length]);
-
-  const iniciarBingoConIA = async () => {
-    setBingoIniciado(true);
-    setCargandoActividades(true);
-    
-    try {
-      await generateText(promptTemplateBingo);
-    } catch (error) {
-      console.error('Error al generar actividades:', error);
-      setAccionesGeneradas(ACCIONES_BASE);
-      setCargandoActividades(false);
-      setErrorIA('Error al generar actividades, usando predefinidas');
-    }
-  };
-
   // Efecto para detectar líneas completadas y bingo completo
   useEffect(() => {
     // Verificar que regla esté cargada
-    if (!regla) {
-      console.log('⏳ Esperando carga de regla...');
+    if (!regla || tablero.length === 0) {
+      console.log('⏳ Esperando carga de regla o tablero...');
       return;
     }
 
@@ -355,6 +358,27 @@ export function Bingo() {
     }
   }, [tablero, lineasCompletadas, insignias, regla, CREAR]);
 
+  const iniciarBingoConIA = async () => {
+    setCargandoActividades(true);
+    setErrorIA(null);
+    
+    try {
+      // Solo en este momento llamamos a la API de Gemini
+      await generateText(promptTemplateBingo);
+      // NOTA: La navegación a la pantalla del juego se maneja en onSuccess
+    } catch (error) {
+      console.error('Error al generar actividades:', error);
+      setCargandoActividades(false);
+      setErrorIA('Error al generar actividades, usando predefinidas');
+      
+      // Si falla, usar actividades base y mostrar juego
+      setAccionesGeneradas(ACCIONES_BASE);
+      setMostrarPantallaInicial(false);
+      setBingoIniciado(true);
+      setTablero(generarTablero(ACCIONES_BASE));
+    }
+  };
+
   const abrirModal = (casilla: Casilla) => {
     setCasillaSeleccionada(casilla);
     setModalAbierto(true);
@@ -421,21 +445,23 @@ export function Bingo() {
     setLineasCompletadas([]);
     setInsignias([]);
     setErrorIA(null);
-    iniciarBingoConIA();
-    setNotificacion({ mensaje: '🎲 Generando nuevo tablero...', color: 'blue' });
+    setMostrarPantallaInicial(true);
+    setBingoIniciado(false);
+    setNotificacion({ mensaje: '🎲 Volviendo a la pantalla inicial...', color: 'blue' });
     setTimeout(() => setNotificacion(null), 2000);
   };
 
-  // Pantalla inicial si no ha iniciado el bingo
-  if (!bingoIniciado) {
+  // Pantalla inicial con reglas del juego
+  if (mostrarPantallaInicial) {
     return (
       <Container size="xl" py="xl">
         <Center style={{ minHeight: '60vh' }}>
-          <Paper shadow="lg" p="xl" style={{ maxWidth: 600, textAlign: 'center' }}>
+          <Paper shadow="lg" p="xl" style={{ maxWidth: 800, textAlign: 'center' }}>
             <Stack gap="xl">
               <div style={{ fontSize: '5rem' }}>
                 <span role="img" aria-label="dice">🎲</span>
               </div>
+              
               <Title order={1} style={{ 
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 WebkitBackgroundClip: 'text',
@@ -443,32 +469,108 @@ export function Bingo() {
               }}>
                 Bingo Educativo Semanal
               </Title>
+              
               <Text size="lg" c="dimmed">
-                Completa actividades de diferentes materias, forma líneas y gana puntos. 
-                ¡La IA generará actividades personalizadas para ti!
+                ¡Completa actividades educativas y gana puntos! La IA generará un tablero personalizado para ti.
               </Text>
               
-              <Stack gap="sm">
-                <Paper p="sm" bg="blue.0">
-                  <Text size="sm" fw={500}>✨ Actividades personalizadas con IA</Text>
-                </Paper>
-                <Paper p="sm" bg="green.0">
-                  <Text size="sm" fw={500}>🏆 Gana puntos por líneas completadas</Text>
-                </Paper>
-                <Paper p="sm" bg="yellow.0">
-                  <Text size="sm" fw={500}>📚 5 materias diferentes</Text>
-                </Paper>
+              {/* Card de Reglas del Juego */}
+              <Card shadow="md" p="lg" radius="lg" withBorder>
+                <Title order={2} mb="md" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <IconSchool />
+                  Reglas del Juego
+                </Title>
+                
+                <Stack gap="md">
+                  <List
+                    spacing="sm"
+                    size="sm"
+                    center
+                    icon={
+                      <ThemeIcon color="blue" size={24} radius="xl">
+                        <IconCheck size="1rem" />
+                      </ThemeIcon>
+                    }
+                  >
+                    <List.Item icon={<IconBulb size={20} />}>
+                      <Text fw={500}>Actividades Personalizadas</Text>
+                      <Text size="sm" c="dimmed">La IA genera actividades específicas para cada materia</Text>
+                    </List.Item>
+                    
+                    <List.Item icon={<IconStars size={20} />}>
+                      <Text fw={500}>Tablero 5x5</Text>
+                      <Text size="sm" c="dimmed">25 casillas con 5 materias diferentes</Text>
+                    </List.Item>
+                    
+                    <List.Item icon={<IconTrophy size={20} />}>
+                      <Text fw={500}>Sistema de Puntos</Text>
+                      <Text size="sm" c="dimmed">
+                        • {regla?.puntosOtorgados || 'X'} pts por casilla completada
+                        <br />
+                        • Bonus por líneas completadas
+                        <br />
+                        • Premio especial por bingo completo
+                      </Text>
+                    </List.Item>
+                    
+                    <List.Item icon={<IconClock size={20} />}>
+                      <Text fw={500}>Cómo Ganar</Text>
+                      <Text size="sm" c="dimmed">
+                        Completa casillas horizontal, vertical o diagonalmente para formar líneas
+                      </Text>
+                    </List.Item>
+                    
+                    <List.Item>
+                      <Text fw={500}>Evidencia Requerida</Text>
+                      <Text size="sm" c="dimmed">
+                        Debes subir una descripción o archivo como evidencia al completar una casilla
+                      </Text>
+                    </List.Item>
+                  </List>
+                  
+                  <Paper p="md" bg="blue.0" mt="md">
+                    <Group justify="center">
+                      <IconTrophy color="orange" />
+                      <Text size="sm" fw={500}>
+                        ¡Completa el tablero entero para un premio especial!
+                      </Text>
+                    </Group>
+                  </Paper>
+                </Stack>
+              </Card>
+              
+              {/* Botón para iniciar con IA */}
+              <Stack gap="sm" mt="lg">
+                <Button 
+                  size="xl" 
+                  onClick={iniciarBingoConIA}
+                  gradient={{ from: 'grape', to: 'violet', deg: 90 }}
+                  variant="gradient"
+                  loading={cargandoActividades}
+                  leftSection={<IconStars size={24} />}
+                >
+                  {cargandoActividades ? 'Generando actividades con IA...' : '🚀 Iniciar Bingo con IA'}
+                </Button>
+                
+                <Button 
+                  size="md" 
+                  onClick={() => {
+                    setAccionesGeneradas(ACCIONES_BASE);
+                    setMostrarPantallaInicial(false);
+                    setBingoIniciado(true);
+                    setTablero(generarTablero(ACCIONES_BASE));
+                  }}
+                  variant="light"
+                >
+                  Usar actividades predefinidas
+                </Button>
+                
+                {cargandoActividades && (
+                  <Alert color="blue" title="Generando contenido" icon={<IconBulb />}>
+                    <Text size="sm">Creando actividades personalizadas con inteligencia artificial...</Text>
+                  </Alert>
+                )}
               </Stack>
-
-              <Button 
-                size="xl" 
-                onClick={iniciarBingoConIA}
-                gradient={{ from: 'grape', to: 'violet', deg: 90 }}
-                variant="gradient"
-                style={{ marginTop: '1rem' }}
-              >
-                🚀 Iniciar Bingo Educativo
-              </Button>
             </Stack>
           </Paper>
         </Center>
@@ -476,15 +578,18 @@ export function Bingo() {
     );
   }
 
-  // Mostrar loading mientras se cargan las actividades
+  // Mostrar loading mientras se cargan las actividades (durante la transición)
   if (cargandoActividades) {
     return (
       <Container size="xl" py="xl">
-        <Paper shadow="sm" p="xl" style={{ textAlign: 'center' }}>
-          <Loader size="xl" mb="md" />
-          <Title order={3} mb="xs">Generando tu Bingo Educativo...</Title>
-          <Text c="dimmed">Estamos creando actividades personalizadas para ti</Text>
-        </Paper>
+        <Center style={{ minHeight: '60vh' }}>
+          <Stack align="center" gap="lg">
+            <Loader size="xl" mb="md" />
+            <Title order={3} mb="xs">Generando tu Bingo Educativo...</Title>
+            <Text c="dimmed">La IA está creando actividades personalizadas para ti</Text>
+            <Text size="sm" c="blue">Esto puede tomar unos segundos</Text>
+          </Stack>
+        </Center>
       </Container>
     );
   }
@@ -516,11 +621,7 @@ export function Bingo() {
           </Group>
         </Paper>
 
-        {errorIA && (
-          <Alert color="yellow" title="Modo offline" icon="⚠️">
-            {errorIA}
-          </Alert>
-        )}
+       
 
         {notificacion && (
           <Notification 
@@ -535,7 +636,7 @@ export function Bingo() {
         <Card shadow="sm" padding="lg">
           <Group justify="space-between" mb="md">
             <Text fw={600}>Progreso: {completadas}/25 casillas</Text>
-            <Button onClick={reiniciarBingo} variant="light" color="grape" loading={cargandoActividades}>
+            <Button onClick={reiniciarBingo} variant="light" color="grape">
               <span role="img" aria-label="recargar">🔄</span> Nuevo Tablero Semanal
             </Button>
           </Group>

@@ -38,6 +38,7 @@ import {
   ActionButtons,
   DeleteConfirmModal,
   NOTIFICATION_MESSAGES,
+  PaginatedTable,
   PaginationControls,
   useNotifications,
   usePagination,
@@ -647,25 +648,40 @@ export const MonitoreoAdmin: React.FC = () => {
     clearError();
   };
 
-  // Ref Paginacion Global
-  const lista = Array.isArray(parametros) ? parametros : [];
-  const {
-    currentPage,
-    totalPages,
-    paginatedData,
-    setPage,
-    setItemsPerPage,
-    itemsPerPage,
-    startIndex,
-    endIndex,
-    totalItems,
-    searchTerm,
-    setSearchTerm,
-  } = usePagination({
-    data: lista,
-    itemsPerPage: 5,
-    searchFields: ['nombreCultivo', 'fechaMedicion', 'fuenteDatos'],
-  });
+  //Columnas Dinamica Ini
+  const columns = [
+    { key: 'nombreCultivo', label: 'Cultivo' },
+    { key: 'fechaMedicion', label: 'Fecha' },
+    {
+      key: 'temperatura',
+      label: 'Temperatura',
+      render: (p: ParametroMonitoreo) => p.temperatura ? `${p.temperatura}°C` : '-'
+    },
+    {
+      key: 'humedadSuelo',
+      label: 'Humedad Suelo',
+      render: (p: ParametroMonitoreo) => p.humedadSuelo ? `${p.humedadSuelo}%` : '-'
+    },
+    {
+      key: 'phSuelo',
+      label: 'pH',
+      render: (p: ParametroMonitoreo) => p.phSuelo ? p.phSuelo : '-'
+    },
+    {
+      key: 'fuenteDatos',
+      label: 'Fuente',
+      render: (p: ParametroMonitoreo) => (
+        <Badge variant="light" size="sm">{p.fuenteDatos}</Badge>
+      )
+    },
+  ];
+
+  const actions = [
+    { icon: <IconEye size="1rem" />, label: 'Ver detalle', color: 'blue', onClick: handleView },
+    { icon: <IconEdit size="1rem" />, label: 'Editar', color: 'yellow', onClick: handleEdit },
+    { icon: <IconTrash size="1rem" />, label: 'Eliminar', color: 'red', onClick: handleDeleteClick },
+  ]; 
+  //Columnas Dinamica Fin
 
   if (error) {
     return (
@@ -692,112 +708,24 @@ export const MonitoreoAdmin: React.FC = () => {
               onClick={handleRefresh}
               loading={refreshing}
             />
-
             <ActionButtons.Modal onClick={handleCreate} />
           </Group>
         </Flex>
 
         <Card withBorder>
           <LoadingOverlay visible={loadingList} />
-
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Cultivo</Table.Th>
-                <Table.Th>Fecha</Table.Th>
-                <Table.Th>Temperatura</Table.Th>
-                <Table.Th>Humedad Suelo</Table.Th>
-                <Table.Th>pH</Table.Th>
-                <Table.Th>Fuente</Table.Th>
-                <Table.Th>Acciones</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {paginatedData.map((parametro) => (
-                <Table.Tr key={parametro.id}>
-                  <Table.Td>{parametro.nombreCultivo}</Table.Td>
-                  <Table.Td>{parametro.fechaMedicion}</Table.Td>
-                  <Table.Td>
-                    {parametro.temperatura ? `${parametro.temperatura}°C` : '-'}
-                  </Table.Td>
-                  <Table.Td>
-                    {parametro.humedadSuelo
-                      ? `${parametro.humedadSuelo}%`
-                      : '-'}
-                  </Table.Td>
-                  <Table.Td>
-                    {parametro.phSuelo ? parametro.phSuelo : '-'}
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge variant="light" size="sm">
-                      {parametro.fuenteDatos}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>
-                    <Group gap={4}>
-                      <Tooltip label="Ver detalle">
-                        <ActionIcon
-                          variant="light"
-                          color="blue"
-                          size="sm"
-                          onClick={() => handleView(parametro)}
-                        >
-                          <IconEye size="1rem" />
-                        </ActionIcon>
-                      </Tooltip>
-                      <Tooltip label="Editar">
-                        <ActionIcon
-                          variant="light"
-                          color="yellow"
-                          size="sm"
-                          onClick={() => handleEdit(parametro)}
-                        >
-                          <IconEdit size="1rem" />
-                        </ActionIcon>
-                      </Tooltip>
-                      <Tooltip label="Eliminar">
-                        <ActionIcon
-                          variant="light"
-                          color="red"
-                          size="sm"
-                          onClick={() => handleDeleteClick(parametro)}
-                        >
-                          <IconTrash size="1rem" />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Group>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-
-          {parametros.length === 0 && !loadingList && (
-            <Text ta="center" py="xl" c="dimmed">
-              {searchTerm
-                ? 'No se encontraron resultados para tu búsqueda'
-                : 'No se encontraron registros'}
-            </Text>
-          )}
-
-          {/* Ref paginacion Global - Controles de paginación */}
-          {lista.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={(value) =>
-                value && setItemsPerPage(Number(value))
-              }
-              startIndex={startIndex}
-              endIndex={endIndex}
-              totalItems={totalItems}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              searchPlaceholder="Buscar por código, nombre o nutriente..."
-            />
-          )}
+          {/* Columnas Dinamica Ini */}
+          <PaginatedTable
+            data={parametros}
+            columns={columns}
+            actions={actions}
+            loading={loadingList}
+            searchFields={['nombreCultivo', 'fechaMedicion', 'fuenteDatos']}
+            itemsPerPage={5}
+            searchPlaceholder="Buscar por cultivo, fecha o fuente..."
+            getRowKey={(item) => item.id}
+          />
+          {/* Columnas Dinamica Fin */}
         </Card>
       </Stack>
 

@@ -26,6 +26,8 @@ import { TransaccionPuntosAdmin } from './UI_PROCESS/UI_TRANSACIONPUNTOS/compone
 
 import { useOpciones } from '@rec-shell/rec-web-auth';
 import { OpcionDTO, ST_GET_ROLE_USER_ID } from '@rec-shell/rec-web-shared';
+import { DashboardAdmin } from './UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
+import { DashboardUser } from './UI_PROCESS/UI_DASHBOARD/components/DashboardUser';
 
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
@@ -41,6 +43,8 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   'regla-puntos': ReglaPuntosAdmin,
   'concialiacion': TransaccionPuntosAdmin,
   'juegos': Juegos,
+  'dashboard': DashboardAdmin,
+  'dashboard3': DashboardUser
 };
 
 const colorMap: Record<string, string> = {
@@ -53,6 +57,8 @@ const colorMap: Record<string, string> = {
   'regla-puntos': 'orange',
   'concialiacion': 'red',
   'juegos': 'blue',
+  'dashboard': 'red',
+  'dashboard3': 'red',
 };
 
 export function MenuPagueM2({ onNavigate }: ComponentWithNavigation) {

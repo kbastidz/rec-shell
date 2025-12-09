@@ -4,7 +4,7 @@ class GeminiService {
   
   private API_URL = 'https://generativelanguage.googleapis.com/v1';
   
-  private API_KEY = `AIzaSyDV-0rbzyq4jvx2BhxjGy95gHiEngV_rMo`;
+  private API_KEY = `AIzaSyC7ZrIEg8z9jP9FjO3m6_eDiXbwcHvsajA`;
   private API_MODEL = 'gemini-2.5-flash';
 
   async generateText({
