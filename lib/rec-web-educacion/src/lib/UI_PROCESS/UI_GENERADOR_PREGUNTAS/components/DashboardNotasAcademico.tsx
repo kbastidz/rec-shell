@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Container,
   Tabs,
@@ -21,6 +21,7 @@ import {
   Divider,
   Box,
   ScrollArea,
+  Loader,
 } from '@mantine/core';
 import {
   IconTrendingUp,
@@ -34,116 +35,85 @@ import {
   IconUserExclamation,
   IconHome,
   IconBook,
+  IconEye,
+  IconEdit,
+  IconTrash,
 } from '@tabler/icons-react';
-
-// Tipos
-interface Trimestre {
-  t1: number;
-  t2: number;
-  t3: number;
-}
-
-interface Materia {
-  nombre: string;
-  trimestres: Trimestre;
-  promedioFinal: number;
-}
-
-interface Estudiante {
-  id: string;
-  no: number;
-  apellidos: string;
-  nombres: string;
-  materias: {
-    lenguaExtranjera: Materia;
-    educacionFisica: Materia;
-    educacionCulturalArtistica: Materia;
-    estudiosSociales: Materia;
-    cienciasNaturales: Materia;
-    matematica: Materia;
-    lenguaLiteratura: Materia;
-  };
-  acompanamientoIntegral: number;
-  animacionLectura: number;
-}
-
-// Función auxiliar
-const crearMateriaVacia = (nombre: string) => ({ nombre });
-
-// Datos mock
-const estudiantesMock: Estudiante[] = [
-  {
-    id: '1',
-    no: 1,
-    apellidos: 'García',
-    nombres: 'Ana',
-    materias: {
-      lenguaExtranjera: { ...crearMateriaVacia('Lengua Extranjera'), trimestres: { t1: 8.5, t2: 9.0, t3: 9.2 }, promedioFinal: 8.9 },
-      educacionFisica: { ...crearMateriaVacia('Educación Física'), trimestres: { t1: 9.0, t2: 9.5, t3: 9.8 }, promedioFinal: 9.4 },
-      educacionCulturalArtistica: { ...crearMateriaVacia('Educación Cultural y Artística'), trimestres: { t1: 8.0, t2: 8.5, t3: 9.0 }, promedioFinal: 8.5 },
-      estudiosSociales: { ...crearMateriaVacia('Estudios Sociales'), trimestres: { t1: 7.5, t2: 8.0, t3: 8.5 }, promedioFinal: 8.0 },
-      cienciasNaturales: { ...crearMateriaVacia('Ciencias Naturales'), trimestres: { t1: 8.0, t2: 8.5, t3: 8.8 }, promedioFinal: 8.4 },
-      matematica: { ...crearMateriaVacia('Matemática'), trimestres: { t1: 7.0, t2: 7.5, t3: 8.0 }, promedioFinal: 7.5 },
-      lenguaLiteratura: { ...crearMateriaVacia('Lengua y Literatura'), trimestres: { t1: 8.5, t2: 9.0, t3: 9.2 }, promedioFinal: 8.9 },
-    },
-    acompanamientoIntegral: 9,
-    animacionLectura: 8,
-  },
-  {
-    id: '2',
-    no: 2,
-    apellidos: 'Rodríguez',
-    nombres: 'Carlos',
-    materias: {
-      lenguaExtranjera: { ...crearMateriaVacia('Lengua Extranjera'), trimestres: { t1: 6.0, t2: 6.5, t3: 6.8 }, promedioFinal: 6.4 },
-      educacionFisica: { ...crearMateriaVacia('Educación Física'), trimestres: { t1: 8.0, t2: 8.5, t3: 8.8 }, promedioFinal: 8.4 },
-      educacionCulturalArtistica: { ...crearMateriaVacia('Educación Cultural y Artística'), trimestres: { t1: 7.0, t2: 7.2, t3: 7.5 }, promedioFinal: 7.2 },
-      estudiosSociales: { ...crearMateriaVacia('Estudios Sociales'), trimestres: { t1: 5.5, t2: 6.0, t3: 6.5 }, promedioFinal: 6.0 },
-      cienciasNaturales: { ...crearMateriaVacia('Ciencias Naturales'), trimestres: { t1: 6.0, t2: 6.5, t3: 6.8 }, promedioFinal: 6.4 },
-      matematica: { ...crearMateriaVacia('Matemática'), trimestres: { t1: 5.0, t2: 5.5, t3: 6.0 }, promedioFinal: 5.5 },
-      lenguaLiteratura: { ...crearMateriaVacia('Lengua y Literatura'), trimestres: { t1: 6.5, t2: 7.0, t3: 7.2 }, promedioFinal: 6.9 },
-    },
-    acompanamientoIntegral: 6,
-    animacionLectura: 7,
-  },
-];
+import { useEstudiantes } from '../hook/useEducacionNotas';
+import { Estudiante } from '../interfaces/interface';
+import { PaginatedTable } from '@rec-shell/rec-web-shared';
 
 export const DashboardNotasAcademico = () => {
+  const { estudiantes, loading, error, fetchEstudiantes } = useEstudiantes();
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<string | null>('todos');
 
-  // Cálculos y análisis
+  useEffect(() => {
+    fetchEstudiantes();
+  }, []);
+
+  // Filtrar estudiantes por curso
+  const filteredStudents = useMemo(() => {
+    if (selectedCourse === 'todos' || !selectedCourse) {
+      return estudiantes;
+    }
+    return estudiantes.filter(est => est.curso === selectedCourse);
+  }, [estudiantes, selectedCourse]);
+
+  // Función para obtener el promedio de historia de un estudiante
+  const getPromedioHistoria = (est: Estudiante) => {
+    return est.materias.historia.promedioFinal;
+  };
+
+  // Cálculos y análisis actualizados
   const analytics = useMemo(() => {
-    const totalEstudiantes = estudiantesMock.length;
+    const totalEstudiantes = filteredStudents.length;
     
-    // Calcular promedio general por estudiante
-    const estudiantesConPromedio = estudiantesMock.map(est => {
-      const materias = Object.values(est.materias);
-      const sumaPromedios = materias.reduce((acc, mat) => acc + mat.promedioFinal, 0);
-      const promedio = sumaPromedios / materias.length;
-      return { ...est, promedioGeneral: promedio };
-    });
+    if (totalEstudiantes === 0) {
+      return {
+        totalEstudiantes: 0,
+        promedioGeneral: "0.00",
+        tasaAprobacion: "0.0",
+        estudiantesRiesgo: 0,
+        sobresalientes: 0,
+        notables: 0,
+        insuficientes: 0,
+        promediosTrimestrales: { t1: 0, t2: 0, t3: 0 },
+        tendencia: 'stable',
+        cursosAnalisis: [],
+        estudiantesConPromedio: [],
+        estudiantesRiesgoDetalle: [],
+      };
+    }
 
-    // Promedios trimestrales globales
+    // Calcular promedio general por estudiante (solo historia)
+    const estudiantesConPromedio = filteredStudents.map(est => ({
+      ...est,
+      promedioGeneral: getPromedioHistoria(est),
+    }));
+
+    // Promedios trimestrales globales (solo historia)
     const promediosTrimestrales = { t1: 0, t2: 0, t3: 0 };
-    estudiantesMock.forEach(est => {
-      Object.values(est.materias).forEach(mat => {
-        promediosTrimestrales.t1 += mat.trimestres.t1;
-        promediosTrimestrales.t2 += mat.trimestres.t2;
-        promediosTrimestrales.t3 += mat.trimestres.t3;
-      });
+    filteredStudents.forEach(est => {
+      const historia = est.materias.historia;
+      promediosTrimestrales.t1 += historia.trimestres.t1;
+      promediosTrimestrales.t2 += historia.trimestres.t2;
+      promediosTrimestrales.t3 += historia.trimestres.t3;
     });
-    const totalCalificaciones = totalEstudiantes * 7;
-    promediosTrimestrales.t1 /= totalCalificaciones;
-    promediosTrimestrales.t2 /= totalCalificaciones;
-    promediosTrimestrales.t3 /= totalCalificaciones;
+    
+    promediosTrimestrales.t1 /= totalEstudiantes;
+    promediosTrimestrales.t2 /= totalEstudiantes;
+    promediosTrimestrales.t3 /= totalEstudiantes;
 
     // Tendencia
     let tendencia = 'stable';
-    const difT2T1 = promediosTrimestrales.t2 - promediosTrimestrales.t1;
-    const difT3T2 = promediosTrimestrales.t3 - promediosTrimestrales.t2;
-    const promedioMejora = (difT2T1 + difT3T2) / 2;
-    if (promedioMejora > 0.2) tendencia = 'up';
-    else if (promedioMejora < -0.2) tendencia = 'down';
+    if (totalEstudiantes > 0) {
+      const difT2T1 = promediosTrimestrales.t2 - promediosTrimestrales.t1;
+      const difT3T2 = promediosTrimestrales.t3 - promediosTrimestrales.t2;
+      const promedioMejora = (difT2T1 + difT3T2) / 2;
+      if (promedioMejora > 0.2) tendencia = 'up';
+      else if (promedioMejora < -0.2) tendencia = 'down';
+    }
 
     // Distribución
     const sobresalientes = estudiantesConPromedio.filter(e => e.promedioGeneral >= 9).length;
@@ -152,26 +122,28 @@ export const DashboardNotasAcademico = () => {
 
     // Promedio general
     const promedioGeneral = estudiantesConPromedio.reduce((acc, e) => acc + e.promedioGeneral, 0) / totalEstudiantes;
+    
     const tasaAprobacion = ((sobresalientes + notables) / totalEstudiantes) * 100;
+    
     const estudiantesRiesgo = insuficientes;
 
-    // Análisis por materia
-    const materiasList = ['lenguaExtranjera', 'educacionFisica', 'educacionCulturalArtistica', 
-                         'estudiosSociales', 'cienciasNaturales', 'matematica', 'lenguaLiteratura'];
-    
-    const materiasAnalisis = materiasList.map(key => {
-      const materiaKey = key as keyof Estudiante['materias'];
-      const calificaciones = estudiantesMock.map(e => e.materias[materiaKey].promedioFinal);
-      const promedio = calificaciones.reduce((a, b) => a + b, 0) / calificaciones.length;
+    // Análisis por curso - obtener cursos dinámicamente
+    const cursosUnicos = Array.from(new Set(filteredStudents.map(e => e.curso)));
+    const cursosAnalisis = cursosUnicos.map(curso => {
+      const estudiantesCurso = filteredStudents.filter(e => e.curso === curso);
+      const totalCurso = estudiantesCurso.length;
+
+      const calificaciones = estudiantesCurso.map(e => getPromedioHistoria(e));
+      const promedio = calificaciones.reduce((a, b) => a + b, 0) / totalCurso;
       const reprobados = calificaciones.filter(c => c < 7).length;
-      const porcentajeReprobacion = (reprobados / totalEstudiantes) * 100;
+      const porcentajeReprobacion = (reprobados / totalCurso) * 100;
       
       let estado = 'success';
       if (porcentajeReprobacion > 30) estado = 'danger';
       else if (porcentajeReprobacion > 15) estado = 'warning';
 
       return {
-        nombre: estudiantesMock[0].materias[materiaKey].nombre,
+        curso,
         promedio: promedio.toFixed(2),
         reprobados,
         porcentajeReprobacion: porcentajeReprobacion.toFixed(1),
@@ -183,14 +155,13 @@ export const DashboardNotasAcademico = () => {
     const estudiantesRiesgoDetalle = estudiantesConPromedio
       .filter(e => e.promedioGeneral < 7)
       .map(e => {
-        const materiasReprobadas = Object.values(e.materias).filter(m => m.promedioFinal < 7);
         let nivelRiesgo = 'medio';
         if (e.promedioGeneral < 5.5) nivelRiesgo = 'crítico';
         else if (e.promedioGeneral >= 6.5) nivelRiesgo = 'leve';
 
         return {
           ...e,
-          materiasReprobadas: materiasReprobadas.length,
+          materiasReprobadas: e.promedioGeneral < 7 ? 1 : 0,
           nivelRiesgo,
         };
       })
@@ -206,11 +177,116 @@ export const DashboardNotasAcademico = () => {
       insuficientes,
       promediosTrimestrales,
       tendencia,
-      materiasAnalisis,
+      cursosAnalisis,
       estudiantesConPromedio: estudiantesConPromedio.sort((a, b) => b.promedioGeneral - a.promedioGeneral),
       estudiantesRiesgoDetalle,
     };
-  }, []);
+  }, [filteredStudents]);
+
+  // FUNCIONES PARA MANEJO DE ACCIONES DE LA TABLA
+  const handleView = (estudiante: Estudiante) => {
+    console.log('Ver detalle de:', estudiante);
+    setSelectedStudent(estudiante.id.toString());
+  };
+
+  const handleEdit = (estudiante: Estudiante) => {
+    console.log('Editar:', estudiante);
+  };
+
+  const handleDelete = (estudiante: Estudiante) => {
+    console.log('Eliminar:', estudiante);
+  };
+
+  // Columnas Dinamica Ini
+ // Columnas Dinamica Ini
+const columns = [
+  { 
+    key: 'index', 
+    label: '#',
+    render: (item: any) => {
+      // Necesitamos obtener el índice de otra manera
+      // Como alternativa, podemos agregar una propiedad de índice a los datos
+      const posicion = (analytics.estudiantesConPromedio.findIndex(e => e.id === item.id) + 1) || 1;
+      return (
+        <Group gap="xs">
+          {posicion === 1 ? (
+            <ThemeIcon color="yellow" variant="light" size="sm">
+              <IconTrophy size={14} />
+            </ThemeIcon>
+          ) : (
+            <Text size="sm">{posicion}</Text>
+          )}
+        </Group>
+      );
+    }
+  },
+  { key: 'apellidos', label: 'Apellidos' },
+  { key: 'nombres', label: 'Nombres' },
+  { 
+    key: 'curso', 
+    label: 'Curso',
+    render: (item: Estudiante) => (
+      <Badge variant="light">{item.curso}</Badge>
+    )
+  },
+  { 
+    key: 'promedioGeneral', 
+    label: 'Promedio Historia',
+    render: (item: any) => {
+      const promedio = item.promedioGeneral || getPromedioHistoria(item);
+      return (
+        <Text fw={700} c={promedio >= 9 ? 'teal' : promedio >= 7 ? 'blue' : 'red'}>
+          {promedio.toFixed(2)}
+        </Text>
+      );
+    }
+  },
+  { 
+    key: 'estado', 
+    label: 'Estado',
+    render: (item: any) => {
+      const promedio = item.promedioGeneral || getPromedioHistoria(item);
+      return (
+        <Badge
+          color={promedio >= 9 ? 'teal' : promedio >= 7 ? 'blue' : 'red'}
+          variant="light"
+        >
+          {promedio >= 9 ? 'Sobresaliente' : promedio >= 7 ? 'Aprobado' : 'En Riesgo'}
+        </Badge>
+      );
+    }
+  },
+];
+
+// Columnas Dinamica Fin
+
+  
+  // Columnas Dinamica Fin
+
+  // Mostrar loading
+  if (loading) {
+    return (
+      <Container size="xl" py="xl">
+        <Center h={400}>
+          <Stack align="center">
+            <Loader size="xl" />
+            <Text>Cargando estudiantes...</Text>
+          </Stack>
+        </Center>
+      </Container>
+    );
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <Container size="xl" py="xl">
+        <Alert color="red" title="Error" icon={<IconAlertTriangle />}>
+          {error}
+        </Alert>
+      </Container>
+    );
+  }
 
   // Tab 1: Resumen General
   const ResumenGeneral = () => (
@@ -272,9 +348,21 @@ export const DashboardNotasAcademico = () => {
                 size={220}
                 thickness={20}
                 sections={[
-                  { value: (analytics.sobresalientes / analytics.totalEstudiantes) * 100, color: 'teal', tooltip: 'Sobresalientes (9-10)' },
-                  { value: (analytics.notables / analytics.totalEstudiantes) * 100, color: 'blue', tooltip: 'Notables (7-8.9)' },
-                  { value: (analytics.insuficientes / analytics.totalEstudiantes) * 100, color: 'red', tooltip: 'Insuficientes (<7)' },
+                  { 
+                    value: analytics.totalEstudiantes > 0 ? (analytics.sobresalientes / analytics.totalEstudiantes) * 100 : 0, 
+                    color: 'teal', 
+                    tooltip: 'Sobresalientes (9-10)' 
+                  },
+                  { 
+                    value: analytics.totalEstudiantes > 0 ? (analytics.notables / analytics.totalEstudiantes) * 100 : 0, 
+                    color: 'blue', 
+                    tooltip: 'Notables (7-8.9)' 
+                  },
+                  { 
+                    value: analytics.totalEstudiantes > 0 ? (analytics.insuficientes / analytics.totalEstudiantes) * 100 : 0, 
+                    color: 'red', 
+                    tooltip: 'Insuficientes (<7)' 
+                  },
                 ]}
                 label={
                   <Center>
@@ -314,7 +402,7 @@ export const DashboardNotasAcademico = () => {
 
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
-            <Title order={4} mb="md">Evolución Trimestral</Title>
+            <Title order={4} mb="md">Evolución Trimestral - Historia</Title>
             <Stack gap="lg">
               <div>
                 <Group justify="space-between" mb="xs">
@@ -347,9 +435,9 @@ export const DashboardNotasAcademico = () => {
                 title="Tendencia"
                 color={analytics.tendencia === 'up' ? 'green' : analytics.tendencia === 'down' ? 'red' : 'gray'}
               >
-                {analytics.tendencia === 'up' && 'El rendimiento está mejorando'}
-                {analytics.tendencia === 'down' && 'El rendimiento está descendiendo'}
-                {analytics.tendencia === 'stable' && 'El rendimiento se mantiene estable'}
+                {analytics.tendencia === 'up' && 'El rendimiento en Historia está mejorando'}
+                {analytics.tendencia === 'down' && 'El rendimiento en Historia está descendiendo'}
+                {analytics.tendencia === 'stable' && 'El rendimiento en Historia se mantiene estable'}
               </Alert>
             </Stack>
           </Card>
@@ -358,29 +446,29 @@ export const DashboardNotasAcademico = () => {
     </Stack>
   );
 
-  // Tab 2: Por Materias
-  const PorMaterias = () => (
+  // Tab 2: Por Cursos
+  const PorCursos = () => (
     <Stack gap="lg">
       <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Title order={4} mb="md">Promedio por Materia</Title>
+        <Title order={4} mb="md">Promedio por Curso - Historia</Title>
         <Stack gap="md">
-          {analytics.materiasAnalisis.map((materia, idx) => (
+          {analytics.cursosAnalisis.map((curso, idx) => (
             <div key={idx}>
               <Group justify="space-between" mb="xs">
                 <Group gap="xs">
-                  <Text size="sm" fw={500}>{materia.nombre}</Text>
+                  <Text size="sm" fw={500}>Historia - {curso.curso}</Text>
                   <Badge
-                    color={materia.estado === 'success' ? 'green' : materia.estado === 'warning' ? 'yellow' : 'red'}
+                    color={curso.estado === 'success' ? 'green' : curso.estado === 'warning' ? 'yellow' : 'red'}
                     size="sm"
                   >
-                    {materia.estado === 'success' ? 'Estable' : materia.estado === 'warning' ? 'Atención' : 'Crítico'}
+                    {curso.estado === 'success' ? 'Estable' : curso.estado === 'warning' ? 'Atención' : 'Crítico'}
                   </Badge>
                 </Group>
-                <Text size="sm" fw={700}>{materia.promedio}</Text>
+                <Text size="sm" fw={700}>{curso.promedio}</Text>
               </Group>
               <Progress
-                value={(parseFloat(materia.promedio) / 10) * 100}
-                color={materia.estado === 'success' ? 'green' : materia.estado === 'warning' ? 'yellow' : 'red'}
+                value={(parseFloat(curso.promedio) / 10) * 100}
+                color={curso.estado === 'success' ? 'green' : curso.estado === 'warning' ? 'yellow' : 'red'}
                 size="lg"
               />
             </div>
@@ -389,22 +477,22 @@ export const DashboardNotasAcademico = () => {
       </Card>
 
       <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Title order={4} mb="md">Análisis de Dificultad</Title>
+        <Title order={4} mb="md">Comparativa entre Cursos</Title>
         <Stack gap="md">
-          {analytics.materiasAnalisis
+          {analytics.cursosAnalisis
             .sort((a, b) => parseFloat(b.porcentajeReprobacion) - parseFloat(a.porcentajeReprobacion))
-            .map((materia, idx) => (
+            .map((curso, idx) => (
               <Paper key={idx} p="md" withBorder>
                 <Group justify="space-between" mb="sm">
-                  <Text fw={500}>{materia.nombre}</Text>
-                  <Badge color={materia.estado === 'success' ? 'green' : materia.estado === 'warning' ? 'yellow' : 'red'}>
-                    {materia.reprobados} reprobados
+                  <Text fw={500}>Historia - {curso.curso}</Text>
+                  <Badge color={curso.estado === 'success' ? 'green' : curso.estado === 'warning' ? 'yellow' : 'red'}>
+                    {curso.reprobados} reprobados
                   </Badge>
                 </Group>
                 <Group gap="xs">
                   <Text size="sm" c="dimmed">Tasa de reprobación:</Text>
-                  <Text size="sm" fw={700} c={materia.estado === 'danger' ? 'red' : 'dark'}>
-                    {materia.porcentajeReprobacion}%
+                  <Text size="sm" fw={700} c={curso.estado === 'danger' ? 'red' : 'dark'}>
+                    {curso.porcentajeReprobacion}%
                   </Text>
                 </Group>
               </Paper>
@@ -417,51 +505,27 @@ export const DashboardNotasAcademico = () => {
   // Tab 3: Por Estudiantes
   const PorEstudiantes = () => {
     const selectedStudentData = selectedStudent 
-      ? analytics.estudiantesConPromedio.find(e => e.id === selectedStudent)
+      ? analytics.estudiantesConPromedio.find(e => e.id.toString() === selectedStudent)
       : null;
 
     return (
       <Stack gap="lg">
+        {/* Tabla paginada usando PaginatedTable */}
         <Card shadow="sm" padding="lg" radius="md" withBorder>
-          <Title order={4} mb="md">Ranking de Estudiantes</Title>
-          <ScrollArea h={400}>
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Posición</Table.Th>
-                  <Table.Th>Apellidos</Table.Th>
-                  <Table.Th>Nombres</Table.Th>
-                  <Table.Th>Promedio</Table.Th>
-                  <Table.Th>Estado</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {analytics.estudiantesConPromedio.map((est, idx) => (
-                  <Table.Tr key={est.id}>
-                    <Table.Td>
-                      {idx === 0 && <ThemeIcon color="yellow" variant="light" size="sm"><IconTrophy size={14} /></ThemeIcon>}
-                      {idx !== 0 && <Text size="sm">{idx + 1}</Text>}
-                    </Table.Td>
-                    <Table.Td>{est.apellidos}</Table.Td>
-                    <Table.Td>{est.nombres}</Table.Td>
-                    <Table.Td>
-                      <Text fw={700} c={est.promedioGeneral >= 9 ? 'teal' : est.promedioGeneral >= 7 ? 'blue' : 'red'}>
-                        {est.promedioGeneral.toFixed(2)}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge
-                        color={est.promedioGeneral >= 9 ? 'teal' : est.promedioGeneral >= 7 ? 'blue' : 'red'}
-                        variant="light"
-                      >
-                        {est.promedioGeneral >= 9 ? 'Sobresaliente' : est.promedioGeneral >= 7 ? 'Aprobado' : 'En Riesgo'}
-                      </Badge>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </ScrollArea>
+          <Title order={4} mb="md">Ranking de Estudiantes - Historia</Title>
+          
+          {/* Columnas Dinamica Ini */}
+          <PaginatedTable
+            data={analytics.estudiantesConPromedio}
+            columns={columns}
+            
+            loading={loading}
+            searchFields={['nombres', 'apellidos', 'curso']}
+            itemsPerPage={10}
+            searchPlaceholder="Buscar por nombre, apellido o curso..."
+            getRowKey={(item) => item.id.toString()}
+          />
+          {/* Columnas Dinamica Fin */}
         </Card>
 
         <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -470,8 +534,8 @@ export const DashboardNotasAcademico = () => {
             label="Selecciona un estudiante"
             placeholder="Elige un estudiante"
             data={analytics.estudiantesConPromedio.map(e => ({
-              value: e.id,
-              label: `${e.apellidos}, ${e.nombres}`,
+              value: e.id.toString(),
+              label: `${e.apellidos}, ${e.nombres} (${e.curso})`,
             }))}
             value={selectedStudent}
             onChange={setSelectedStudent}
@@ -489,7 +553,15 @@ export const DashboardNotasAcademico = () => {
                     <Text size="sm" fw={500}>{selectedStudentData.nombres} {selectedStudentData.apellidos}</Text>
                   </Group>
                   <Group justify="space-between">
-                    <Text size="sm" c="dimmed">Promedio General:</Text>
+                    <Text size="sm" c="dimmed">Número:</Text>
+                    <Text size="sm" fw={500}>{selectedStudentData.no}</Text>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm" c="dimmed">Curso:</Text>
+                    <Badge>{selectedStudentData.curso}</Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm" c="dimmed">Promedio Historia:</Text>
                     <Text size="sm" fw={700} c={selectedStudentData.promedioGeneral >= 9 ? 'teal' : selectedStudentData.promedioGeneral >= 7 ? 'blue' : 'red'}>
                       {selectedStudentData.promedioGeneral.toFixed(2)}
                     </Text>
@@ -507,16 +579,33 @@ export const DashboardNotasAcademico = () => {
 
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <Stack gap="xs">
-                  <Text size="sm" fw={700}>Calificaciones por Materia</Text>
+                  <Text size="sm" fw={700}>Calificaciones de Historia por Trimestre</Text>
                   <Divider />
-                  {Object.values(selectedStudentData.materias).map((materia, idx) => (
-                    <Group key={idx} justify="space-between">
-                      <Text size="sm">{materia.nombre}</Text>
-                      <Badge color={materia.promedioFinal >= 7 ? 'green' : 'red'}>
-                        {materia.promedioFinal.toFixed(1)}
-                      </Badge>
-                    </Group>
-                  ))}
+                  <Group justify="space-between">
+                    <Text size="sm">Trimestre 1</Text>
+                    <Badge color={selectedStudentData.materias.historia.trimestres.t1 >= 7 ? 'green' : 'red'}>
+                      {selectedStudentData.materias.historia.trimestres.t1.toFixed(1)}
+                    </Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Trimestre 2</Text>
+                    <Badge color={selectedStudentData.materias.historia.trimestres.t2 >= 7 ? 'green' : 'red'}>
+                      {selectedStudentData.materias.historia.trimestres.t2.toFixed(1)}
+                    </Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="sm">Trimestre 3</Text>
+                    <Badge color={selectedStudentData.materias.historia.trimestres.t3 >= 7 ? 'green' : 'red'}>
+                      {selectedStudentData.materias.historia.trimestres.t3.toFixed(1)}
+                    </Badge>
+                  </Group>
+                  <Divider />
+                  <Group justify="space-between">
+                    <Text size="sm" fw={700}>Promedio Final</Text>
+                    <Badge color={selectedStudentData.materias.historia.promedioFinal >= 7 ? 'green' : 'red'} size="lg">
+                      {selectedStudentData.materias.historia.promedioFinal.toFixed(1)}
+                    </Badge>
+                  </Group>
                 </Stack>
               </Grid.Col>
             </Grid>
@@ -530,17 +619,17 @@ export const DashboardNotasAcademico = () => {
   const AlertasRiesgos = () => (
     <Stack gap="lg">
       <Alert icon={<IconAlertTriangle size={20} />} title="Estudiantes que Requieren Atención" color="red" variant="light">
-        Hay {analytics.estudiantesRiesgoDetalle.length} estudiante(s) con rendimiento por debajo del nivel esperado
+        Hay {analytics.estudiantesRiesgoDetalle.length} estudiante(s) con rendimiento por debajo del nivel esperado en Historia
       </Alert>
 
       <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
-        {analytics.materiasAnalisis
-          .filter(m => m.estado === 'danger')
-          .map((materia, idx) => (
+        {analytics.cursosAnalisis
+          .filter(curso => curso.estado === 'danger')
+          .map((curso, idx) => (
             <Card key={idx} shadow="sm" padding="lg" radius="md" withBorder>
               <Stack gap="xs">
                 <Group justify="space-between">
-                  <Text size="sm" fw={700}>{materia.nombre}</Text>
+                  <Text size="sm" fw={700}>Historia - {curso.curso}</Text>
                   <ThemeIcon color="red" variant="light">
                     <IconAlertTriangle size={16} />
                   </ThemeIcon>
@@ -550,12 +639,12 @@ export const DashboardNotasAcademico = () => {
                     size={120}
                     thickness={12}
                     sections={[
-                      { value: parseFloat(materia.porcentajeReprobacion), color: 'red' },
+                      { value: parseFloat(curso.porcentajeReprobacion), color: 'red' },
                     ]}
                     label={
                       <Center>
                         <Stack gap={0} align="center">
-                          <Text size="xl" fw={700} c="red">{materia.porcentajeReprobacion}%</Text>
+                          <Text size="xl" fw={700} c="red">{curso.porcentajeReprobacion}%</Text>
                           <Text size="xs" c="dimmed">reprobados</Text>
                         </Stack>
                       </Center>
@@ -563,7 +652,7 @@ export const DashboardNotasAcademico = () => {
                   />
                 </Center>
                 <Text size="xs" c="dimmed" ta="center">
-                  {materia.reprobados} de {analytics.totalEstudiantes} estudiantes
+                  {curso.reprobados} de {analytics.totalEstudiantes} estudiantes
                 </Text>
               </Stack>
             </Card>
@@ -578,7 +667,7 @@ export const DashboardNotasAcademico = () => {
               <Group justify="space-between" mb="sm">
                 <div>
                   <Text fw={700}>{est.nombres} {est.apellidos}</Text>
-                  <Text size="sm" c="dimmed">Promedio: {est.promedioGeneral.toFixed(2)}</Text>
+                  <Text size="sm" c="dimmed">Curso: {est.curso} | Promedio: {est.promedioGeneral.toFixed(2)}</Text>
                 </div>
                 <Badge
                   size="lg"
@@ -591,19 +680,29 @@ export const DashboardNotasAcademico = () => {
               <Stack gap="xs">
                 <Group gap="xs">
                   <IconUserExclamation size={16} />
-                  <Text size="sm">Materias reprobadas: {est.materiasReprobadas}</Text>
+                  <Text size="sm">Historia: {est.materias.historia.promedioFinal.toFixed(1)}</Text>
                 </Group>
                 <Divider />
-                <Text size="sm" fw={500} mb="xs">Calificaciones por materia:</Text>
-                <SimpleGrid cols={2}>
-                  {Object.values(est.materias).map((materia, mIdx) => (
-                    <Group key={mIdx} justify="space-between">
-                      <Text size="xs" c="dimmed">{materia.nombre.substring(0, 20)}...</Text>
-                      <Badge size="sm" color={materia.promedioFinal >= 7 ? 'green' : 'red'}>
-                        {materia.promedioFinal.toFixed(1)}
-                      </Badge>
-                    </Group>
-                  ))}
+                <Text size="sm" fw={500} mb="xs">Calificaciones por trimestre:</Text>
+                <SimpleGrid cols={3}>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">T1</Text>
+                    <Badge size="sm" color={est.materias.historia.trimestres.t1 >= 7 ? 'green' : 'red'}>
+                      {est.materias.historia.trimestres.t1.toFixed(1)}
+                    </Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">T2</Text>
+                    <Badge size="sm" color={est.materias.historia.trimestres.t2 >= 7 ? 'green' : 'red'}>
+                      {est.materias.historia.trimestres.t2.toFixed(1)}
+                    </Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">T3</Text>
+                    <Badge size="sm" color={est.materias.historia.trimestres.t3 >= 7 ? 'green' : 'red'}>
+                      {est.materias.historia.trimestres.t3.toFixed(1)}
+                    </Badge>
+                  </Group>
                 </SimpleGrid>
               </Stack>
             </Paper>
@@ -613,23 +712,42 @@ export const DashboardNotasAcademico = () => {
 
       {analytics.estudiantesRiesgoDetalle.length === 0 && (
         <Alert icon={<IconCheck size={20} />} title="¡Excelente!" color="green" variant="light">
-          No hay estudiantes en riesgo académico en este momento.
+          No hay estudiantes en riesgo académico en Historia en este momento.
         </Alert>
       )}
     </Stack>
   );
 
+  // Obtener cursos únicos para el filtro
+  const cursosDisponibles = Array.from(new Set(estudiantes.map(e => e.curso)));
+
   return (
-    <Container size="xl" py="xl">
+    <Box size="xl" py="xl">
       <Stack gap="lg">
         <Group justify="space-between">
           <div>
-            <Title order={2}>Dashboard Académico</Title>
-            <Text size="sm" c="dimmed">Análisis del rendimiento académico</Text>
+            <Title order={2}>Dashboard de Historia</Title>
+            <Text size="sm" c="dimmed">Análisis del rendimiento en Historia</Text>
           </div>
-          <ThemeIcon size="xl" variant="light" color="blue">
-            <IconChartBar size={28} />
-          </ThemeIcon>
+          <Group>
+            <Select
+              label="Filtrar por curso"
+              placeholder="Todos los cursos"
+              data={[
+                { value: 'todos', label: 'Todos los cursos' },
+                ...cursosDisponibles.map(curso => ({
+                  value: curso,
+                  label: curso,
+                })),
+              ]}
+              value={selectedCourse}
+              onChange={setSelectedCourse}
+              w={200}
+            />
+            <ThemeIcon size="xl" variant="light" color="blue">
+              <IconChartBar size={28} />
+            </ThemeIcon>
+          </Group>
         </Group>
 
         <Tabs defaultValue="resumen" color="blue">
@@ -637,8 +755,8 @@ export const DashboardNotasAcademico = () => {
             <Tabs.Tab value="resumen" leftSection={<IconHome size={16} />}>
               Resumen
             </Tabs.Tab>
-            <Tabs.Tab value="materias" leftSection={<IconBook size={16} />}>
-              Por Materias
+            <Tabs.Tab value="cursos" leftSection={<IconBook size={16} />}>
+              Por Cursos
             </Tabs.Tab>
             <Tabs.Tab value="estudiantes" leftSection={<IconUsers size={16} />}>
               Por Estudiantes
@@ -652,8 +770,8 @@ export const DashboardNotasAcademico = () => {
             <ResumenGeneral />
           </Tabs.Panel>
 
-          <Tabs.Panel value="materias" pt="lg">
-            <PorMaterias />
+          <Tabs.Panel value="cursos" pt="lg">
+            <PorCursos />
           </Tabs.Panel>
 
           <Tabs.Panel value="estudiantes" pt="lg">
@@ -665,7 +783,6 @@ export const DashboardNotasAcademico = () => {
           </Tabs.Panel>
         </Tabs>
       </Stack>
-    </Container>
+    </Box>
   );
 };
-

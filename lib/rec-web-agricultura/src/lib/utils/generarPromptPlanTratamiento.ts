@@ -1,11 +1,12 @@
 import { AnalisisImagenMCHLDTO } from "../types/dto";
+import { AnalisisImagenYOLO_DTO } from "../types/yolo";
 
 /**
  * Genera el prompt para crear un plan de tratamiento agronómico
  * basado en el análisis de imagen de cultivo de cacao
  */
 export const generarPromptPlanTratamiento = (
-  analisis: AnalisisImagenMCHLDTO
+  analisis: AnalisisImagenYOLO_DTO
 ): string => {
   const analisisJSON = JSON.stringify(analisis, null, 2);
 

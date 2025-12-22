@@ -1,4 +1,3 @@
-// components/Dashboard.tsx
 import React, { useEffect, useState } from 'react';
 import { Container, Grid, Loader, Center, Title, Text, Alert, Paper } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
@@ -8,7 +7,7 @@ import { DistributionChart } from './DistributionChart';
 import { StudentsTable } from './StudentsTable';
 import { useDashboard } from '../hook/useDashboard';
 
-export function DashboardAdmin() {
+export function DashboardAdminM3() {
   const {
     loading,
     error,
@@ -31,9 +30,6 @@ export function DashboardAdmin() {
       }
 
       if (distribucionData) {
-        // Convertir Map a objeto para el componente
-        /*const distribucionObj = Object.fromEntries(distribucionData);
-        setDistribucion(distribucionObj);*/
         setDistribucion(distribucionData);
       }
     };

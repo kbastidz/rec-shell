@@ -1,0 +1,552 @@
+import React, { useState } from 'react';
+import {
+  Container,
+  Title,
+  Text,
+  Paper,
+  Button,
+  Group,
+  Stack,
+  Image,
+  Progress,
+  Card,
+  Loader,
+  Alert
+} from '@mantine/core';
+
+import { IconPhoto, IconLeaf, IconDeviceFloppy } from '@tabler/icons-react';
+import { useAnalisisImagen } from '../hook/useAgriculturaMchl';
+import { AnalisisImagenMCHLDTO } from '../../../types/dto';
+import { NOTIFICATION_MESSAGES, useGemini, useNotifications } from '@rec-shell/rec-web-shared';
+import { FALLBACK_DATA_YOLO, generarPromptRecomendaciones, generarPromptRecomendacionesYOLO } from '../../../utils/promp';
+import { register } from 'module';
+
+
+const API_URL = 'http://localhost:8000';
+
+// Datos de respaldo cuando la API no está disponible
+const FALLBACK_DATA = {
+  success: true,
+  data: {
+    deficiencia: "Nitrogeno",
+    confianza: 95.03,
+    probabilidades: {
+      Potasio: 1.4,
+      Nitrogeno: 95.03,
+      Fosforo: 3.57
+    }
+  },
+  archivo: "Imagen de WhatsApp 2025-10-31 a las 18.53.49_e8478295.jpg"
+};
+
+interface ResultData {
+  deficiencia: string;
+  confianza: number;
+  probabilidades: {
+    Potasio: number;
+    Nitrogeno: number;
+    Fosforo: number;
+  };
+}
+
+interface RecomendacionesType {
+  recomendaciones: {
+    tratamiento: string;
+    dosis: string;
+    frecuencia: string;
+  };
+}
+
+// Función auxiliar para manejar respuesta del modelo
+function handleModelResponse<T>({
+  text,
+  onParsed,
+  onError,
+  onFinally,
+}: {
+  text: string;
+  onParsed: (data: T) => void;
+  onError: (err: string) => void;
+  onFinally?: () => void;
+}) {
+  try {
+    let jsonText = text.trim();
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[1].trim();
+    } else {
+      const braceMatch = text.match(/\{[\s\S]*\}/);
+      if (braceMatch) {
+        jsonText = braceMatch[0];
+      }
+    }
+
+    const parsed = JSON.parse(jsonText) as T;
+    onParsed(parsed);
+  } catch (err) {
+    console.error('Error al parsear JSON:', err);
+    onError(err instanceof Error ? err.message : 'Error desconocido');
+  } finally {
+    onFinally?.();
+  }
+}
+
+export function Analisis() {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<ResultData | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [recomendaciones, setRecomendaciones] = useState('');
+  const [imagenBase64, setImagenBase64] = useState<string>('');
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const notifications = useNotifications();
+
+  const { 
+    loading: guardandoAnalisis, 
+    error: errorGuardar, 
+    REGISTRAR 
+  } = useAnalisisImagen();
+
+  //Gemini API Ini
+  const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
+    onSuccess: (text: string) =>
+      handleModelResponse<RecomendacionesType>({
+        text,
+        onParsed: (data) => {
+          const recomendacionesFormateadas = JSON.stringify(data.recomendaciones, null, 2);
+          setRecomendaciones(recomendacionesFormateadas);
+          setIsLoadingRecommendations(false);
+        },
+        onError: (err) => {
+          console.error('Error al parsear recomendaciones:', err);
+          const fallback = {
+            tratamiento: "Consultar con especialista agrícola",
+            dosis: "Por determinar",
+            frecuencia: "Por determinar"
+          };
+          setRecomendaciones(JSON.stringify(fallback, null, 2));
+          setIsLoadingRecommendations(false);
+        },
+        onFinally: () => {
+          console.log('✨ Finalizó el procesamiento de recomendaciones');
+        },
+      }),
+    onError: (err: string) => {
+      console.error('Error de Gemini:', err);
+      const fallback = {
+        tratamiento: "Error al generar recomendaciones",
+        dosis: "N/A",
+        frecuencia: "N/A"
+      };
+      setRecomendaciones(JSON.stringify(fallback, null, 2));
+      setIsLoadingRecommendations(false);
+    },
+  });
+
+  //Gemini API Ini
+  
+  const handleFileSelect = (file: File | null) => {
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      setResults(null);
+      setError(null);
+      setRecomendaciones('');
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagenBase64(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else if (file) {
+      setError('Por favor selecciona una imagen válida');
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  };
+
+  /*
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    setResults(null);
+    setError(null);
+    setRecomendaciones('');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const response = await fetch(`${API_URL}/predict`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      console.log('Resultados:', result);
+      
+      if (result.success) {
+        setResults(result.data);
+        
+        setIsLoadingRecommendations(true);
+        const prompt = generarPromptRecomendaciones(result.data);
+        await generateText(prompt);
+      } else {
+        setError('Error al procesar la imagen');
+      }
+    } catch (err) {
+      console.error('API no disponible, usando datos de fallback:', err);
+      
+      // Usar datos de fallback
+      setResults(FALLBACK_DATA.data);
+      
+      setIsLoadingRecommendations(true);
+      const prompt = generarPromptRecomendaciones(FALLBACK_DATA.data);
+      await generateText(prompt);
+    } finally {
+      setLoading(false);
+    }
+  };
+  */
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    setResults(null);
+    setError(null);
+    setRecomendaciones('');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      // Usa /predict/visual si quieres la imagen con cajas dibujadas
+      const response = await fetch(`${API_URL}/predict`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result: APIResponse = await response.json();
+      console.log('Resultados YOLO:', result);
+      
+      if (result.success) {
+        setResults(result.data);
+        
+        // Generar recomendaciones basadas en las detecciones
+        if (result.data.detecciones.length > 0) {
+          setIsLoadingRecommendations(true);
+          const prompt = generarPromptRecomendacionesYOLO(result.data);
+          await generateText(prompt);
+        } else {
+          setRecomendaciones('No se detectaron deficiencias en esta imagen. La hoja parece saludable.');
+        }
+      } else {
+        setError('Error al procesar la imagen');
+      }
+    } catch (err) {
+      console.error('Error en la API:', err);
+      setError('No se pudo conectar con el servidor');
+      
+      setResults(FALLBACK_DATA_YOLO.data);
+    } finally {
+      setLoading(false);
+    }
+  };
+ 
+  const handleGuardarAnalisis = async () => {
+    if (!results || !selectedFile) return;
+
+    let recomendacionesJSON: Record<string, any> = {};
+    
+    try {
+      if (recomendaciones.trim()) {
+        recomendacionesJSON = JSON.parse(recomendaciones);
+      }
+    } catch (err) {
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 'El formato JSON de recomendaciones es inválido');
+      return;
+    }
+
+    const analisisDTO: AnalisisImagenMCHLDTO = {
+      deficiencia: results.deficiencia,
+      confianza: results.confianza,
+      probabilidades: results.probabilidades,
+      archivo: selectedFile.name,
+      imagenBase64: imagenBase64,
+      fecha: new Date().toISOString().split('T')[0],
+      recomendaciones: recomendacionesJSON
+    };
+
+    const resultado = await REGISTRAR(analisisDTO);
+    
+    if (resultado) {
+      notifications.success();
+      
+      // Limpiar el contenido
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setResults(null);
+      setRecomendaciones('');
+      setImagenBase64('');
+      setError(null);
+    }
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      padding: '40px 20px'
+    }}>
+      <Container size="md">
+        <Paper
+          shadow="xl"
+          radius="xl"
+          p="xl"
+          style={{
+            background: 'white'
+          }}
+        >
+          <Stack gap="lg">
+            <div style={{ textAlign: 'center' }}>
+              <Group justify="center" gap="xs" mb="xs">
+                <IconLeaf size={32} color="#667eea" />
+                <Title order={1} size="h2">
+                  Detector de Deficiencias en Cacao
+                </Title>
+              </Group>
+              <Text size="sm" c="dimmed">
+                Sube una imagen de una hoja de cacao para detectar deficiencias nutricionales
+              </Text>
+            </div>
+
+            <Paper
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              style={{
+                borderWidth: 3,
+                borderStyle: 'dashed',
+                borderColor: isDragging ? '#5a67d8' : '#667eea',
+                borderRadius: '15px',
+                background: isDragging ? '#e8ebff' : '#f8f9ff',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                padding: '40px',
+                textAlign: 'center'
+              }}
+            >
+              <Stack align="center" gap="md">
+                <IconPhoto size={60} color="#667eea" />
+                <div>
+                  <Text size="lg" fw={500} mb={5}>
+                    Haz clic o arrastra una imagen aquí
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    Formatos soportados: JPG, JPEG, PNG
+                  </Text>
+                </div>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                  style={{ display: 'none' }}
+                  id="file-input"
+                />
+                <label htmlFor="file-input">
+                  <Button variant="light" size="md" component="span">
+                    Seleccionar archivo
+                  </Button>
+                </label>
+              </Stack>
+            </Paper>
+
+            {previewUrl && (
+              <Paper radius="md" withBorder p="md">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  radius="md"
+                  style={{ maxHeight: '300px', objectFit: 'contain' }}
+                />
+              </Paper>
+            )}
+
+            <Button
+              fullWidth
+              size="lg"
+              radius="xl"
+              disabled={!selectedFile || loading}
+              onClick={handleAnalyze}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                transition: 'transform 0.2s'
+              }}
+            >
+              {loading ? <Loader size="sm" color="white" /> : 'Analizar Imagen'}
+            </Button>
+
+            {error && (
+              <Alert color="red" title="Error" radius="md">
+                {error}
+              </Alert>
+            )}
+
+            {errorGuardar && (
+              <Alert color="red" title="Error al guardar" radius="md">
+                {errorGuardar}
+              </Alert>
+            )}
+
+            {errorGemini && (
+              <Alert color="orange" title="Error al generar recomendaciones" radius="md">
+                {errorGemini}
+              </Alert>
+            )}
+
+            {isLoadingRecommendations && (
+              <Alert color="blue" title="Generando recomendaciones" radius="md">
+                <Group gap="sm">
+                  <Loader size="sm" />
+                  <Text size="sm">Gemini está generando recomendaciones personalizadas...</Text>
+                </Group>
+              </Alert>
+            )}
+
+            {results && (
+              <Stack gap="md">
+                <Card
+                  radius="lg"
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    textAlign: 'center'
+                  }}
+                  p="xl"
+                >
+                  <Text size="sm" opacity={0.9} mb="xs">
+                    Deficiencia Detectada
+                  </Text>
+                  <Title order={2} mb="xs">
+                    {results.deficiencia}
+                  </Title>
+                  <Text size="md" opacity={0.9}>
+                    Confianza: {results.confianza}%
+                  </Text>
+                </Card>
+
+                <Paper radius="lg" p="xl" style={{ background: '#f8f9ff' }}>
+                  <Text fw={600} mb="lg" size="md">
+                    📊 Probabilidades Detalladas
+                  </Text>
+                  
+                  <Stack gap="md">
+                    <div>
+                      <Group justify="space-between" mb={5}>
+                        <Text size="sm">Potasio</Text>
+                        <Text size="sm" fw={600}>{results.probabilidades.Potasio}%</Text>
+                      </Group>
+                      <Progress
+                        value={results.probabilidades.Potasio}
+                        size="xl"
+                        radius="xl"
+                        styles={{
+                          root: { background: '#e0e0e0' },
+                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <Group justify="space-between" mb={5}>
+                        <Text size="sm">Nitrógeno</Text>
+                        <Text size="sm" fw={600}>{results.probabilidades.Nitrogeno}%</Text>
+                      </Group>
+                      <Progress
+                        value={results.probabilidades.Nitrogeno}
+                        size="xl"
+                        radius="xl"
+                        styles={{
+                          root: { background: '#e0e0e0' },
+                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <Group justify="space-between" mb={5}>
+                        <Text size="sm">Fósforo</Text>
+                        <Text size="sm" fw={600}>{results.probabilidades.Fosforo}%</Text>
+                      </Group>
+                      <Progress
+                        value={results.probabilidades.Fosforo}
+                        size="xl"
+                        radius="xl"
+                        styles={{
+                          root: { background: '#e0e0e0' },
+                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+                        }}
+                      />
+                    </div>
+                  </Stack>
+                </Paper>
+
+                {recomendaciones && !isLoadingRecommendations && (
+                  <Paper radius="lg" p="xl" style={{ background: '#e8fff5' }}>
+                    <Text fw={600} mb="md" size="md">
+                      🌱 Recomendaciones Generadas por IA
+                    </Text>
+                    <Paper p="md" radius="md" style={{ background: 'white' }}>
+                      <pre style={{ 
+                        margin: 0, 
+                        fontFamily: 'monospace', 
+                        fontSize: '12px',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word'
+                      }}>
+                        {recomendaciones}
+                      </pre>
+                    </Paper>
+                  </Paper>
+                )}
+
+                <Button
+                  fullWidth
+                  size="lg"
+                  radius="xl"
+                  onClick={handleGuardarAnalisis}
+                  disabled={guardandoAnalisis || isLoadingRecommendations || !recomendaciones}
+                  leftSection={<IconDeviceFloppy size={20} />}
+                  style={{
+                    background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                    transition: 'transform 0.2s'
+                  }}
+                >
+                  {guardandoAnalisis ? <Loader size="sm" color="white" /> : 'Guardar Análisis'}
+                </Button>
+              </Stack>
+            )}
+          </Stack>
+        </Paper>
+      </Container>
+    </div>
+  );
+}

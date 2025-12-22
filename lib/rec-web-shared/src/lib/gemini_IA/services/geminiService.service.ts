@@ -1,18 +1,21 @@
 import { GeminiRequest, GeminiResponse } from "../model/dominio";
 
 class GeminiService {
-  
+
+  //private API_URL = import.meta.env.VITE_API_URL_IA;
+  //private API_KEY = import.meta.env.VITE_API_KEY_IA;
+  //private API_MODEL = import.meta.env.VITE_API_MODEL_IA;
+
   private API_URL = 'https://generativelanguage.googleapis.com/v1';
-  
-  private API_KEY = `AIzaSyC7ZrIEg8z9jP9FjO3m6_eDiXbwcHvsajA`;
+  private API_KEY = 'AIzaSyD6Tm675FfOKRzMk0P_TBMSEVE_6X_S73U';
   private API_MODEL = 'gemini-2.5-flash';
 
   async generateText({
     prompt,
-    
     temperature = 0.7,
     maxTokens = 2048
   }: GeminiRequest): Promise<string> {
+
     if (!this.API_KEY) {
       throw new Error('API Key es requerida');
     }
@@ -21,23 +24,22 @@ class GeminiService {
       throw new Error('El prompt es requerido');
     }
 
-    
     const url = `${this.API_URL}/models/${this.API_MODEL}:generateContent?key=${this.API_KEY}`;
 
     const requestBody = {
-      
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }],
+      contents: [
+        {
+          parts: [
+            { text: prompt }
+          ]
+        }
+      ],
       generationConfig: {
         temperature,
         maxOutputTokens: maxTokens,
       }
     };
 
-    
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -50,13 +52,12 @@ class GeminiService {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.error?.message || 
-          `Error HTTP: ${response.status}`
+          errorData.error?.message || `Error HTTP: ${response.status}`
         );
       }
 
       const data: GeminiResponse = await response.json();
-      
+
       if (!data.candidates || data.candidates.length === 0) {
         throw new Error('No se recibió respuesta del modelo');
       }

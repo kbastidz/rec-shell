@@ -20,6 +20,7 @@ export * from './lib/utils/users.utils';
 export type { Role, RoleApiResponse } from './lib/types/role.types';
 
 export { useRoles } from './lib/hooks/useRoles';
+export { useGenericUsers } from './lib/hooks/useGenericUsers';
 
 export { RoleCard } from './lib/components/role/GET/RoleCard';
 export { RoleList } from './lib/components/role/GET/RoleList';

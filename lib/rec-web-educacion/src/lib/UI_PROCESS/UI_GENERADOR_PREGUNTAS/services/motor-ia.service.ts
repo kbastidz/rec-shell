@@ -1,3 +1,5 @@
+import { generateSummaryPrompt, GENERATION_CONFIGS, generateQuestionsPrompt } from "../../../utils/prompts.util";
+
 interface GeminiRequest {
   prompt: string;
   temperature?: number;
@@ -17,7 +19,7 @@ interface GeminiResponse {
 
 class GeminiService {
   private API_URL = 'https://generativelanguage.googleapis.com/v1';
-  private API_KEY = "" ; //"AIzaSyDYbVK9H0N-KbAv0pEqmkyfh-te5iPyhME";
+  private API_KEY = "AIzaSyD6Tm675FfOKRzMk0P_TBMSEVE_6X_S73U"; 
   private API_MODEL = 'gemini-2.5-flash';
 
   /**
@@ -52,7 +54,7 @@ class GeminiService {
       contents: [{
         parts: [
           {
-            text: "Por favor, analiza este documento PDF y genera un resumen completo que incluya:\n\n1. Tema principal del documento\n2. Puntos clave y conceptos importantes\n3. Conclusiones o resultados relevantes\n4. Cualquier dato o estadística significativa\n\nProporciona el resumen en español de forma clara y estructurada."
+            text: generateSummaryPrompt()
           },
           {
             inline_data: {
@@ -62,10 +64,7 @@ class GeminiService {
           }
         ]
       }],
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 8192,
-      }
+      generationConfig: GENERATION_CONFIGS.summary
     };
 
     try {
@@ -102,8 +101,10 @@ class GeminiService {
 
   /**
    * Genera preguntas de opción múltiple basadas en un resumen
+   * @param summary - El resumen del documento
+   * @param numberOfQuestions - Cantidad de preguntas a generar
    */
-  async generateQuestions(summary: string): Promise<string> {
+  async generateQuestions(summary: string, numberOfQuestions = 10): Promise<string> {
     if (!this.API_KEY) {
       throw new Error('API Key es requerida');
     }
@@ -111,44 +112,16 @@ class GeminiService {
       throw new Error('El resumen es requerido');
     }
 
-    const prompt = `
-Basándote en el siguiente resumen, genera exactamente 10 preguntas de opción múltiple.
-Para cada pregunta, proporciona 3 opciones: 1 correcta y 2 incorrectas.
-
-IMPORTANTE: Responde ÚNICAMENTE con un JSON válido en el siguiente formato, sin texto adicional antes o después:
-{
-  "preguntas": [
-    {
-      "pregunta": "texto de la pregunta",
-      "opciones": ["opción correcta", "opción incorrecta 1", "opción incorrecta 2"],
-      "respuestaCorrecta": 0
-    }
-  ]
-}
-
-REGLAS:
-- Genera exactamente 10 preguntas
-- Cada pregunta debe tener exactamente 3 opciones
-- La primera opción (índice 0) siempre debe ser la correcta
-- Las opciones incorrectas deben ser plausibles pero claramente incorrectas
-- Las preguntas deben cubrir diferentes aspectos del resumen
-- Usa un lenguaje claro y preciso
-
-Resumen:
-${summary}
-`;
-
+    const prompt = generateQuestionsPrompt(summary, numberOfQuestions);
     const url = `${this.API_URL}/models/${this.API_MODEL}:generateContent?key=${this.API_KEY}`;
+    
     const requestBody = {
       contents: [{
         parts: [{
           text: prompt
         }]
       }],
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 4096,
-      }
+      generationConfig: GENERATION_CONFIGS.questions
     };
 
     try {

@@ -9,6 +9,7 @@ export function ST_GET_USER_ID(): string {
   return userStr ? JSON.parse(userStr).id : ''; 
 }
 
+
 export const rarezaOptions = [
   { value: 'COMUN', label: 'Común' },
   { value: 'POCO_COMUN', label: 'Poco Común' },

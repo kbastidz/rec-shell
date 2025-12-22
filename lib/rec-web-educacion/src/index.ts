@@ -4,3 +4,4 @@ export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/DashboardNotas
 export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/Evaluacion';
 export * from './lib/UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/RecomendacionesAdmin';
 export * from './lib/MenuPagueM3';
+export * from './lib/UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';

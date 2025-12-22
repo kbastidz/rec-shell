@@ -269,7 +269,7 @@ const CultivoCard: React.FC<CultivoCardProps> = ({ cultivo, onVerDetalle }) => {
 };
 
 // Componente principal
-export const DashboardAdmin: React.FC = () => {
+export const DashboardAdminM1: React.FC = () => {
   const {
     resumen,
     estadisticasGenerales,

@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Title,
   Text,
-  Table,
   Badge,
   ActionIcon,
   Group,
@@ -20,7 +19,9 @@ import {
   Tooltip,
   Center,
   Loader,
-  Alert
+  Alert,
+  LoadingOverlay,
+  Flex,
 } from '@mantine/core';
 import {
   Eye,
@@ -30,11 +31,17 @@ import {
   Calendar,
   Check,
   X,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { useResultadosEvaluaciones } from '../hook/useEducacionEvaluacion';
 import { Respuesta, Resultado } from '../interfaces/dto';
 import { formatearTiempo, formatearFecha } from '../../../utils/utilidad';
+import { useGenericUsers } from '@rec-shell/rec-web-usuario';
+import {
+  PaginatedTable,
+  ActionButtons,
+  useNotifications,
+} from '@rec-shell/rec-web-shared';
 
 const EstadisticasGenerales = ({ resultado }: { resultado: Resultado }) => {
   const stats = [
@@ -42,26 +49,36 @@ const EstadisticasGenerales = ({ resultado }: { resultado: Resultado }) => {
       icon: Trophy,
       label: 'Puntuación',
       value: `${resultado.puntuacion_obtenida}/${resultado.puntuacion_maxima}`,
-      color: resultado.porcentaje_aciertos >= 70 ? 'green' : resultado.porcentaje_aciertos >= 50 ? 'yellow' : 'red'
+      color:
+        resultado.porcentaje_aciertos >= 70
+          ? 'green'
+          : resultado.porcentaje_aciertos >= 50
+          ? 'yellow'
+          : 'red',
     },
     {
       icon: BarChart3,
       label: 'Porcentaje',
       value: `${resultado.porcentaje_aciertos.toFixed(1)}%`,
-      color: resultado.porcentaje_aciertos >= 70 ? 'green' : resultado.porcentaje_aciertos >= 50 ? 'yellow' : 'red'
+      color:
+        resultado.porcentaje_aciertos >= 70
+          ? 'green'
+          : resultado.porcentaje_aciertos >= 50
+          ? 'yellow'
+          : 'red',
     },
     {
       icon: Clock,
       label: 'Tiempo Total',
       value: formatearTiempo(resultado.tiempo_total_segundos),
-      color: 'blue'
+      color: 'blue',
     },
     {
       icon: Calendar,
       label: 'Fecha',
       value: formatearFecha(resultado.fecha_realizacion),
-      color: 'violet'
-    }
+      color: 'violet',
+    },
   ];
 
   return (
@@ -99,11 +116,7 @@ const RespuestaDetalle = ({ respuesta }: { respuesta: Respuesta }) => {
             variant="filled"
             color={respuesta.es_correcta ? 'green' : 'red'}
             leftSection={
-              respuesta.es_correcta ? (
-                <Check size={14} />
-              ) : (
-                <X size={14} />
-              )
+              respuesta.es_correcta ? <Check size={14} /> : <X size={14} />
             }
           >
             Pregunta {respuesta.numero_pregunta}
@@ -123,10 +136,10 @@ const RespuestaDetalle = ({ respuesta }: { respuesta: Respuesta }) => {
         {respuesta.opciones.map((opcion, index) => {
           const esCorrecta = index === respuesta.respuesta_correcta;
           const fueSeleccionada = index === respuesta.respuesta_seleccionada;
-          
+
           let color = 'gray';
           let variant = 'light';
-          
+
           if (esCorrecta) {
             color = 'green';
             variant = 'filled';
@@ -141,11 +154,17 @@ const RespuestaDetalle = ({ respuesta }: { respuesta: Respuesta }) => {
               p="sm"
               withBorder
               style={{
-                borderColor: esCorrecta ? 'var(--mantine-color-green-6)' : 
-                            fueSeleccionada ? 'var(--mantine-color-red-6)' : undefined,
-                borderWidth: (esCorrecta || fueSeleccionada) ? 2 : 1,
-                backgroundColor: esCorrecta ? 'var(--mantine-color-green-0)' :
-                               fueSeleccionada ? 'var(--mantine-color-red-0)' : undefined
+                borderColor: esCorrecta
+                  ? 'var(--mantine-color-green-6)'
+                  : fueSeleccionada
+                  ? 'var(--mantine-color-red-6)'
+                  : undefined,
+                borderWidth: esCorrecta || fueSeleccionada ? 2 : 1,
+                backgroundColor: esCorrecta
+                  ? 'var(--mantine-color-green-0)'
+                  : fueSeleccionada
+                  ? 'var(--mantine-color-red-0)'
+                  : undefined,
               }}
             >
               <Group gap="xs">
@@ -187,10 +206,14 @@ interface DetalleResultadoModalProps {
   resultado: Resultado | null;
 }
 
-const DetalleResultadoModal = ({ opened, onClose, resultado }: DetalleResultadoModalProps) => {
+const DetalleResultadoModal = ({
+  opened,
+  onClose,
+  resultado,
+}: DetalleResultadoModalProps) => {
   if (!resultado) return null;
 
-  const correctas = resultado.respuestas.filter(r => r.es_correcta).length;
+  const correctas = resultado.respuestas.filter((r) => r.es_correcta).length;
   const total = resultado.respuestas.length;
 
   return (
@@ -265,18 +288,31 @@ const DetalleResultadoModal = ({ opened, onClose, resultado }: DetalleResultadoM
   );
 };
 
-export  function ConsultarEvaluacionesAdmin() {
-  const [selectedResultado, setSelectedResultado] = useState<Resultado | null>(null);
+export function ConsultarEvaluacionesAdmin() {
+  const [selectedResultado, setSelectedResultado] = useState<Resultado | null>(
+    null
+  );
   const [modalOpened, setModalOpened] = useState(false);
-  
-  // Simular el hook - reemplaza esto con tu hook real: useResultadosEvaluaciones()
-  /*const loading = false;
-  const error = null;
-  const resultados = resultadosMock;
-  const recargar = () => console.log('Recargando...');*/
+  const [refreshing, setRefreshing] = useState(false);
 
   const { loading, error, resultados, recargar } = useResultadosEvaluaciones();
+  const {
+    users,
+    loading: loadingUsers,
+    error: errorUsers,
+    fetchUsers,
+  } = useGenericUsers();
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const obtenerNombreCompleto = (id: number) => {
+    const usuario = users.find((u) => u.id === id);
+    return usuario
+      ? `${usuario.firstName} ${usuario.lastName}`
+      : 'Estudiante desconocido';
+  };
 
   const handleVerDetalle = (resultado: Resultado) => {
     setSelectedResultado(resultado);
@@ -288,7 +324,95 @@ export  function ConsultarEvaluacionesAdmin() {
     setSelectedResultado(null);
   };
 
-  if (loading) {
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await recargar();
+    } catch (error: unknown) {
+      console.error('Error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Definición de columnas dinámicas
+  const columns = [
+    {
+      key: 'estudiante_id',
+      label: 'Estudiante',
+      render: (r: Resultado) => (
+        <Text size="sm">{obtenerNombreCompleto(r.estudiante_id)}</Text>
+      ),
+    },
+    {
+      key: 'fecha_realizacion',
+      label: 'Fecha',
+      render: (r: Resultado) => (
+        <Text size="sm">
+          {new Date(r.fecha_realizacion).toLocaleDateString('es-ES')}
+        </Text>
+      ),
+    },
+    {
+      key: 'puntuacion_obtenida',
+      label: 'Puntuación',
+      render: (r: Resultado) => (
+        <Text size="sm" fw={500}>
+          {r.puntuacion_obtenida}/{r.puntuacion_maxima}
+        </Text>
+      ),
+    },
+    {
+      key: 'porcentaje_aciertos',
+      label: 'Porcentaje',
+      render: (r: Resultado) => (
+        <Badge
+          size="lg"
+          variant="filled"
+          color={
+            r.porcentaje_aciertos >= 70
+              ? 'green'
+              : r.porcentaje_aciertos >= 50
+              ? 'yellow'
+              : 'red'
+          }
+        >
+          {r.porcentaje_aciertos.toFixed(1)}%
+        </Badge>
+      ),
+    },
+    {
+      key: 'tiempo_total_segundos',
+      label: 'Tiempo',
+      render: (r: Resultado) => (
+        <Text size="sm">{formatearTiempo(r.tiempo_total_segundos)}</Text>
+      ),
+    },
+    {
+      key: 'estado',
+      label: 'Estado',
+      render: (r: Resultado) => (
+        <Badge
+          variant="light"
+          color={r.estado === 'completado' ? 'green' : 'gray'}
+        >
+          {r.estado}
+        </Badge>
+      ),
+    },
+  ];
+
+  // Definición de acciones
+  const actions = [
+    {
+      icon: <Eye size={18} />,
+      label: 'Ver detalle',
+      color: 'blue',
+      onClick: handleVerDetalle,
+    },
+  ];
+
+  if (loading && !refreshing) {
     return (
       <Center h={400}>
         <Stack align="center" gap="md">
@@ -302,12 +426,7 @@ export  function ConsultarEvaluacionesAdmin() {
   if (error) {
     return (
       <Container size="lg" py="xl">
-        <Alert
-          icon={<X size={16} />}
-          title="Error"
-          color="red"
-          variant="filled"
-        >
+        <Alert icon={<X size={16} />} title="Error" color="red" variant="filled">
           {error}
         </Alert>
       </Container>
@@ -316,119 +435,51 @@ export  function ConsultarEvaluacionesAdmin() {
 
   return (
     <Box p="md">
-      <Group justify="space-between" mb="xl">
-        <div>
-          <Title order={1} mb="xs">
-            Resultados de Evaluaciones
-          </Title>
-          <Text c="dimmed">
-            Consulta y analiza los resultados de tus evaluaciones
-          </Text>
-        </div>
-        <Tooltip label="Recargar resultados">
-          <ActionIcon
-            size="lg"
-            variant="light"
-            color="blue"
-            onClick={recargar}
-          >
-            <RefreshCw size={20} />
-          </ActionIcon>
-        </Tooltip>
-      </Group>
+      <Stack gap="md">
+        <Flex justify="space-between" align="center">
+          <div>
+            <Title order={1} mb="xs">
+              Resultados de Evaluaciones
+            </Title>
+            <Text c="dimmed">
+              Consulta y analiza los resultados de tus evaluaciones
+            </Text>
+          </div>
+          <ActionButtons.Refresh onClick={handleRefresh} loading={refreshing} />
+        </Flex>
 
-      {resultados.length === 0 ? (
-        <Paper p="xl" withBorder radius="md">
-          <Center>
-            <Stack align="center" gap="md">
-              <ThemeIcon size={60} radius="xl" variant="light" color="gray">
-                <BarChart3 size={30} />
-              </ThemeIcon>
-              <Text size="lg" fw={500} c="dimmed">
-                No hay resultados disponibles
-              </Text>
-              <Text size="sm" c="dimmed">
-                Los resultados de las evaluaciones aparecerán aquí
-              </Text>
-            </Stack>
-          </Center>
-        </Paper>
-      ) : (
-        <Paper shadow="sm" radius="md" withBorder>
-          <Table.ScrollContainer minWidth={800}>
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Estudiante</Table.Th>
-                  <Table.Th>Fecha</Table.Th>
-                  <Table.Th>Puntuación</Table.Th>
-                  <Table.Th>Porcentaje</Table.Th>
-                  <Table.Th>Tiempo</Table.Th>
-                  <Table.Th>Estado</Table.Th>
-                  <Table.Th>Acciones</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {resultados.map((resultado) => (
-                  <Table.Tr key={resultado.id}>
-                    
-                    <Table.Td>
-                      <Text size="sm">ID: {resultado.estudiante_id}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">
-                        {new Date(resultado.fecha_realizacion).toLocaleDateString('es-ES')}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" fw={500}>
-                        {resultado.puntuacion_obtenida}/{resultado.puntuacion_maxima}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge
-                        size="lg"
-                        variant="filled"
-                        color={
-                          resultado.porcentaje_aciertos >= 70
-                            ? 'green'
-                            : resultado.porcentaje_aciertos >= 50
-                            ? 'yellow'
-                            : 'red'
-                        }
-                      >
-                        {resultado.porcentaje_aciertos.toFixed(1)}%
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{formatearTiempo(resultado.tiempo_total_segundos)}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge
-                        variant="light"
-                        color={resultado.estado === 'completado' ? 'green' : 'gray'}
-                      >
-                        {resultado.estado}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Tooltip label="Ver detalle">
-                        <ActionIcon
-                          variant="light"
-                          color="blue"
-                          onClick={() => handleVerDetalle(resultado)}
-                        >
-                          <Eye size={18} />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </Table.ScrollContainer>
-        </Paper>
-      )}
+        {resultados.length === 0 ? (
+          <Paper p="xl" withBorder radius="md">
+            <Center>
+              <Stack align="center" gap="md">
+                <ThemeIcon size={60} radius="xl" variant="light" color="gray">
+                  <BarChart3 size={30} />
+                </ThemeIcon>
+                <Text size="lg" fw={500} c="dimmed">
+                  No hay resultados disponibles
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Los resultados de las evaluaciones aparecerán aquí
+                </Text>
+              </Stack>
+            </Center>
+          </Paper>
+        ) : (
+          <Card withBorder>
+            <LoadingOverlay visible={loading || refreshing} />
+            <PaginatedTable
+              data={resultados}
+              columns={columns}
+              actions={actions}
+              loading={loading || refreshing}
+              searchFields={['estudiante_id', 'estado']}
+              itemsPerPage={10}
+              searchPlaceholder="Buscar por estudiante o estado..."
+              getRowKey={(item) => item.id}
+            />
+          </Card>
+        )}
+      </Stack>
 
       <DetalleResultadoModal
         opened={modalOpened}

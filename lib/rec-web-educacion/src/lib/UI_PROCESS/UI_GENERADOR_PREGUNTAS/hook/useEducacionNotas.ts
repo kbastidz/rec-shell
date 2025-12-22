@@ -11,15 +11,16 @@ export const useEstudiantes = () => {
     try {
       setLoading(true);
       const data = await service.GET();
-      console.log('Estudiantes');
-      console.log(data);
       setEstudiantes(data);
+      console.log(data);
     } catch (err: any) {
       setError(err.message || 'Error al cargar estudiantes');
     } finally {
       setLoading(false);
     }
   };
+
+ 
 
   const saveEstudiante = async (
     estudiante: Estudiante,
@@ -38,22 +39,31 @@ export const useEstudiantes = () => {
       } else {
         data = await service.POST(estudiante);
       }
+      
+      // SOLUCIÓN: Actualizar solo el estudiante específico usando su ID único
       setEstudiantes((prev) => {
+        const estudianteId = estudiante.id || estudiante.identificador;
+        const dataId = data.id || data.identificador;
+        
         const existe = prev.some(
-          (e) => e.id === data.id || e.identificador === data.identificador
+          (e) => (e.id === estudianteId || e.identificador === estudianteId)
         );
+        
         if (existe) {
-          return prev.map((e) =>
-            e.id === data.id || e.identificador === data.identificador
-              ? data
-              : e
-          );
+          // Actualizar solo el estudiante que coincide exactamente
+          return prev.map((e) => {
+            const eId = e.id || e.identificador;
+            const matchId = eId === estudianteId || eId === dataId;
+            
+            return matchId ? { ...data } : e;
+          });
         } else {
-          return [...prev, data];
+          return [...prev, { ...data }];
         }
       });
     } catch (err: any) {
       setError(err.message || 'Error al guardar estudiante');
+      throw err; // Re-lanzar el error para manejarlo en el componente
     } finally {
       setLoading(false);
     }

@@ -26,7 +26,7 @@ import { TransaccionPuntosAdmin } from './UI_PROCESS/UI_TRANSACIONPUNTOS/compone
 
 import { useOpciones } from '@rec-shell/rec-web-auth';
 import { OpcionDTO, ST_GET_ROLE_USER_ID } from '@rec-shell/rec-web-shared';
-import { DashboardAdmin } from './UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
+import { DashboardAdminM2 } from './UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
 import { DashboardUser } from './UI_PROCESS/UI_DASHBOARD/components/DashboardUser';
 
 interface ComponentWithNavigation {
@@ -43,7 +43,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   'regla-puntos': ReglaPuntosAdmin,
   'concialiacion': TransaccionPuntosAdmin,
   'juegos': Juegos,
-  'dashboard': DashboardAdmin,
+  'dashboard': DashboardAdminM2,
   'dashboard3': DashboardUser
 };
 

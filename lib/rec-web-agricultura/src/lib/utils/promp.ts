@@ -1,3 +1,5 @@
+import { APIResponse, ResultDataYOLO } from "../types/yolo";
+
 // 1. Define la interfaz para los datos de entrada
 interface DiagnosticoData {
     deficiencia: 'Nitrogeno' | 'Fosforo' | 'Potasio' | string;
@@ -74,3 +76,89 @@ Debes devolver la información exclusivamente en el siguiente formato JSON, apli
 `;
     return prompt;
 }
+
+export const generarPromptRecomendacionesYOLO = (data: ResultDataYOLO): string => {
+  const { detecciones, estadisticas } = data;
+  
+  if (detecciones.length === 0) {
+    return "No se detectaron deficiencias";
+  }
+
+  // Obtener información de las detecciones
+  const deficienciasEncontradas = detecciones.map(d => d.deficiencia);
+  const deficienciasUnicas = [...new Set(deficienciasEncontradas)];
+  
+  let prompt = `Se detectaron ${estadisticas.total_detecciones} deficiencia(s) nutricional(es) en hojas de cacao:\n\n`;
+  
+  // Detallar cada tipo de deficiencia encontrada
+  deficienciasUnicas.forEach(deficiencia => {
+    const cantidad = estadisticas.por_tipo[deficiencia] || 0;
+    const deteccionesDeEsteTipo = detecciones.filter(d => d.deficiencia === deficiencia);
+    const confianzaPromedio = deteccionesDeEsteTipo.reduce((sum, d) => sum + d.confianza, 0) / cantidad;
+    
+    prompt += `- ${deficiencia}: ${cantidad} región(es) afectada(s) (confianza promedio: ${confianzaPromedio.toFixed(1)}%)\n`;
+  });
+  
+  prompt += `\nConfianza general: ${estadisticas.confianza_promedio.toFixed(1)}%\n\n`;
+  prompt += `Por favor, genera recomendaciones específicas y prácticas para cada deficiencia detectada, `;
+  prompt += `incluyendo tratamientos, fertilizantes recomendados y medidas preventivas.`;
+  
+  return prompt;
+};
+
+export const FALLBACK_DATA_YOLO: APIResponse = {
+  success: true,
+  data: {
+    es_valido: true,
+    mensaje: "Se detectaron 2 deficiencia(s) en la hoja",
+    tipo_alerta: "success",
+    detecciones: [
+      {
+        deficiencia: "Potasio",
+        confianza: 87.5,
+        bbox: {
+          x1: 100,
+          y1: 150,
+          x2: 300,
+          y2: 350,
+          ancho: 200,
+          alto: 200
+        },
+        area: 40000
+      },
+      {
+        deficiencia: "Nitrogeno",
+        confianza: 92.3,
+        bbox: {
+          x1: 400,
+          y1: 180,
+          x2: 600,
+          y2: 380,
+          ancho: 200,
+          alto: 200
+        },
+        area: 40000
+      }
+    ],
+    estadisticas: {
+      total_detecciones: 2,
+      deficiencias_unicas: 2,
+      confianza_promedio: 89.9,
+      confianza_maxima: 92.3,
+      por_tipo: {
+        "Potasio": 1,
+        "Nitrogeno": 1
+      }
+    },
+    metadata: {
+      dimensiones_imagen: {
+        ancho: 1920,
+        alto: 1080
+      },
+      umbral_confianza: 0.15,
+      umbral_iou: 0.60
+    }
+  },
+  archivo: "hoja_cacao.jpg",
+  timestamp: new Date().toISOString()
+};

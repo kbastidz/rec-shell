@@ -1,11 +1,11 @@
 import { AdminTemplate } from '@rec-shell/rec-web-layout';
-import { MenuUser, RoleManagement, UserManagement } from '@rec-shell/rec-web-usuario';
+import { MenuUser} from '@rec-shell/rec-web-usuario';
 import { AuthContainer, useAuth } from '@rec-shell/rec-web-auth';
 import { SimpleSessionExpiryModal } from '@rec-shell/rec-web-shared';
 import { useCallback, useMemo } from 'react';
-import { MenuPagueM1 } from '@rec-shell/rec-web-agricultura';
-import { MenuPagueM2 } from '@rec-shell/rec-web-gamificacion';
-import { MenuPagueM3 } from '@rec-shell/rec-web-educacion';
+import { DashboardAdminM1, MenuPagueM1 } from '@rec-shell/rec-web-agricultura';
+import { DashboardAdminM2, MenuPagueM2 } from '@rec-shell/rec-web-gamificacion';
+import { DashboardAdminM3, MenuPagueM3 } from '@rec-shell/rec-web-educacion';
 
 const ROLES = {
   ADMIN: 'ADMIN',
@@ -76,8 +76,9 @@ export function App() {
       <AdminTemplate 
         AdminUserComponent={listMenu.AdminUserComponent}
         AgriculturaComponent={listMenu.AgriculturaComponent}
-        GamificacionComponent={listMenu.GamificacionComponent}
+        //GamificacionComponent={listMenu.GamificacionComponent}
         EducacionComponent={listMenu.EducacionComponent}
+        LayoutDashboardComponent={DashboardAdminM2}
         onSignOut={signOut}
         userInfo={userInfo}
       />

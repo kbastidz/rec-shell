@@ -11,16 +11,38 @@ import {
   Progress,
   Card,
   Loader,
-  Alert
+  Alert,
+  Badge,
+  Box,
+  Grid,
 } from '@mantine/core';
 
-import { IconPhoto, IconLeaf, IconDeviceFloppy } from '@tabler/icons-react';
+import {
+  IconPhoto,
+  IconLeaf,
+  IconDeviceFloppy,
+  IconAlertCircle,
+  IconCircleCheck,
+  IconMapPin,
+} from '@tabler/icons-react';
 import { useAnalisisImagen } from '../hook/useAgriculturaMchl';
 import { AnalisisImagenMCHLDTO } from '../../../types/dto';
-import { NOTIFICATION_MESSAGES, useGemini, useNotifications } from '@rec-shell/rec-web-shared';
-import { generarPromptRecomendaciones } from '../../../utils/promp';
+import {
+  NOTIFICATION_MESSAGES,
+  useGemini,
+  useNotifications,
+} from '@rec-shell/rec-web-shared';
+import {
+  FALLBACK_DATA_YOLO,
+  generarPromptRecomendaciones,
+  generarPromptRecomendacionesYOLO,
+} from '../../../utils/promp';
 import { register } from 'module';
-
+import {
+  APIResponse,
+  construirAnalisisDTO,
+  ResultDataYOLO,
+} from '../../../types/yolo';
 
 const API_URL = 'http://localhost:8000';
 
@@ -28,15 +50,15 @@ const API_URL = 'http://localhost:8000';
 const FALLBACK_DATA = {
   success: true,
   data: {
-    deficiencia: "Nitrogeno",
+    deficiencia: 'Nitrogeno',
     confianza: 95.03,
     probabilidades: {
       Potasio: 1.4,
       Nitrogeno: 95.03,
-      Fosforo: 3.57
-    }
+      Fosforo: 3.57,
+    },
   },
-  archivo: "Imagen de WhatsApp 2025-10-31 a las 18.53.49_e8478295.jpg"
+  archivo: 'Imagen de WhatsApp 2025-10-31 a las 18.53.49_e8478295.jpg',
 };
 
 interface ResultData {
@@ -96,35 +118,44 @@ export function Analisis() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<ResultData | null>(null);
+  const [results, setResults] = useState<ResultDataYOLO | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [recomendaciones, setRecomendaciones] = useState('');
   const [imagenBase64, setImagenBase64] = useState<string>('');
-  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] =
+    useState(false);
   const notifications = useNotifications();
 
-  const { 
-    loading: guardandoAnalisis, 
-    error: errorGuardar, 
-    REGISTRAR 
+  const {
+    loading: guardandoAnalisis,
+    error: errorGuardar,
+    REGISTRAR,
   } = useAnalisisImagen();
 
   //Gemini API Ini
-  const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
+  const {
+    loading: loadingGemini,
+    error: errorGemini,
+    generateText,
+  } = useGemini({
     onSuccess: (text: string) =>
       handleModelResponse<RecomendacionesType>({
         text,
         onParsed: (data) => {
-          const recomendacionesFormateadas = JSON.stringify(data.recomendaciones, null, 2);
+          const recomendacionesFormateadas = JSON.stringify(
+            data.recomendaciones,
+            null,
+            2
+          );
           setRecomendaciones(recomendacionesFormateadas);
           setIsLoadingRecommendations(false);
         },
         onError: (err) => {
           console.error('Error al parsear recomendaciones:', err);
           const fallback = {
-            tratamiento: "Consultar con especialista agrícola",
-            dosis: "Por determinar",
-            frecuencia: "Por determinar"
+            tratamiento: 'Consultar con especialista agrícola',
+            dosis: 'Por determinar',
+            frecuencia: 'Por determinar',
           };
           setRecomendaciones(JSON.stringify(fallback, null, 2));
           setIsLoadingRecommendations(false);
@@ -136,9 +167,9 @@ export function Analisis() {
     onError: (err: string) => {
       console.error('Error de Gemini:', err);
       const fallback = {
-        tratamiento: "Error al generar recomendaciones",
-        dosis: "N/A",
-        frecuencia: "N/A"
+        tratamiento: 'Error al generar recomendaciones',
+        dosis: 'N/A',
+        frecuencia: 'N/A',
       };
       setRecomendaciones(JSON.stringify(fallback, null, 2));
       setIsLoadingRecommendations(false);
@@ -146,7 +177,7 @@ export function Analisis() {
   });
 
   //Gemini API Ini
-  
+
   const handleFileSelect = (file: File | null) => {
     if (file && file.type.startsWith('image/')) {
       setSelectedFile(file);
@@ -155,7 +186,7 @@ export function Analisis() {
       setResults(null);
       setError(null);
       setRecomendaciones('');
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagenBase64(reader.result as string);
@@ -182,6 +213,7 @@ export function Analisis() {
     if (file) handleFileSelect(file);
   };
 
+  /*
   const handleAnalyze = async () => {
     if (!selectedFile) return;
 
@@ -224,22 +256,79 @@ export function Analisis() {
       setLoading(false);
     }
   };
+  */
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
+
+    setLoading(true);
+    setResults(null);
+    setError(null);
+    setRecomendaciones('');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      // Usa /predict/visual si quieres la imagen con cajas dibujadas
+      const response = await fetch(`${API_URL}/predict`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result: APIResponse = await response.json();
+      console.log('Resultados YOLO:', result);
+
+      if (result.success) {
+        setResults(result.data);
+
+        // Generar recomendaciones basadas en las detecciones
+        if (result.data.detecciones.length > 0) {
+          setIsLoadingRecommendations(true);
+          const prompt = generarPromptRecomendacionesYOLO(result.data);
+          await generateText(prompt);
+        } else {
+          setRecomendaciones(
+            'No se detectaron deficiencias en esta imagen. La hoja parece saludable.'
+          );
+        }
+      } else {
+        setError('Error al procesar la imagen');
+      }
+    } catch (err) {
+      console.error('Error en la API:', err);
+      setError('No se pudo conectar con el servidor');
+      const fallback = {
+        tratamiento: 'Consultar con especialista agrícola',
+        dosis: 'Por determinar',
+        frecuencia: 'Por determinar',
+      };
+      setRecomendaciones(JSON.stringify(fallback, null, 2));
+
+      setResults(FALLBACK_DATA_YOLO.data);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGuardarAnalisis = async () => {
     if (!results || !selectedFile) return;
 
     let recomendacionesJSON: Record<string, any> = {};
-    
+
     try {
       if (recomendaciones.trim()) {
         recomendacionesJSON = JSON.parse(recomendaciones);
       }
     } catch (err) {
-      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, 'El formato JSON de recomendaciones es inválido');
+      notifications.error(
+        NOTIFICATION_MESSAGES.GENERAL.ERROR.title,
+        'El formato JSON de recomendaciones es inválido'
+      );
       return;
     }
 
-    const analisisDTO: AnalisisImagenMCHLDTO = {
+    /*const analisisDTO: AnalisisImagenMCHLDTO = {
       deficiencia: results.deficiencia,
       confianza: results.confianza,
       probabilidades: results.probabilidades,
@@ -247,13 +336,22 @@ export function Analisis() {
       imagenBase64: imagenBase64,
       fecha: new Date().toISOString().split('T')[0],
       recomendaciones: recomendacionesJSON
-    };
+    };*/
+
+    const analisisDTO = construirAnalisisDTO(
+      results,
+      selectedFile,
+      imagenBase64,
+      recomendacionesJSON
+    );
+
+    console.log('DTO a enviar:', analisisDTO);
 
     const resultado = await REGISTRAR(analisisDTO);
-    
+
     if (resultado) {
       notifications.success();
-      
+
       // Limpiar el contenido
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -265,17 +363,19 @@ export function Analisis() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      padding: '40px 20px'
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        padding: '40px 20px',
+      }}
+    >
       <Container size="md">
         <Paper
           shadow="xl"
           radius="xl"
           p="xl"
           style={{
-            background: 'white'
+            background: 'white',
           }}
         >
           <Stack gap="lg">
@@ -287,7 +387,8 @@ export function Analisis() {
                 </Title>
               </Group>
               <Text size="sm" c="dimmed">
-                Sube una imagen de una hoja de cacao para detectar deficiencias nutricionales
+                Sube una imagen de hojas de cacao para detectar deficiencias
+                nutricionales
               </Text>
             </div>
 
@@ -304,7 +405,7 @@ export function Analisis() {
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 padding: '40px',
-                textAlign: 'center'
+                textAlign: 'center',
               }}
             >
               <Stack align="center" gap="md">
@@ -320,7 +421,9 @@ export function Analisis() {
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/jpg"
-                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    handleFileSelect(e.target.files?.[0] || null)
+                  }
                   style={{ display: 'none' }}
                   id="file-input"
                 />
@@ -351,7 +454,7 @@ export function Analisis() {
               onClick={handleAnalyze}
               style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                transition: 'transform 0.2s'
+                transition: 'transform 0.2s',
               }}
             >
               {loading ? <Loader size="sm" color="white" /> : 'Analizar Imagen'}
@@ -370,7 +473,11 @@ export function Analisis() {
             )}
 
             {errorGemini && (
-              <Alert color="orange" title="Error al generar recomendaciones" radius="md">
+              <Alert
+                color="orange"
+                title="Error al generar recomendaciones"
+                radius="md"
+              >
                 {errorGemini}
               </Alert>
             )}
@@ -379,122 +486,302 @@ export function Analisis() {
               <Alert color="blue" title="Generando recomendaciones" radius="md">
                 <Group gap="sm">
                   <Loader size="sm" />
-                  <Text size="sm">Gemini está generando recomendaciones personalizadas...</Text>
+                  <Text size="sm">
+                    Gemini está generando recomendaciones personalizadas...
+                  </Text>
                 </Group>
               </Alert>
             )}
 
+            {/* ========================================
+          RESULTADOS YOLO - NUEVA SECCIÓN
+          ======================================== */}
+
             {results && (
               <Stack gap="md">
-                <Card
-                  radius="lg"
-                  style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    textAlign: 'center'
-                  }}
-                  p="xl"
+                {/* Mensaje de estado */}
+                <Alert
+                  color={
+                    results.tipo_alerta === 'success'
+                      ? 'green'
+                      : results.tipo_alerta === 'warning'
+                      ? 'yellow'
+                      : 'red'
+                  }
+                  title={results.es_valido ? 'Análisis completado' : 'Atención'}
+                  radius="md"
+                  icon={
+                    results.es_valido ? (
+                      <IconCircleCheck size={20} />
+                    ) : (
+                      <IconAlertCircle size={20} />
+                    )
+                  }
                 >
-                  <Text size="sm" opacity={0.9} mb="xs">
-                    Deficiencia Detectada
-                  </Text>
-                  <Title order={2} mb="xs">
-                    {results.deficiencia}
-                  </Title>
-                  <Text size="md" opacity={0.9}>
-                    Confianza: {results.confianza}%
-                  </Text>
-                </Card>
+                  {results.mensaje}
+                </Alert>
 
-                <Paper radius="lg" p="xl" style={{ background: '#f8f9ff' }}>
-                  <Text fw={600} mb="lg" size="md">
-                    📊 Probabilidades Detalladas
-                  </Text>
-                  
-                  <Stack gap="md">
-                    <div>
-                      <Group justify="space-between" mb={5}>
-                        <Text size="sm">Potasio</Text>
-                        <Text size="sm" fw={600}>{results.probabilidades.Potasio}%</Text>
-                      </Group>
-                      <Progress
-                        value={results.probabilidades.Potasio}
-                        size="xl"
-                        radius="xl"
-                        styles={{
-                          root: { background: '#e0e0e0' },
-                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
-                        }}
-                      />
-                    </div>
+                {/* Solo mostrar si hay detecciones */}
+                {results.detecciones && results.detecciones.length > 0 && (
+                  <>
+                    {/* Card de resumen */}
+                    <Card
+                      radius="lg"
+                      style={{
+                        background:
+                          'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                      }}
+                      p="xl"
+                    >
+                      <Grid>
+                        <Grid.Col span={6}>
+                          <Text size="xs" opacity={0.9} mb={5}>
+                            Total Detecciones
+                          </Text>
+                          <Text size="xl" fw={700}>
+                            {results.estadisticas.total_detecciones}
+                          </Text>
+                        </Grid.Col>
+                        <Grid.Col span={6}>
+                          <Text size="xs" opacity={0.9} mb={5}>
+                            Confianza Promedio
+                          </Text>
+                          <Text size="xl" fw={700}>
+                            {results.estadisticas.confianza_promedio.toFixed(1)}
+                            %
+                          </Text>
+                        </Grid.Col>
+                      </Grid>
+                    </Card>
 
-                    <div>
-                      <Group justify="space-between" mb={5}>
-                        <Text size="sm">Nitrógeno</Text>
-                        <Text size="sm" fw={600}>{results.probabilidades.Nitrogeno}%</Text>
-                      </Group>
-                      <Progress
-                        value={results.probabilidades.Nitrogeno}
-                        size="xl"
-                        radius="xl"
-                        styles={{
-                          root: { background: '#e0e0e0' },
-                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
-                        }}
-                      />
-                    </div>
+                    {/* Deficiencias por tipo */}
+                    <Paper radius="lg" p="xl" style={{ background: '#f8f9ff' }}>
+                      <Text fw={600} mb="lg" size="md">
+                        📊 Resumen por tipo de deficiencia
+                      </Text>
 
-                    <div>
-                      <Group justify="space-between" mb={5}>
-                        <Text size="sm">Fósforo</Text>
-                        <Text size="sm" fw={600}>{results.probabilidades.Fosforo}%</Text>
-                      </Group>
-                      <Progress
-                        value={results.probabilidades.Fosforo}
-                        size="xl"
-                        radius="xl"
-                        styles={{
-                          root: { background: '#e0e0e0' },
-                          section: { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
-                        }}
-                      />
-                    </div>
-                  </Stack>
-                </Paper>
+                      <Stack gap="md">
+                        {Object.entries(results.estadisticas.por_tipo).map(
+                          ([deficiencia, cantidad]) => {
+                            // Calcular confianza promedio para esta deficiencia
+                            const deteccionesDelTipo =
+                              results.detecciones.filter(
+                                (d) => d.deficiencia === deficiencia
+                              );
+                            const confianzaPromedio =
+                              deteccionesDelTipo.reduce(
+                                (sum, d) => sum + d.confianza,
+                                0
+                              ) / cantidad;
 
-                {recomendaciones && !isLoadingRecommendations && (
-                  <Paper radius="lg" p="xl" style={{ background: '#e8fff5' }}>
-                    <Text fw={600} mb="md" size="md">
-                      🌱 Recomendaciones Generadas por IA
-                    </Text>
-                    <Paper p="md" radius="md" style={{ background: 'white' }}>
-                      <pre style={{ 
-                        margin: 0, 
-                        fontFamily: 'monospace', 
-                        fontSize: '12px',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word'
-                      }}>
-                        {recomendaciones}
-                      </pre>
+                            return (
+                              <div key={deficiencia}>
+                                <Group justify="space-between" mb={5}>
+                                  <Group gap="xs">
+                                    <Text size="sm" fw={600}>
+                                      {deficiencia}
+                                    </Text>
+                                    <Badge color="red" size="sm">
+                                      {cantidad} región
+                                      {cantidad > 1 ? 'es' : ''}
+                                    </Badge>
+                                  </Group>
+                                  <Text size="sm" fw={600}>
+                                    {confianzaPromedio.toFixed(1)}%
+                                  </Text>
+                                </Group>
+                                <Progress
+                                  value={confianzaPromedio}
+                                  size="xl"
+                                  radius="xl"
+                                  styles={{
+                                    root: { background: '#e0e0e0' },
+                                    section: {
+                                      background:
+                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    },
+                                  }}
+                                />
+                              </div>
+                            );
+                          }
+                        )}
+                      </Stack>
                     </Paper>
-                  </Paper>
+
+                    {/* Detalle de cada detección */}
+                    <Paper radius="lg" p="xl" style={{ background: '#fff5f5' }}>
+                      <Text fw={600} mb="lg" size="md">
+                        🔍 Detalle de regiones afectadas
+                      </Text>
+
+                      <Stack gap="sm">
+                        {results.detecciones.map((det, idx) => (
+                          <Card
+                            key={idx}
+                            radius="md"
+                            withBorder
+                            p="md"
+                            style={{ background: 'white' }}
+                          >
+                            <Group justify="space-between" align="flex-start">
+                              <Stack gap={5}>
+                                <Group gap="xs">
+                                  <Badge
+                                    size="lg"
+                                    variant="gradient"
+                                    gradient={{
+                                      from: '#667eea',
+                                      to: '#764ba2',
+                                    }}
+                                  >
+                                    Región {idx + 1}
+                                  </Badge>
+                                  <Text fw={700} size="lg">
+                                    {det.deficiencia}
+                                  </Text>
+                                </Group>
+
+                                <Group gap="md" mt={5}>
+                                  <Box>
+                                    <Text size="xs" c="dimmed">
+                                      Ubicación (x,y)
+                                    </Text>
+                                    <Text size="sm" fw={500}>
+                                      <IconMapPin
+                                        size={14}
+                                        style={{
+                                          display: 'inline',
+                                          marginRight: 4,
+                                        }}
+                                      />
+                                      ({det.bbox.x1}, {det.bbox.y1})
+                                    </Text>
+                                  </Box>
+
+                                  <Box>
+                                    <Text size="xs" c="dimmed">
+                                      Dimensiones
+                                    </Text>
+                                    <Text size="sm" fw={500}>
+                                      {det.bbox.ancho} × {det.bbox.alto} px
+                                    </Text>
+                                  </Box>
+
+                                  <Box>
+                                    <Text size="xs" c="dimmed">
+                                      Área afectada
+                                    </Text>
+                                    <Text size="sm" fw={500}>
+                                      {det.area.toLocaleString()} px²
+                                    </Text>
+                                  </Box>
+                                </Group>
+                              </Stack>
+
+                              <Box style={{ textAlign: 'right' }}>
+                                <Text
+                                  size="2rem"
+                                  fw={700}
+                                  style={{
+                                    background:
+                                      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                  }}
+                                >
+                                  {det.confianza.toFixed(1)}%
+                                </Text>
+                                <Text size="xs" c="dimmed">
+                                  confianza
+                                </Text>
+                              </Box>
+                            </Group>
+                          </Card>
+                        ))}
+                      </Stack>
+                    </Paper>
+
+                    {/* Imagen procesada (si está disponible) */}
+                    {results.imagen_procesada && (
+                      <Paper radius="lg" p="md" withBorder>
+                        <Text fw={600} mb="md" size="md">
+                          📸 Imagen con detecciones marcadas
+                        </Text>
+                        <Image
+                          src={`data:image/jpeg;base64,${results.imagen_procesada}`}
+                          alt="Imagen procesada con detecciones"
+                          radius="md"
+                        />
+                      </Paper>
+                    )}
+                  </>
                 )}
 
-                <Button
-                  fullWidth
-                  size="lg"
-                  radius="xl"
-                  onClick={handleGuardarAnalisis}
-                  disabled={guardandoAnalisis || isLoadingRecommendations || !recomendaciones}
-                  leftSection={<IconDeviceFloppy size={20} />}
-                  style={{
-                    background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-                    transition: 'transform 0.2s'
-                  }}
-                >
-                  {guardandoAnalisis ? <Loader size="sm" color="white" /> : 'Guardar Análisis'}
-                </Button>
+                {/* Recomendaciones sin detecciones */}
+                {results.recomendaciones &&
+                  results.recomendaciones.length > 0 && (
+                    <Alert color="yellow" title="Recomendaciones" radius="md">
+                      <Stack gap="xs">
+                        {results.recomendaciones.map((rec, idx) => (
+                          <Text key={idx} size="sm">
+                            • {rec}
+                          </Text>
+                        ))}
+                      </Stack>
+                    </Alert>
+                  )}
+
+                {/* Recomendaciones de Gemini */}
+                {recomendaciones &&
+                  !isLoadingRecommendations &&
+                  results.detecciones.length > 0 && (
+                    <Paper radius="lg" p="xl" style={{ background: '#e8fff5' }}>
+                      <Text fw={600} mb="md" size="md">
+                        🌱 Recomendaciones Personalizadas (Generadas por IA)
+                      </Text>
+                      <Paper p="md" radius="md" style={{ background: 'white' }}>
+                        <div
+                          style={{
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            lineHeight: '1.6',
+                            fontSize: '14px',
+                          }}
+                        >
+                          {recomendaciones}
+                        </div>
+                      </Paper>
+                    </Paper>
+                  )}
+
+                {/* Botón guardar - solo si hay detecciones válidas */}
+                {results.detecciones.length > 0 && (
+                  <Button
+                    fullWidth
+                    size="lg"
+                    radius="xl"
+                    onClick={handleGuardarAnalisis}
+                    disabled={
+                      guardandoAnalisis ||
+                      isLoadingRecommendations ||
+                      !recomendaciones
+                    }
+                    leftSection={<IconDeviceFloppy size={20} />}
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                      transition: 'transform 0.2s',
+                    }}
+                  >
+                    {guardandoAnalisis ? (
+                      <Loader size="sm" color="white" />
+                    ) : (
+                      'Guardar Análisis'
+                    )}
+                  </Button>
+                )}
               </Stack>
             )}
           </Stack>

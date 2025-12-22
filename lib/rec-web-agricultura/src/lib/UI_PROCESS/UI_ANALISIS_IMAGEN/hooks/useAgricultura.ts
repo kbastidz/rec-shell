@@ -5,7 +5,7 @@ import { GenerarPlanAnalisisRequest, GenerarPlanRequest, PlanGeneradoResponse, P
 import { service } from '../services/agricultura.service';
 import { PlanTratamiento } from '../../../types/model';
 
-export function usePlanesTratamiento() {
+export function   usePlanesTratamiento() {
   const [loading, setLoading] = useState(false);
   const [planGenerado, setPlanGenerado] = useState<PlanGeneradoResponse | null>(null);
   const [listaPlanes, setListaPlanes] = useState<PlanTratamientoNuevo[]>([]);

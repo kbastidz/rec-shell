@@ -16,7 +16,10 @@ import {
   ActionIcon,
   Tooltip,
   Card,
-  Radio
+  Radio,
+  NumberInput,
+  Select,
+  TextInput
 } from '@mantine/core';
 import {
   IconUpload,
@@ -26,7 +29,8 @@ import {
   IconX,
   IconDownload,
   IconCopy,
-  IconQuestionMark
+  IconQuestionMark,
+  IconCalendar
 } from '@tabler/icons-react';
 
 import { geminiService } from '../services/motor-ia.service';
@@ -34,6 +38,8 @@ import { PREGUNTAS, RESUME } from '../../../utils/CONSTANTE';
 
 import { ActionButtons, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 import { useEducacion } from '../hook/useEducacion';
+import { PROMPT_LIMITS } from '../../../utils/prompts.util';
+
 interface Question {
   pregunta: string;
   opciones: string[];
@@ -48,8 +54,12 @@ export function GeneradorAdmin() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState<{[key: number]: number}>({});
+  const [numberOfQuestions, setNumberOfQuestions] = useState<number>(PROMPT_LIMITS.DEFAULT_QUESTIONS);
+  
   const notifications = useNotifications();
   const { CREAR, loading: loadingGuardar } = useEducacion();
+  const [idCurso, setIdCurso] = useState<string>();
+  const [fechaEvaluacion, setFechaEvaluacion] = useState<string>('');
 
   const handleFileChange = (selectedFile: File | null) => {
     setFile(selectedFile);
@@ -58,6 +68,11 @@ export function GeneradorAdmin() {
     setQuestions([]);
     setSelectedAnswers({});
   };
+
+  const cursosDisponibles = [
+    { value: '8', label: 'Octavo' },
+    { value: '9', label: 'Noveno' },
+    ];
 
   const clearFile = () => {
     setFile(null);
@@ -99,36 +114,26 @@ export function GeneradorAdmin() {
       return;
     }
 
+    if (!numberOfQuestions || numberOfQuestions < PROMPT_LIMITS.MIN_QUESTIONS) {
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, `Debes ingresar un número válido de preguntas (mínimo ${PROMPT_LIMITS.MIN_QUESTIONS})`);
+      return;
+    }
+
+    if (numberOfQuestions > PROMPT_LIMITS.MAX_QUESTIONS) {
+      notifications.error(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, `El número máximo de preguntas es ${PROMPT_LIMITS.MAX_QUESTIONS}`);
+      return;
+    }
+
     setLoadingQuestions(true);
     setQuestions([]);
     setSelectedAnswers({});
 
     try {
-      // Llama al servicio de Gemini para generar preguntas
-      const prompt = `
-Basándote en el siguiente resumen, genera exactamente 10 preguntas de opción múltiple.
-Para cada pregunta, proporciona 3 opciones: 1 correcta y 2 incorrectas.
-
-IMPORTANTE: Responde ÚNICAMENTE con un JSON válido en el siguiente formato, sin texto adicional:
-{
-  "preguntas": [
-    {
-      "pregunta": "texto de la pregunta",
-      "opciones": ["opción correcta", "opción incorrecta 1", "opción incorrecta 2"],
-      "respuestaCorrecta": 0
-    }
-  ]
-}
-
-Resumen:
-${summary}
-`;
-
-      const result = await geminiService.generateQuestions(prompt);
+      // Pasar el número de preguntas al servicio
+      const result = await geminiService.generateQuestions(summary, numberOfQuestions);
       
       let parsedQuestions;
       try {
-        // Intentar extraer JSON si hay texto adicional
         const jsonMatch = result.match(/\{[\s\S]*\}/);
         const jsonStr = jsonMatch ? jsonMatch[0] : result;
         parsedQuestions = JSON.parse(jsonStr);
@@ -139,16 +144,20 @@ ${summary}
       if (parsedQuestions.preguntas && Array.isArray(parsedQuestions.preguntas)) {
         setQuestions(parsedQuestions.preguntas);
         
-        notifications.success(NOTIFICATION_MESSAGES.GENERAL.ERROR.title, `Se generaron ${parsedQuestions.preguntas.length} preguntas exitosamente`);
+        notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, `Se generaron ${parsedQuestions.preguntas.length} preguntas exitosamente`);
       } else {
         throw new Error('Formato de preguntas inválido');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al generar preguntas';
       console.log('Error en Gemini, usando mock:', errorMessage);
-      // Usar preguntas mock cuando Gemini falla
-      setQuestions(PREGUNTAS.preguntas);
-      
+      // Usar preguntas mock cuando Gemini falla (limitadas al número solicitado)
+      const availableMockQuestions = PREGUNTAS.preguntas.slice(0, Math.min(numberOfQuestions, PREGUNTAS.preguntas.length));
+      setQuestions(availableMockQuestions);
+      notifications.warning(
+        'Modo de prueba',
+        `Se generaron ${availableMockQuestions.length} preguntas de ejemplo debido a un error con el servicio de IA`
+      );
     } finally {
       setLoadingQuestions(false);
     }
@@ -206,12 +215,50 @@ ${summary}
       return;
     }
 
+    if (!idCurso) {
+      notifications.error(
+        NOTIFICATION_MESSAGES.GENERAL.ERROR.title,
+        'Debes seleccionar un curso'
+      );
+      return;
+    }
+
+    if (!fechaEvaluacion) {
+      notifications.error(
+        NOTIFICATION_MESSAGES.GENERAL.ERROR.title,
+        'Debes seleccionar una fecha de evaluación'
+      );
+      return;
+    }
+
     try {
-      await CREAR({
+      const tituloGenerado = file?.name 
+        ? `Evaluación - ${file.name.replace('.pdf', '')}`
+        : `Evaluación generada - ${new Date().toLocaleDateString('es-ES')}`;
+      
+      // Generar descripción automática basada en el resumen
+      const descripcionGenerada = summary 
+        ? summary.substring(0, 200) + (summary.length > 200 ? '...' : '')
+        : `Evaluación de ${questions.length} preguntas generada automáticamente`;
+      
+      const fechaEvaluacionISO = new Date(fechaEvaluacion).toISOString();
+      const codigoUnico = `EVAL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      
+      const dataToSave = {
         preguntas: questions,
-        resumen: summary,
-        nombreArchivo: file?.name
-      });
+        titulo: tituloGenerado,
+        descripcion: descripcionGenerada,
+        codigoUnico: codigoUnico,
+        fechaCreacion: new Date().toISOString(),
+        estado: 'activo' as const,
+        idCurso: idCurso,
+        fechaEvaluacion: fechaEvaluacionISO,
+        ...(summary && { resumen: summary }),
+        ...(file?.name && { nombreArchivo: file.name })
+      };
+
+      await CREAR(dataToSave);
+      
     } catch (err) {
       console.error('Error al guardar:', err);
     }
@@ -377,17 +424,32 @@ ${summary}
                 </Text>
               </Paper>
 
-              <Button
-                size="lg"
-                leftSection={<IconQuestionMark size={20} />}
-                onClick={handleGenerateQuestions}
-                loading={loadingQuestions}
-                variant="light"
-                color="violet"
-                fullWidth
-              >
-                {loadingQuestions ? 'Generando preguntas...' : 'Generar 10 preguntas'}
-              </Button>
+              <Divider />
+
+              <Group align="flex-end" gap="md">
+                <NumberInput
+                  label="Número de preguntas"
+                  description="¿Cuántas preguntas deseas generar?"
+                  placeholder="Ingresa un número"
+                  min={PROMPT_LIMITS.MIN_QUESTIONS}
+                  max={PROMPT_LIMITS.MAX_QUESTIONS}
+                  value={numberOfQuestions}
+                  onChange={(value) => setNumberOfQuestions(Number(value))}
+                  style={{ flex: 1 }}
+                  leftSection={<IconQuestionMark size={18} />}
+                />
+                <Button
+                  size="md"
+                  leftSection={<IconQuestionMark size={20} />}
+                  onClick={handleGenerateQuestions}
+                  loading={loadingQuestions}
+                  variant="light"
+                  color="violet"
+                  style={{ flex: 1 }}
+                >
+                  {loadingQuestions ? 'Generando...' : `Generar ${numberOfQuestions} pregunta${numberOfQuestions !== 1 ? 's' : ''}`}
+                </Button>
+              </Group>
             </Stack>
           </Paper>
         )}
@@ -471,6 +533,89 @@ ${summary}
                   </Card>
                 ))}
               </Stack>
+
+              {/* Información de la evaluación que se guardará */}
+              <Divider my="xl" label="Información que se guardará" labelPosition="center" />
+              
+              <Paper p="md" radius="md" withBorder bg="blue.0">
+                <Stack gap="md">
+                  
+                  <Group gap="xs">
+                    <Badge color="blue" variant="filled">Configuración</Badge>
+                    <Text size="sm" fw={500}>Configura los detalles de la evaluación:</Text>
+                  </Group>
+                  
+                  <Stack gap="xs">
+                     <Select
+                        label="Curso"
+                        description="Selecciona el curso para esta evaluación"
+                        data={[{ value: '', label: 'Selecciona un curso...' }, ...cursosDisponibles]}
+                        value={idCurso}
+                        onChange={(value) => setIdCurso(value || "")}
+                        clearable
+                        placeholder="Selecciona un curso"
+                        required
+                        error={!idCurso ? 'Este campo es requerido' : undefined}
+                      />
+                      
+                      <TextInput
+                        label="Fecha de evaluación"
+                        description="Selecciona la fecha programada para la evaluación"
+                        type="date"
+                        value={fechaEvaluacion}
+                        onChange={(e) => setFechaEvaluacion(e.target.value)}
+                        placeholder="Selecciona una fecha"
+                        required
+                        error={!fechaEvaluacion ? 'Este campo es requerido' : undefined}
+                        leftSection={<IconCalendar size={16} />}
+                      />
+                      
+                      <Divider my="xs" />
+                      
+                    <Group gap="xs">
+                      <Text size="sm" fw={500} c="dimmed" style={{ width: '140px' }}>Título:</Text>
+                      <Text size="sm">
+                        {file?.name 
+                          ? `Evaluación - ${file.name.replace('.pdf', '')}`
+                          : `Evaluación generada - ${new Date().toLocaleDateString('es-ES')}`
+                        }
+                      </Text>
+                    </Group>
+                    
+                    <Group gap="xs">
+                      <Text size="sm" fw={500} c="dimmed" style={{ width: '140px' }}>Descripción:</Text>
+                      <Text size="sm" lineClamp={2}>
+                        {summary 
+                          ? summary.substring(0, 200) + (summary.length > 200 ? '...' : '')
+                          : `Evaluación de ${questions.length} preguntas generada automáticamente`
+                        }
+                      </Text>
+                    </Group>
+                    
+                    <Divider my="xs" />
+                    
+                    <Group gap="xs">
+                      <Text size="sm" fw={500} c="dimmed" style={{ width: '140px' }}>Código único:</Text>
+                      <Text size="sm" ff="monospace">Se generará al guardar</Text>
+                    </Group>
+                    
+                    <Group gap="xs">
+                      <Text size="sm" fw={500} c="dimmed" style={{ width: '140px' }}>Fecha creación:</Text>
+                      <Text size="sm">{new Date().toLocaleString('es-ES')}</Text>
+                    </Group>
+                    
+                    <Group gap="xs">
+                      <Text size="sm" fw={500} c="dimmed" style={{ width: '140px' }}>Estado:</Text>
+                      <Badge color="green" variant="light">Activo</Badge>
+                    </Group>
+                    
+                    <Group gap="xs">
+                      <Text size="sm" fw={500} c="dimmed" style={{ width: '140px' }}>Total preguntas:</Text>
+                      <Badge color="violet" variant="filled">{questions.length}</Badge>
+                    </Group>
+                  </Stack>
+                </Stack>
+              </Paper>
 
               {/* Botón para guardar en BD */}
               <Group justify="center" mt="xl">

@@ -1,6 +1,4 @@
-export const RESUME = `Resumen completo del documento PDF, estructurado según tus requisitos:
-
-### Resumen Completo del Documento PDF: "EL IMPACTO DE LA INTELIGENCIA ARTIFICIAL EN LA EDUCACIÓN: TRANSFORMACIÓN DE LA FORMA DE ENSEÑAR Y DE APRENDER"
+export const RESUME = `EL IMPACTO DE LA INTELIGENCIA ARTIFICIAL EN LA EDUCACIÓN: TRANSFORMACIÓN DE LA FORMA DE ENSEÑAR Y DE APRENDER
 
 **1. Tema principal del documento**
 

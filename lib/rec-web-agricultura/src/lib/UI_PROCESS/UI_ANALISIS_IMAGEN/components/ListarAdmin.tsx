@@ -20,9 +20,15 @@ import {
   IconLeaf,
   IconCalendar,
   IconFileText,
+  IconCheck,
+  IconX,
+  IconTarget,
 } from '@tabler/icons-react';
 import { usePlanesTratamiento } from '../hooks/useAgricultura';
-import { AnalisisImagenMCHLDTO, GenerarPlanAnalisisRequest, GenerarPlanRequest, PlanTratamientoResponse } from '../../../types/dto';
+import { 
+  GenerarPlanAnalisisRequest, 
+  PlanTratamientoResponse 
+} from '../../../types/dto';
 import {
   ActionButtons,
   handleModelResponse,
@@ -31,21 +37,50 @@ import {
   usePagination,
 } from '@rec-shell/rec-web-shared';
 import { useAnalisisImagen } from '../../UI_CARGA_IMAGEN/hook/useAgriculturaMchl';
-import { fallbackPlan, generarPromptPlanTratamiento } from '../../../utils/generarPromptPlanTratamiento';
+import { 
+  fallbackPlan, 
+  generarPromptPlanTratamiento 
+} from '../../../utils/generarPromptPlanTratamiento';
 import { formatDate } from '@rec-shell/rec-web-usuario';
-import { getDeficienciaColor, getConfianzaColor } from '../../../utils/utils';
+import { AnalisisImagenYOLO_DTO } from '../../../types/yolo';
 
+// Utilidad para obtener color según tipo de alerta
+const getTipoAlertaColor = (tipo: string): string => {
+  const colors: Record<string, string> = {
+    success: 'green',
+    warning: 'yellow',
+    error: 'red',
+    info: 'blue',
+  };
+  return colors[tipo] || 'gray';
+};
+
+// Utilidad para formatear nombre de deficiencia
+const formatDeficiencia = (deficiencia: string): string => {
+  return deficiencia
+    .replace('deficienciia_', '')
+    .replace('deficiencia_', '')
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+// Utilidad para color según confianza
+const getConfianzaColor = (confianza: number): string => {
+  if (confianza >= 80) return 'green';
+  if (confianza >= 60) return 'yellow';
+  return 'orange';
+};
 
 export function ListarAdmin() {
   const { loading, error, analisisList, OBTENER } = useAnalisisImagen();
-  const {
-    loading: loadingPlan,
-    generarPlan
-  } = usePlanesTratamiento();
+  const { loading: loadingPlan, generarPlan } = usePlanesTratamiento();
 
-  const [planTratamientoGenerado, setPlanTratamientoGenerado] = useState<PlanTratamientoResponse>(fallbackPlan);
+  const [planTratamientoGenerado, setPlanTratamientoGenerado] = 
+    useState<PlanTratamientoResponse>(fallbackPlan);
   
-  const analisisActualRef = useRef<AnalisisImagenMCHLDTO | null>(null);
+  const analisisActualRef = useRef<AnalisisImagenYOLO_DTO | null>(null);
 
   // ✅ Función helper para guardar el plan
   const guardarPlanTratamiento = (plan: PlanTratamientoResponse) => {
@@ -68,7 +103,7 @@ export function ListarAdmin() {
           guardarPlanTratamiento(data); // ✅ Guardar plan exitoso
         },
         onError: (err) => {
-          console.error('❌ Error al parsear plan de tratamiento:', err);          
+          console.error('❌ Error al parsear plan de tratamiento:', err);
           setPlanTratamientoGenerado(fallbackPlan);
           guardarPlanTratamiento(fallbackPlan); // ✅ Guardar fallback
         },
@@ -82,31 +117,26 @@ export function ListarAdmin() {
       guardarPlanTratamiento(fallbackPlan); // ✅ Guardar fallback
     },
   });
-  
 
   useEffect(() => {
     OBTENER();
   }, []);
 
-  const handleGenerarPlan = async (analisis: AnalisisImagenMCHLDTO) => {
+  const handleGenerarPlan = async (analisis: AnalisisImagenYOLO_DTO) => {
     try {
-      analisisActualRef.current = analisis; 
+      analisisActualRef.current = analisis;
       analisis.imagenBase64 = "";
       const prompt = generarPromptPlanTratamiento(analisis);
 
       console.log('🚀 Generando plan de tratamiento para:', analisis.archivo);
       await generateText(prompt);
-      
-      // ❌ NO guardar aquí - el estado aún no se ha actualizado
-      // La llamada a generarPlan ahora está en onParsed del callback de useGemini
-      
     } catch (error) {
       console.error('❌ Error al generar plan:', error);
       analisisActualRef.current = null;
     }
   };
 
-  // Ref Paginacion Global
+  // Paginación
   const lista = Array.isArray(analisisList) ? analisisList : [];
   const {
     currentPage,
@@ -123,10 +153,8 @@ export function ListarAdmin() {
   } = usePagination({
     data: lista,
     itemsPerPage: 5,
-    searchFields: ['deficiencia', 'confianza', 'probabilidades'],
+    searchFields: ['archivo', 'mensaje'],
   });
-
-  
 
   if (loading) {
     return (
@@ -156,9 +184,9 @@ export function ListarAdmin() {
       <Stack gap="lg">
         <Group justify="space-between" align="center">
           <div>
-            <Title order={2}>Generar planes de Tratamiento</Title>
+            <Title order={2}>Generar Planes de Tratamiento</Title>
             <Text c="dimmed" size="sm">
-              Análisis de Imágenes
+              Análisis YOLO de Imágenes
             </Text>
           </div>
           <ActionButtons.Refresh onClick={OBTENER} />
@@ -178,9 +206,10 @@ export function ListarAdmin() {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Archivo</Table.Th>
-                <Table.Th>Deficiencia</Table.Th>
-                <Table.Th>Confianza</Table.Th>
-                <Table.Th>Probabilidades</Table.Th>
+                <Table.Th>Estado</Table.Th>
+                <Table.Th>Detecciones</Table.Th>
+                <Table.Th>Confianza Promedio</Table.Th>
+                <Table.Th>Deficiencias Detectadas</Table.Th>
                 <Table.Th>Fecha</Table.Th>
                 <Table.Th>Acciones</Table.Th>
               </Table.Tr>
@@ -196,36 +225,62 @@ export function ListarAdmin() {
 
                   <Table.Td>
                     <Badge
-                      color={getDeficienciaColor(analisis.deficiencia)}
+                      color={getTipoAlertaColor(analisis.tipo_alerta)}
                       variant="filled"
-                      leftSection={<IconLeaf size={14} />}
+                      size="sm"
+                      leftSection={
+                        analisis.es_valido ? (
+                          <IconCheck size={14} />
+                        ) : (
+                          <IconX size={14} />
+                        )
+                      }
                     >
-                      {analisis.deficiencia}
+                      {analisis.es_valido ? 'Válido' : 'Inválido'}
                     </Badge>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <Group gap="xs">
+                      <ThemeIcon size="sm" variant="light" color="blue">
+                        <IconTarget size={14} />
+                      </ThemeIcon>
+                      <Text size="sm" fw={500}>
+                        {analisis.estadisticas.total_detecciones}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        ({analisis.estadisticas.deficiencias_unicas} únicas)
+                      </Text>
+                    </Group>
                   </Table.Td>
 
                   <Table.Td>
                     <Badge
-                      color={getConfianzaColor(analisis.confianza)}
+                      color={getConfianzaColor(
+                        analisis.estadisticas.confianza_promedio
+                      )}
                       variant="light"
                       size="lg"
                     >
-                      {analisis.confianza.toFixed(1)}%
+                      {analisis.estadisticas.confianza_promedio.toFixed(1)}%
                     </Badge>
                   </Table.Td>
 
                   <Table.Td>
-                    <Stack gap={2}>
-                      {Object.entries(analisis.probabilidades).map(
-                        ([nutriente, valor]) => (
-                          <Group
-                            key={nutriente}
-                            justify="space-between"
-                            gap="xs"
-                          >
-                            <Text size="xs">{nutriente}:</Text>
-                            <Text size="xs" fw={500}>
-                              {valor.toFixed(1)}%
+                    <Stack gap={4}>
+                      {Object.entries(analisis.estadisticas.por_tipo).map(
+                        ([deficiencia, cantidad]) => (
+                          <Group key={deficiencia} gap="xs">
+                            <Badge
+                              size="sm"
+                              variant="dot"
+                              color="teal"
+                              leftSection={<IconLeaf size={12} />}
+                            >
+                              {formatDeficiencia(deficiencia)}
+                            </Badge>
+                            <Text size="xs" c="dimmed">
+                              ({cantidad}x)
                             </Text>
                           </Group>
                         )
@@ -244,7 +299,7 @@ export function ListarAdmin() {
 
                   <Table.Td>
                     <Group gap="xs">
-                      <Tooltip label="Generar plan de tratamiento">
+                      <Tooltip label="Generar plan de tratamiento con IA">
                         <Button
                           size="xs"
                           variant="light"
@@ -252,7 +307,7 @@ export function ListarAdmin() {
                           leftSection={<IconFileText size={16} />}
                           onClick={() => handleGenerarPlan(analisis)}
                           loading={loadingGemini}
-                          disabled={loadingGemini}
+                          disabled={loadingGemini || !analisis.es_valido}
                         >
                           Plan
                         </Button>
@@ -264,6 +319,7 @@ export function ListarAdmin() {
             </Table.Tbody>
           </Table>
         )}
+
         {lista.length > 0 && (
           <PaginationControls
             currentPage={currentPage}
@@ -278,7 +334,7 @@ export function ListarAdmin() {
             totalItems={totalItems}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            searchPlaceholder="Buscar por deficiencia, confianza o nutriente..."
+            searchPlaceholder="Buscar por archivo o mensaje..."
           />
         )}
       </Stack>

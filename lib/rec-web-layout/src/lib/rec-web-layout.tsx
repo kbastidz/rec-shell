@@ -2,10 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
-  BarChart3, 
-  ShoppingCart, 
-  Calendar, 
-  FileText, 
   Settings,
   Search,
   Bell,
@@ -13,7 +9,6 @@ import {
   User,
   LogOut,
   MoreHorizontal,
-  Shield, 
   Leaf,
   GraduationCap
 } from 'lucide-react';
@@ -45,11 +40,8 @@ interface AdminTemplateProps {
   AgriculturaComponent?: NavigableComponent;
   GamificacionComponent?: NavigableComponent;
   EducacionComponent?: NavigableComponent;
+  LayoutDashboardComponent?: NavigableComponent;
 
-  ProductsComponent?: NavigableComponent;
-  CalendarComponent?: NavigableComponent;
-  FilesComponent?: NavigableComponent;
-  SettingsComponent?: NavigableComponent;
   onSignOut?: () => void;
   userInfo?: {
     name?: string;
@@ -63,11 +55,8 @@ export function AdminTemplate({
   AgriculturaComponent,
   GamificacionComponent,
   EducacionComponent,
+  LayoutDashboardComponent,
 
-  ProductsComponent,
-  CalendarComponent,
-  FilesComponent,
-  SettingsComponent,
   onSignOut,
   userInfo = {
     name: 'Admin User',
@@ -81,18 +70,11 @@ export function AdminTemplate({
 
   // Elementos del menú con sus componentes asociados
   const allMenuItems: MenuItem[] = [
-    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, component: LayoutDashboardComponent },
     { key: 'users', label: 'Usuarios', icon: Users, component: AdminUserComponent },
     { key: 'cultivo', label: 'Agricultura', icon: Leaf, component: AgriculturaComponent },
     { key: 'gamificacion', label: 'Gamificacion', icon: GraduationCap, component: GamificacionComponent },
-    { key: 'educacion', label: 'Educación', icon: GraduationCap, component: EducacionComponent },
-    
-
-
-    { key: 'products', label: 'Productos', icon: ShoppingCart, component: ProductsComponent },
-    { key: 'calendar', label: 'Calendario', icon: Calendar, component: CalendarComponent },
-    { key: 'files', label: 'Archivos', icon: FileText, component: FilesComponent },
-    { key: 'settings', label: 'Configuración', icon: Settings, component: SettingsComponent },
+    { key: 'educacion', label: 'Educación', icon: GraduationCap, component: EducacionComponent }
   ];
 
   // Filtrar elementos del menú según los componentes disponibles
@@ -104,7 +86,7 @@ export function AdminTemplate({
       // Solo mostrar elementos que tienen componente asociado
       return item.component !== undefined;
     });
-  }, [AdminUserComponent, AgriculturaComponent, GamificacionComponent, EducacionComponent, ProductsComponent, CalendarComponent, FilesComponent, SettingsComponent]);
+  }, [LayoutDashboardComponent, AdminUserComponent, AgriculturaComponent, GamificacionComponent, EducacionComponent]);
 
   // Verificar si la pestaña activa está disponible, si no, cambiar a dashboard
   React.useEffect(() => {
@@ -157,61 +139,6 @@ export function AdminTemplate({
             <LayoutDashboard size={48} className="text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">Dashboard Principal</h3>
             <p className="text-gray-500">Bienvenido al panel de administración</p>
-            
-            {/* Mostrar información sobre permisos disponibles */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800 mb-2">
-                <strong>Módulos disponibles:</strong>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {menuItems.slice(1).map(item => (
-                  <span key={item.key} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-                    {item.label}
-                  </span>
-                ))}
-              </div>
-              {menuItems.length === 1 && (
-                <p className="text-sm text-orange-600">
-                  No tienes permisos para acceder a otros módulos.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Cards de estadísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-gray-800">Estadísticas</h4>
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <BarChart3 size={16} className="text-blue-600" />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-blue-600 mb-1">1,234</p>
-              <p className="text-sm text-gray-600">Total de usuarios</p>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-gray-800">Ventas</h4>
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <ShoppingCart size={16} className="text-green-600" />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-green-600 mb-1">$45,678</p>
-              <p className="text-sm text-gray-600">Este mes</p>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-gray-800">Tareas</h4>
-                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Calendar size={16} className="text-orange-600" />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-orange-600 mb-1">23</p>
-              <p className="text-sm text-gray-600">Pendientes</p>
-            </div>
           </div>
         </>
       );
@@ -355,25 +282,7 @@ export function AdminTemplate({
       <main className="p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
-            {/* Header del contenido */}
             
-            {/*}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                  {allMenuItems.find(item => item.key === activeTab)?.label || 'Dashboard'}
-                </h2>
-                <p className="text-gray-600">Bienvenido al panel de administración</p>
-              </div>
-              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium self-start sm:self-center">
-                {activeTab}
-              </div>
-            </div>
-             <hr className="border-gray-200 mb-8" />
-            */}
-
-           
-
             {/* Contenido dinámico */}
             {renderContent()}
           </div>

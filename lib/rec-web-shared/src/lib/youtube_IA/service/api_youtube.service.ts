@@ -1,12 +1,12 @@
 class ApiYoutubeService {
-  private readonly apiKey = "AIzaSyA3m56gu6RJJ9etf1HRiP3m9LK2XmIVjxA";
-  private readonly baseUrl = "https://www.googleapis.com/youtube/v3/search";
-
-  // Método para buscar videos
+  
+  private API_URL = 'https://www.googleapis.com/youtube/v3/search';
+  private API_KEY = 'AIzaSyA3m56gu6RJJ9etf1HRiP3m9LK2XmIVjxA';
+  
   async GET_NAME(query: string, maxResults = 5) {
-    const url = `${this.baseUrl}?part=snippet&q=${encodeURIComponent(
+    const url = `${this.API_URL}?part=snippet&q=${encodeURIComponent(
       query
-    )}&type=video&maxResults=${maxResults}&key=${this.apiKey}`;
+    )}&type=video&maxResults=${maxResults}&key=${this.API_KEY}`;
 
     try {
       const response = await fetch(url);

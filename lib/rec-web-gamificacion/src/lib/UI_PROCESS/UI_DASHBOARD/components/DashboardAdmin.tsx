@@ -109,16 +109,19 @@ interface DashboardAdminProps {
   transacciones?: TransaccionPuntos[];
   useMockData?: boolean; // Nueva prop para controlar el modo
 }
-
-export const DashboardAdmin: React.FC<DashboardAdminProps> = ({ 
+/*
+export const DashboardAdminM2: React.FC<DashboardAdminProps> = ({ 
   transacciones: transaccionesProp, 
   useMockData = false // Por defecto usa mock data
-}) => {
+}) => {*/
+export const DashboardAdminM2: React.FC = () => {
+
   const COLORS = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
   const [graficoActivo, setGraficoActivo] = useState(0);
-
+  const useMockData = false;
   // Decide qué datos usar: mock o reales
-  const transaccionesActivas = useMockData ? MOCK_TRANSACCIONES : (transaccionesProp || []);
+  //const transaccionesActivas = useMockData ? MOCK_TRANSACCIONES : (transaccionesProp || []);
+  const transaccionesActivas = MOCK_TRANSACCIONES;
 
   // Usa el hook custom para procesar los datos
   const datosGraficos = useTransaccionesPuntos();

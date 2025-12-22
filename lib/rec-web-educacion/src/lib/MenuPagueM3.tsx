@@ -19,7 +19,7 @@ import { DashboardNotasAcademico } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/com
 import { Evaluacion } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/Evaluacion';
 import { RecomendacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/RecomendacionesAdmin';
 import { ConsultarEvaluacionesAdmin } from './UI_PROCESS/UI_GENERADOR_PREGUNTAS/components/ConsultarEvaluacionesAdmin';
-import { DashboardAdmin } from './UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
+import { DashboardAdminM3 } from './UI_PROCESS/UI_DASHBOARD/components/DashboardAdmin';
 
 import { useOpciones } from '@rec-shell/rec-web-auth';
 import { OpcionDTO, ST_GET_ROLE_USER_ID } from '@rec-shell/rec-web-shared';
@@ -35,7 +35,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   'evaluacion': Evaluacion,
   'recomendaciones': RecomendacionesAdmin,
   'resultados': ConsultarEvaluacionesAdmin,
-  'dashboard2': DashboardAdmin,
+  'dashboard2': DashboardAdminM3,
 };
 
 const colorMap: Record<string, string> = {

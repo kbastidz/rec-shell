@@ -6,7 +6,6 @@ import {
   Text,
   Table,
   Button,
-  Modal,
   Stack,
   Select,
   NumberInput,
@@ -20,13 +19,13 @@ import {
   Alert,
 } from '@mantine/core';
 import {
-  Edit,
   Search,
   FilterX,
   ChevronDown,
   ChevronUp,
   Download,
   AlertCircle,
+  Save,
 } from 'lucide-react';
 import { useEstudiantes } from '../hook/useEducacionNotas';
 
@@ -48,57 +47,38 @@ interface Estudiante {
   no: number;
   apellidos: string;
   nombres: string;
+  curso: string;
   materias: {
-    lenguaExtranjera: Materia;
-    educacionFisica: Materia;
-    educacionCulturalArtistica: Materia;
-    estudiosSociales: Materia;
-    cienciasNaturales: Materia;
-    matematica: Materia;
-    lenguaLiteratura: Materia;
+    historia: Materia;
   };
   acompanamientoIntegral: number;
   animacionLectura: number;
 }
 
 // ===== Funciones auxiliares =====
-const crearMateriaVacia = (nombre: string): Materia => ({
-  nombre,
-  trimestres: { t1: 0, t2: 0, t3: 0 },
-  promedioFinal: 0,
-});
-
 const calcularPromedioMateria = (t1: number, t2: number, t3: number): number =>
   Number(((t1 + t2 + t3) / 3).toFixed(2));
 
 // ===== Configuración de materias =====
 const materiasConfig = [
-  { value: 'lenguaExtranjera', label: 'Lengua Extranjera' },
-  { value: 'educacionFisica', label: 'Educación Física' },
-  { value: 'educacionCulturalArtistica', label: 'Educación Cultural y Artística' },
-  { value: 'estudiosSociales', label: 'Estudios Sociales' },
-  { value: 'cienciasNaturales', label: 'Ciencias Naturales' },
-  { value: 'matematica', label: 'Matemática' },
-  { value: 'lenguaLiteratura', label: 'Lengua y Literatura' },
+  { value: 'historia', label: 'Historia' },
 ];
 
+const cursosDisponibles = [
+  { value: 'octavo', label: 'Octavo' },
+  { value: 'noveno', label: 'Noveno' },
+];
 
 export  function HistoricoNotasAdmin() {
   const { estudiantes: estudiantesApi, loading, saveEstudiante } = useEstudiantes();
 
   const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [estudianteSeleccionado, setEstudianteSeleccionado] = useState<Estudiante | null>(null);
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState<string>('');
   const [estudiantesModificados, setEstudiantesModificados] = useState<Set<string>>(new Set());
-  const [modoAccion, setModoAccion] = useState<'insert' | 'update' | null>(null);
+  const [celdasEditando, setCeldasEditando] = useState<Set<string>>(new Set());
 
-  const [t1, setT1] = useState<number>(0);
-  const [t2, setT2] = useState<number>(0);
-  const [t3, setT3] = useState<number>(0);
-
-  // ===== NUEVOS ESTADOS PARA FILTROS =====
+  // ===== ESTADOS PARA FILTROS =====
   const [busqueda, setBusqueda] = useState('');
+  const [filtroCurso, setFiltroCurso] = useState<string>('');
   const [filtroMateria, setFiltroMateria] = useState<string>('');
   const [filtroRendimiento, setFiltroRendimiento] = useState<string>('');
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(true);
@@ -127,6 +107,11 @@ export  function HistoricoNotasAdmin() {
       );
     }
 
+    // Filtro por curso
+    if (filtroCurso) {
+      resultado = resultado.filter((est) => est.curso === filtroCurso);
+    }
+
     // Filtro por materia con bajo rendimiento (<7)
     if (filtroMateria) {
       resultado = resultado.filter((est) => {
@@ -151,7 +136,7 @@ export  function HistoricoNotasAdmin() {
     }
 
     return resultado;
-  }, [estudiantes, busqueda, filtroMateria, filtroRendimiento]);
+  }, [estudiantes, busqueda, filtroCurso, filtroMateria, filtroRendimiento]);
 
   // ===== PAGINACIÓN =====
   const totalPaginas = Math.ceil(estudiantesFiltrados.length / elementosPorPagina);
@@ -163,26 +148,28 @@ export  function HistoricoNotasAdmin() {
   // Reset paginación cuando cambian los filtros
   useEffect(() => {
     setPaginaActual(1);
-  }, [busqueda, filtroMateria, filtroRendimiento, elementosPorPagina]);
+  }, [busqueda, filtroCurso, filtroMateria, filtroRendimiento, elementosPorPagina]);
 
   // ===== FUNCIONES =====
   const limpiarFiltros = () => {
     setBusqueda('');
+    setFiltroCurso('');
     setFiltroMateria('');
     setFiltroRendimiento('');
   };
 
-  const hayFiltrosActivos = busqueda || filtroMateria || filtroRendimiento;
+  const hayFiltrosActivos = busqueda || filtroCurso || filtroMateria || filtroRendimiento;
 
   const exportarDatos = () => {
     const csv = [
-      ['Apellidos', 'Nombres', ...materiasConfig.map((m) => m.label), 'Acomp. Integral', 'Anim. Lectura', 'Promedio Total'].join(','),
+      ['Curso', 'Apellidos', 'Nombres', ...materiasConfig.map((m) => m.label), 'Acomp. Integral', 'Anim. Lectura', 'Promedio Total'].join(','),
       ...estudiantesFiltrados.map((est) => {
         const promedios = materiasConfig.map(
           (mat) => est.materias[mat.value as keyof typeof est.materias].promedioFinal || 0
         );
         const promedioTotal = Number((promedios.reduce((a, b) => a + b, 0) / promedios.length).toFixed(2));
         return [
+          est.curso,
           est.apellidos,
           est.nombres,
           ...promedios,
@@ -201,56 +188,35 @@ export  function HistoricoNotasAdmin() {
     a.click();
   };
 
-  const handleGuardar = () => {
-    if (!estudianteSeleccionado || !materiaSeleccionada) return;
-
-    const promedio = calcularPromedioMateria(t1, t2, t3);
-
+  const actualizarNota = (estudianteId: string, materia: string, trimestre: 't1' | 't2' | 't3', valor: number) => {
     const nuevosEstudiantes = estudiantes.map((est) => {
-      if (est.id === estudianteSeleccionado.id) {
-        const nuevasMaterias = { ...est.materias };
-        const materiaKey = materiaSeleccionada as keyof typeof nuevasMaterias;
+      if (est.id === estudianteId) {
+        const materiaKey = materia as keyof typeof est.materias;
+        const materiaActual = est.materias[materiaKey];
+        const nuevosTrimestres = { ...materiaActual.trimestres, [trimestre]: valor };
+        const nuevoPromedio = calcularPromedioMateria(
+          nuevosTrimestres.t1,
+          nuevosTrimestres.t2,
+          nuevosTrimestres.t3
+        );
 
-        nuevasMaterias[materiaKey] = {
-          ...nuevasMaterias[materiaKey],
-          trimestres: { t1, t2, t3 },
-          promedioFinal: promedio,
+        return {
+          ...est,
+          materias: {
+            ...est.materias,
+            [materiaKey]: {
+              ...materiaActual,
+              trimestres: nuevosTrimestres,
+              promedioFinal: nuevoPromedio,
+            },
+          },
         };
-
-        return { ...est, materias: nuevasMaterias };
       }
       return est;
     });
 
     setEstudiantes(nuevosEstudiantes);
-    setEstudiantesModificados((prev) => new Set(prev).add(estudianteSeleccionado.id));
-
-    setModalAbierto(false);
-    setMateriaSeleccionada('');
-    setT1(0);
-    setT2(0);
-    setT3(0);
-  };
-
-  const abrirModal = (estudiante: Estudiante, materia?: string) => {
-    setEstudianteSeleccionado(estudiante);
-
-    if (materia) {
-      setModoAccion('update');
-      const materiaData = estudiante.materias[materia as keyof typeof estudiante.materias];
-      setMateriaSeleccionada(materia);
-      setT1(materiaData.trimestres.t1 || 0);
-      setT2(materiaData.trimestres.t2 || 0);
-      setT3(materiaData.trimestres.t3 || 0);
-    } else {
-      setModoAccion('insert');
-      setMateriaSeleccionada('');
-      setT1(0);
-      setT2(0);
-      setT3(0);
-    }
-
-    setModalAbierto(true);
+    setEstudiantesModificados((prev) => new Set(prev).add(estudianteId));
   };
 
   const getColorPromedio = (promedio: number) => {
@@ -259,14 +225,17 @@ export  function HistoricoNotasAdmin() {
     return undefined;
   };
 
+  const getCeldaKey = (estudianteId: string, materia: string, trimestre: string) => 
+    `${estudianteId}-${materia}-${trimestre}`;
+
   return (
-    <Box>
+    <Box p="md">
       <Paper shadow="sm" p="md" mb="lg">
         <Group justify="space-between" align="center">
           <div>
             <Title order={2}>Registro de Calificaciones</Title>
             <Text c="dimmed" size="sm">
-              Todas las materias del periodo lectivo
+              Edición directa en la tabla
             </Text>
           </div>
           <Badge size="lg" variant="filled" color="blue">
@@ -284,7 +253,7 @@ export  function HistoricoNotasAdmin() {
             </Text>
             {hayFiltrosActivos && (
               <Badge color="orange" variant="light">
-                {[busqueda, filtroMateria, filtroRendimiento].filter(Boolean).length} activo(s)
+                {[busqueda, filtroCurso, filtroMateria, filtroRendimiento].filter(Boolean).length} activo(s)
               </Badge>
             )}
           </Group>
@@ -308,6 +277,15 @@ export  function HistoricoNotasAdmin() {
                 onChange={(e) => setBusqueda(e.target.value)}
               />
             </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 2 }}>
+              <Select
+                placeholder="Filtrar por curso"
+                data={[{ value: '', label: 'Todos los cursos' }, ...cursosDisponibles]}
+                value={filtroCurso}
+                onChange={(value) => setFiltroCurso(value || '')}
+                clearable
+              />
+            </Grid.Col>
             <Grid.Col span={{ base: 12, md: 3 }}>
               <Select
                 placeholder="Materia con bajo rendimiento (<7)"
@@ -317,7 +295,7 @@ export  function HistoricoNotasAdmin() {
                 clearable
               />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 3 }}>
+            <Grid.Col span={{ base: 12, md: 2 }}>
               <Select
                 placeholder="Rendimiento general"
                 data={[
@@ -331,7 +309,7 @@ export  function HistoricoNotasAdmin() {
                 clearable
               />
             </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 3 }}>
+            <Grid.Col span={{ base: 12, md: 2 }}>
               <Tooltip label="Limpiar todos los filtros">
                 <Button
                   fullWidth
@@ -360,7 +338,7 @@ export  function HistoricoNotasAdmin() {
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Agregar Nota</Table.Th>
+                  <Table.Th>Curso</Table.Th>
                   <Table.Th>Apellidos y Nombres</Table.Th>
                   {materiasConfig.map((mat) => (
                     <Table.Th key={mat.value} colSpan={4} style={{ textAlign: 'center' }}>
@@ -403,35 +381,47 @@ export  function HistoricoNotasAdmin() {
                   return (
                     <Table.Tr key={est.id}>
                       <Table.Td>
-                        <Button leftSection={<Edit size={14} />} size="xs" variant="light" onClick={() => abrirModal(est)}>
-                          Agregar
-                        </Button>
+                        <Badge color="cyan" variant="light">
+                          {cursosDisponibles.find(c => c.value === est.curso)?.label || est.curso}
+                        </Badge>
                       </Table.Td>
                       <Table.Td>{`${est.apellidos} ${est.nombres}`}</Table.Td>
                       {materiasConfig.map((mat) => {
                         const materia = est.materias[mat.value as keyof typeof est.materias];
-                        const tieneNotas = materia.trimestres.t1 > 0 || materia.trimestres.t2 > 0 || materia.trimestres.t3 > 0;
 
                         return (
                           <React.Fragment key={mat.value}>
-                            <Table.Td
-                              style={{ cursor: tieneNotas ? 'pointer' : 'default', backgroundColor: tieneNotas ? '#f8f9fa' : 'transparent' }}
-                              onClick={() => tieneNotas && abrirModal(est, mat.value)}
-                            >
-                              {materia.trimestres.t1 || '-'}
-                            </Table.Td>
-                            <Table.Td
-                              style={{ cursor: tieneNotas ? 'pointer' : 'default', backgroundColor: tieneNotas ? '#f8f9fa' : 'transparent' }}
-                              onClick={() => tieneNotas && abrirModal(est, mat.value)}
-                            >
-                              {materia.trimestres.t2 || '-'}
-                            </Table.Td>
-                            <Table.Td
-                              style={{ cursor: tieneNotas ? 'pointer' : 'default', backgroundColor: tieneNotas ? '#f8f9fa' : 'transparent' }}
-                              onClick={() => tieneNotas && abrirModal(est, mat.value)}
-                            >
-                              {materia.trimestres.t3 || '-'}
-                            </Table.Td>
+                            {(['t1', 't2', 't3'] as const).map((trimestre) => {
+                              const celdaKey = getCeldaKey(est.id, mat.value, trimestre);
+                              return (
+                                <Table.Td key={trimestre} style={{ padding: '4px' }}>
+                                  <NumberInput
+                                    size="xs"
+                                    min={0}
+                                    max={10}
+                                    step={0.1}
+                                    value={materia.trimestres[trimestre]}
+                                    onChange={(valor) => {
+                                      actualizarNota(est.id, mat.value, trimestre, Number(valor));
+                                    }}
+                                    onFocus={() => setCeldasEditando(prev => new Set(prev).add(celdaKey))}
+                                    onBlur={() => {
+                                      setCeldasEditando(prev => {
+                                        const newSet = new Set(prev);
+                                        newSet.delete(celdaKey);
+                                        return newSet;
+                                      });
+                                    }}
+                                    styles={{
+                                      input: {
+                                        textAlign: 'center',
+                                        fontWeight: 500,
+                                      },
+                                    }}
+                                  />
+                                </Table.Td>
+                              );
+                            })}
                             <Table.Td fw={700} style={{ color: materia.promedioFinal ? getColorPromedio(materia.promedioFinal) : undefined }}>
                               {materia.promedioFinal || '-'}
                             </Table.Td>
@@ -489,6 +479,7 @@ export  function HistoricoNotasAdmin() {
         </Button>
         <Button
           color="green"
+          leftSection={<Save size={16} />}
           onClick={async () => {
             for (const est of estudiantes) {
               if (estudiantesModificados.has(est.id)) {
@@ -504,74 +495,6 @@ export  function HistoricoNotasAdmin() {
           Guardar Cambios ({estudiantesModificados.size})
         </Button>
       </Group>
-
-      {/* ===== MODAL ===== */}
-      <Modal
-        opened={modalAbierto}
-        onClose={() => {
-          setModalAbierto(false);
-          setMateriaSeleccionada('');
-          setT1(0);
-          setT2(0);
-          setT3(0);
-        }}
-        title={
-          estudianteSeleccionado
-            ? `${materiaSeleccionada ? 'Editar' : 'Agregar'} notas: ${estudianteSeleccionado.apellidos} ${estudianteSeleccionado.nombres}`
-            : 'Agregar notas'
-        }
-        size="lg"
-      >
-        <Stack gap="md">
-          <Select
-            label="Materia"
-            placeholder="Seleccione una materia"
-            required
-            data={materiasConfig}
-            value={materiaSeleccionada}
-            onChange={(value) => {
-              if (value && estudianteSeleccionado) {
-                const materiaData = estudianteSeleccionado.materias[value as keyof typeof estudianteSeleccionado.materias];
-                setMateriaSeleccionada(value);
-                setT1(materiaData.trimestres.t1 || 0);
-                setT2(materiaData.trimestres.t2 || 0);
-                setT3(materiaData.trimestres.t3 || 0);
-              }
-            }}
-          />
-          <Grid>
-            <Grid.Col span={4}>
-              <NumberInput label="Trimestre 1" min={0} max={10} value={t1} onChange={(v) => setT1(Number(v))} />
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <NumberInput label="Trimestre 2" min={0} max={10} value={t2} onChange={(v) => setT2(Number(v))} />
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <NumberInput label="Trimestre 3" min={0} max={10} value={t3} onChange={(v) => setT3(Number(v))} />
-            </Grid.Col>
-          </Grid>
-          <Paper p="sm" bg="gray.0">
-            <Text size="sm" fw={500}>
-              Promedio: {calcularPromedioMateria(t1, t2, t3)}
-            </Text>
-          </Paper>
-          <Group justify="flex-end">
-            <Button
-              variant="light"
-              onClick={() => {
-                setModalAbierto(false);
-                setMateriaSeleccionada('');
-                setT1(0);
-                setT2(0);
-                setT3(0);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleGuardar}>{modoAccion === 'update' ? 'Actualizar' : 'Guardar'}</Button>
-          </Group>
-        </Stack>
-      </Modal>
     </Box>
   );
 }
