@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { service, TransaccionesRecientesDTO  } from '../services/gamificacion.usuario.service';
 
 // ==================== MOCK DATA ====================
-const mockTransacciones: TransaccionesRecientesDTO  = {
+//const mockTransacciones: TransaccionesRecientesDTO  = {};
+/*
+{
   transacciones: [
     {
       id: 1,
@@ -154,7 +156,7 @@ const mockTransacciones: TransaccionesRecientesDTO  = {
     }
   ]
 };
-
+*/
 // ==================== CONFIGURACIÓN ====================
 const USE_MOCK = false; // ⚠️ Cambiar a false para usar el servicio real
 
@@ -177,10 +179,8 @@ export const useDashboardUser = () => {
         // Simular delay de red
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        setTransaccionesRecientes(mockTransacciones);
-        
-        console.log('✅ Datos MOCK cargados:', mockTransacciones.transacciones.length, 'transacciones');
-        
+        //setTransaccionesRecientes(mockTransacciones);
+                
       } else {
         // ========== MODO REAL ==========
         console.log('🟢 Llamando al servicio REAL para usuario:', usuarioId);
@@ -198,7 +198,7 @@ export const useDashboardUser = () => {
       // Fallback a mock en caso de error (solo en modo real)
       if (!USE_MOCK) {
         console.warn('⚠️ Error en servicio real, usando datos MOCK como fallback');
-        setTransaccionesRecientes(mockTransacciones);
+        //setTransaccionesRecientes(mockTransacciones);
       }
     } finally {
       setLoading(false);
@@ -216,9 +216,9 @@ export const useDashboardUser = () => {
       if (USE_MOCK) {
         await new Promise(resolve => setTimeout(resolve, 500));
         const limitadas = {
-          transacciones: mockTransacciones.transacciones.slice(0, limite)
+          //transacciones: mockTransacciones.transacciones.slice(0, limite)
         };
-        setTransaccionesRecientes(limitadas);
+        //setTransaccionesRecientes(limitadas);
       } else {
         const data = await service.getTransaccionesRecientes(usuarioId, limite);
         setTransaccionesRecientes(data);
@@ -244,12 +244,12 @@ export const useDashboardUser = () => {
     try {
       if (USE_MOCK) {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const filtradas = {
+        /*const filtradas = {
           transacciones: mockTransacciones.transacciones.filter(
             t => t.tipo_transaccion === tipo
           )
         };
-        setTransaccionesRecientes(filtradas);
+        setTransaccionesRecientes(filtradas);*/
       } else {
         const data = await service.getTransaccionesPorTipo(usuarioId, tipo);
         setTransaccionesRecientes(data);

@@ -1,14 +1,10 @@
+import { configService } from "../../service/configuracion.service";
+import { environment } from "../../service/environment";
 import { GeminiRequest, GeminiResponse } from "../model/dominio";
 
 class GeminiService {
-
-  //private API_URL = import.meta.env.VITE_API_URL_IA;
-  //private API_KEY = import.meta.env.VITE_API_KEY_IA;
-  //private API_MODEL = import.meta.env.VITE_API_MODEL_IA;
-
-  private API_URL = 'https://generativelanguage.googleapis.com/v1';
-  private API_KEY = 'AIzaSyD6Tm675FfOKRzMk0P_TBMSEVE_6X_S73U';
-  private API_MODEL = 'gemini-2.5-flash';
+  private API_URL   = environment.ia.url;
+  private API_MODEL = environment.ia.model;
 
   async generateText({
     prompt,
@@ -16,7 +12,9 @@ class GeminiService {
     maxTokens = 2048
   }: GeminiRequest): Promise<string> {
 
-    if (!this.API_KEY) {
+    const apiKeys = await configService.GET();
+    
+    if (!apiKeys.geminiKey) {
       throw new Error('API Key es requerida');
     }
 
@@ -24,7 +22,7 @@ class GeminiService {
       throw new Error('El prompt es requerido');
     }
 
-    const url = `${this.API_URL}/models/${this.API_MODEL}:generateContent?key=${this.API_KEY}`;
+    const url = `${this.API_URL}/models/${this.API_MODEL}:generateContent?key=${apiKeys.geminiKey}`;
 
     const requestBody = {
       contents: [

@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 import { GET_ERROR } from '../../../utils/utils';
-import { GenerarPlanAnalisisRequest, GenerarPlanRequest, PlanGeneradoResponse, PlanTratamientoNuevo } from '../../../types/dto';
+import { GenerarPlanAnalisisRequest, PlanGeneradoResponse, PlanTratamientoNuevo } from '../../../types/dto';
 import { service } from '../services/agricultura.service';
-import { PlanTratamiento } from '../../../types/model';
 
 export function   usePlanesTratamiento() {
   const [loading, setLoading] = useState(false);
@@ -35,12 +34,7 @@ export function   usePlanesTratamiento() {
       const response = await service.POST(request);
       setPlanGenerado(response);
       
-      notifications.success(
-        'Plan generado',
-        'El plan de tratamiento se ha generado exitosamente'
-      );
-
-      // Refreschar lista después de generar
+      notifications.success();
       await obtenerTodosPlanes();
 
       return response;

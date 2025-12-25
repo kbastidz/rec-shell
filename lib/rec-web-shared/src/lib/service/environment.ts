@@ -1,19 +1,20 @@
 export const environment = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
-
-  apiEndpoints: {
-    users: '/users',
-    auth: '/auth',
-    products: '/products',
-    notifications: '/notifications',
+  production: false,
+  api: {
+    baseUrl: 'http://localhost:8080/api/v1',
   },
 
-  // Variables de entorno
-  isDevelopment: import.meta.env.DEV,
-  isProduction: import.meta.env.PROD,
-  mode: import.meta.env.MODE,
-};
+  ia: {
+    url: 'https://generativelanguage.googleapis.com/v1',
+    //apiKey: 'AIzaSyD6Tm675FfOKRzMk0P_TBMSEVE_6X_S73U',
+    model: 'gemini-2.5-flash',
+  },
 
-export const buildApiUrl = (endpoint: string): string => {
-  return `${environment.baseUrl}${endpoint}`;
+  youtube: {
+    url: 'https://www.googleapis.com/youtube/v3/search',
+    //apiKey: 'AIzaSyA3m56gu6RJJ9etf1HRiP3m9LK2XmIVjxA',
+  },
+  yolo : {
+    url: 'http://localhost:8000'
+  }
 };

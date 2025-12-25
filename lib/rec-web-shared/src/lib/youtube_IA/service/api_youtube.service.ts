@@ -1,12 +1,20 @@
+import { configService } from "../../service/configuracion.service";
+import { environment } from "../../service/environment";
+
 class ApiYoutubeService {
   
-  private API_URL = 'https://www.googleapis.com/youtube/v3/search';
-  private API_KEY = 'AIzaSyA3m56gu6RJJ9etf1HRiP3m9LK2XmIVjxA';
+  private API_URL = environment.youtube.url;
+  
+  private async apiKey(): Promise<string> {
+    const apiKey = await configService.GET();
+    return apiKey.youtubeKey;
+  }
   
   async GET_NAME(query: string, maxResults = 5) {
+    const API_KEY = await this.apiKey();
     const url = `${this.API_URL}?part=snippet&q=${encodeURIComponent(
       query
-    )}&type=video&maxResults=${maxResults}&key=${this.API_KEY}`;
+    )}&type=video&maxResults=${maxResults}&key=${API_KEY}`;
 
     try {
       const response = await fetch(url);

@@ -26,25 +26,23 @@ import {
   IconMapPin,
 } from '@tabler/icons-react';
 import { useAnalisisImagen } from '../hook/useAgriculturaMchl';
-import { AnalisisImagenMCHLDTO } from '../../../types/dto';
 import {
+  environment,
   NOTIFICATION_MESSAGES,
   useGemini,
   useNotifications,
 } from '@rec-shell/rec-web-shared';
 import {
   FALLBACK_DATA_YOLO,
-  generarPromptRecomendaciones,
   generarPromptRecomendacionesYOLO,
 } from '../../../utils/promp';
-import { register } from 'module';
 import {
   APIResponse,
   construirAnalisisDTO,
   ResultDataYOLO,
 } from '../../../types/yolo';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = environment.youtube.url;
 
 // Datos de respaldo cuando la API no está disponible
 const FALLBACK_DATA = {
@@ -213,51 +211,6 @@ export function Analisis() {
     if (file) handleFileSelect(file);
   };
 
-  /*
-  const handleAnalyze = async () => {
-    if (!selectedFile) return;
-
-    setLoading(true);
-    setResults(null);
-    setError(null);
-    setRecomendaciones('');
-
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    try {
-      const response = await fetch(`${API_URL}/predict`, {
-        method: 'POST',
-        body: formData
-      });
-
-      const result = await response.json();
-      console.log('Resultados:', result);
-      
-      if (result.success) {
-        setResults(result.data);
-        
-        setIsLoadingRecommendations(true);
-        const prompt = generarPromptRecomendaciones(result.data);
-        await generateText(prompt);
-      } else {
-        setError('Error al procesar la imagen');
-      }
-    } catch (err) {
-      console.error('API no disponible, usando datos de fallback:', err);
-      
-      // Usar datos de fallback
-      setResults(FALLBACK_DATA.data);
-      
-      setIsLoadingRecommendations(true);
-      const prompt = generarPromptRecomendaciones(FALLBACK_DATA.data);
-      await generateText(prompt);
-    } finally {
-      setLoading(false);
-    }
-  };
-  */
-
   const handleAnalyze = async () => {
     if (!selectedFile) return;
 
@@ -271,7 +224,7 @@ export function Analisis() {
 
     try {
       // Usa /predict/visual si quieres la imagen con cajas dibujadas
-      const response = await fetch(`${API_URL}/predict`, {
+      const response = await fetch(`${API_URL}/predict/visual`, {
         method: 'POST',
         body: formData,
       });
@@ -327,16 +280,6 @@ export function Analisis() {
       );
       return;
     }
-
-    /*const analisisDTO: AnalisisImagenMCHLDTO = {
-      deficiencia: results.deficiencia,
-      confianza: results.confianza,
-      probabilidades: results.probabilidades,
-      archivo: selectedFile.name,
-      imagenBase64: imagenBase64,
-      fecha: new Date().toISOString().split('T')[0],
-      recomendaciones: recomendacionesJSON
-    };*/
 
     const analisisDTO = construirAnalisisDTO(
       results,
@@ -558,13 +501,13 @@ export function Analisis() {
                     {/* Deficiencias por tipo */}
                     <Paper radius="lg" p="xl" style={{ background: '#f8f9ff' }}>
                       <Text fw={600} mb="lg" size="md">
-                        📊 Resumen por tipo de deficiencia
+                        <span role="img" aria-label="resume">📊</span>
+                         Resumen por tipo de deficiencia
                       </Text>
 
                       <Stack gap="md">
                         {Object.entries(results.estadisticas.por_tipo).map(
                           ([deficiencia, cantidad]) => {
-                            // Calcular confianza promedio para esta deficiencia
                             const deteccionesDelTipo =
                               results.detecciones.filter(
                                 (d) => d.deficiencia === deficiencia
@@ -613,7 +556,8 @@ export function Analisis() {
                     {/* Detalle de cada detección */}
                     <Paper radius="lg" p="xl" style={{ background: '#fff5f5' }}>
                       <Text fw={600} mb="lg" size="md">
-                        🔍 Detalle de regiones afectadas
+                        <span role="img" aria-label="resume">🔍</span>
+                         Detalle de regiones afectadas
                       </Text>
 
                       <Stack gap="sm">
@@ -707,12 +651,14 @@ export function Analisis() {
                     {results.imagen_procesada && (
                       <Paper radius="lg" p="md" withBorder>
                         <Text fw={600} mb="md" size="md">
-                          📸 Imagen con detecciones marcadas
+                          <span role="img" aria-label="resume">📸</span>
+                          Imagen con detecciones marcadas
                         </Text>
                         <Image
                           src={`data:image/jpeg;base64,${results.imagen_procesada}`}
                           alt="Imagen procesada con detecciones"
                           radius="md"
+                          style={{ maxHeight: '600px', objectFit: 'contain' }}
                         />
                       </Paper>
                     )}
@@ -739,7 +685,8 @@ export function Analisis() {
                   results.detecciones.length > 0 && (
                     <Paper radius="lg" p="xl" style={{ background: '#e8fff5' }}>
                       <Text fw={600} mb="md" size="md">
-                        🌱 Recomendaciones Personalizadas (Generadas por IA)
+                        <span role="img" aria-label="resume">🌱</span>
+                         Recomendaciones Personalizadas (Generadas por IA)
                       </Text>
                       <Paper p="md" radius="md" style={{ background: 'white' }}>
                         <div

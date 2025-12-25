@@ -1,4 +1,4 @@
-// iconMap.ts
+
 import { 
   IconMath, 
   IconWorld, 

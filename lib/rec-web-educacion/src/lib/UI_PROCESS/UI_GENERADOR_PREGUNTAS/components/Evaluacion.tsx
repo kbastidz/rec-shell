@@ -245,7 +245,7 @@ export function Evaluacion({ onCompletado }: EvaluacionInteractivaProps) {
             radius="xl"
             withBorder
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #4A9EFF 0%, #3BAFDA 100%)',
               border: 'none',
               maxWidth: 500,
               width: '100%',
@@ -306,27 +306,22 @@ export function Evaluacion({ onCompletado }: EvaluacionInteractivaProps) {
                 )}
 
                 <Button
-                  size="xl"
-                  radius="xl"
-                  onClick={validarCodigo}
-                  color="white"
-                  c="grape"
-                  loading={validando}
-                  disabled={!codigoIngresado.trim()}
-                  style={{
+  size="xl"
+  radius="xl"
+  variant="outline"
+  onClick={validarCodigo}
+  color="white"
+  
+  loading={validando}
+  disabled={!codigoIngresado.trim()}
+  style={{
+                    borderWidth: 2,
                     transform: 'scale(1)',
                     transition: 'transform 0.2s',
                   }}
-                  onMouseEnter={(e) =>
-                    !validando &&
-                    (e.currentTarget.style.transform = 'scale(1.05)')
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.transform = 'scale(1)')
-                  }
-                >
-                  Validar Código
-                </Button>
+>
+  Validar Código
+</Button>
 
                 <Button
                   size="xl"
@@ -387,7 +382,7 @@ export function Evaluacion({ onCompletado }: EvaluacionInteractivaProps) {
                         <Badge
                           size="lg"
                           variant="light"
-                          color="blue"
+                          color="cyan"
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
                             setCodigoIngresado(item.codigo);
@@ -699,10 +694,10 @@ export function Evaluacion({ onCompletado }: EvaluacionInteractivaProps) {
                           radius="md"
                           withBorder
                           style={{
-                            borderColor: esSeleccionada ? 'blue' : 'gray',
+                            borderColor: esSeleccionada ? '#4A9EFF' : 'gray',
                             borderWidth: 2,
                             backgroundColor: esSeleccionada
-                              ? 'rgba(121, 80, 242, 0.1)'
+                              ? 'rgba(74, 158, 255, 0.1)'
                               : 'transparent',
                             cursor: 'pointer',
                             transition: 'all 0.3s ease',
@@ -716,7 +711,7 @@ export function Evaluacion({ onCompletado }: EvaluacionInteractivaProps) {
                             <Radio
                               value={index.toString()}
                               size="md"
-                              color="blue"
+                              color="cyan"
                             />
                             <Text size="md" style={{ flex: 1 }}>
                               {opcion}
@@ -736,7 +731,7 @@ export function Evaluacion({ onCompletado }: EvaluacionInteractivaProps) {
                     disabled={respuestaSeleccionada === null}
                     rightSection={<IconCheck size={20} />}
                     variant="gradient"
-                    gradient={{ from: 'blue', to: 'teal', deg: 90 }}
+                    gradient={{ from: '#4A9EFF', to: '#2E7DD8', deg: 90 }}
                     loading={loading && preguntaActual === preguntas.length - 1}
                   >
                     {preguntaActual < preguntas.length - 1

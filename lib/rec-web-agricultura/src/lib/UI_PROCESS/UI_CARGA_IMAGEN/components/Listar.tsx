@@ -14,7 +14,6 @@ import {
   Divider,
   ThemeIcon,
   Paper,
-  RingProgress,
   Image,
   ActionIcon,
   Box,
@@ -23,7 +22,6 @@ import {
 } from '@mantine/core';
 import {
   IconAlertCircle,
-  IconRefresh,
   IconLeaf,
   IconCalendar,
   IconEye,

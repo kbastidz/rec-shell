@@ -1,45 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Paper,
-  Title,
-  Button,
-  Table,
-  Group,
-  TextInput,
-  Modal,
-  Stack,
-  Select,
-  NumberInput,
-  Badge,
-  ActionIcon,
-  Text,
-  Loader,
-  Alert,
-  Flex,
-  Card,
-  Grid,
-  Textarea,
-  Box,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import {
-  IconPlus,
-  IconSearch,
-  IconEdit,
-  IconTrash,
-  IconAlertCircle,
-  IconLeaf,
-  IconMapPin,
-} from '@tabler/icons-react';
 import { useCultivos } from '../hooks/useAgricultura';
 import { CultivoFormData } from '../../types/dto';
 import {
   ActionButtons,
   DeleteConfirmModal,
+  ErrorAlert,
   PaginationControls,
   usePagination,
 } from '@rec-shell/rec-web-shared';
+
+import { getEstadoBadge } from '../../helper/estadoBadge';
+import { useDisclosure } from '@mantine/hooks';
+import * as UI from '../../helper/ui';
 
 export const CultivosAdmin = () => {
   const [opened, { open, close }] = useDisclosure(false);
@@ -49,6 +21,7 @@ export const CultivosAdmin = () => {
   const [cultivoAEliminar, setCultivoAEliminar] = useState<any>(null);
   const [busqueda, setBusqueda] = useState('');
   const [eliminando, setEliminando] = useState(false);
+
   const [formData, setFormData] = useState<CultivoFormData>({
     nombreCultivo: '',
     variedadCacao: '',
@@ -170,16 +143,6 @@ export const CultivosAdmin = () => {
     }
   };
 
-  const getEstadoBadge = (estado: string) => {
-    const colores: Record<string, string> = {
-      ACTIVO: 'green',
-      INACTIVO: 'gray',
-      COSECHADO: 'blue',
-      SUSPENDIDO: 'red',
-    };
-    return <Badge color={colores[estado] || 'gray'}>{estado}</Badge>;
-  };
-
   // Ref Paginacion Global
   const lista = Array.isArray(cultivosFiltrados) ? cultivosFiltrados : [];
   const {
@@ -206,154 +169,142 @@ export const CultivosAdmin = () => {
   });
 
   return (
-    <Box p="md">
-      <Stack gap="lg">
-        {error && (
-          <Alert
-            icon={<IconAlertCircle size={16} />}
-            title="Error"
-            color="red"
-            withCloseButton
-            onClose={clearError}
-          >
-            {error}
-          </Alert>
+    <UI.Box p="md">
+      <UI.Stack gap="lg">
+        {error && <ErrorAlert error={error} onClose={clearError} />}
+
+        <UI.Flex justify="space-between" align="center" mb="lg">
+          <UI.Title order={2}>Gestión de Cultivos</UI.Title>
+          <ActionButtons.Modal onClick={handleNuevo} loading={loading} />
+        </UI.Flex>
+
+        <UI.Grid>
+          <UI.Grid.Col span={{ base: 12, md: 4 }}>
+            <UI.Card withBorder>
+              <UI.Text size="sm" c="dimmed">
+                Área Total Activa
+              </UI.Text>
+              <UI.Text size="xl" fw={700}>
+                {areaTotalActiva ? areaTotalActiva.toFixed(2) : '0.00'} ha
+              </UI.Text>
+            </UI.Card>
+          </UI.Grid.Col>
+        </UI.Grid>
+
+        {loading ? (
+          <UI.Flex justify="center" align="center" py="xl">
+            <UI.Loader size="lg" />
+          </UI.Flex>
+        ) : cultivosFiltrados.length === 0 ? (
+          <UI.Text ta="center" c="dimmed" py="xl">
+            {searchTerm
+              ? 'No se encontraron resultados para tu búsqueda'
+              : 'No se encontraron registros'}
+          </UI.Text>
+        ) : (
+          <UI.Card shadow="sm" p="lg">
+            <UI.Table striped highlightOnHover>
+              <UI.Table.Thead>
+                <UI.Table.Tr>
+                  <UI.Table.Th>Nombre</UI.Table.Th>
+                  <UI.Table.Th>Variedad Cacao</UI.Table.Th>
+                  <UI.Table.Th>Área (ha)</UI.Table.Th>
+                  <UI.Table.Th>Ubicación</UI.Table.Th>
+                  <UI.Table.Th>Fecha Siembra</UI.Table.Th>
+                  <UI.Table.Th>Estado</UI.Table.Th>
+                  <UI.Table.Th>Acciones</UI.Table.Th>
+                </UI.Table.Tr>
+              </UI.Table.Thead>
+              <UI.Table.Tbody>
+                {paginatedData.map((cultivo) => (
+                  <UI.Table.Tr key={cultivo.id}>
+                    <UI.Table.Td>
+                      <UI.Text fw={500}>{cultivo.nombreCultivo}</UI.Text>
+                    </UI.Table.Td>
+                    <UI.Table.Td>{cultivo.variedadCacao || '-'}</UI.Table.Td>
+                    <UI.Table.Td>
+                      {cultivo.areaHectareas?.toFixed(2) || '0.00'}
+                    </UI.Table.Td>
+                    <UI.Table.Td>
+                      {cultivo.ubicacionNombre ? (
+                        <UI.Group gap="xs">
+                          <UI.IconMapPin size={14} />
+                          <UI.Text size="sm">{cultivo.ubicacionNombre}</UI.Text>
+                        </UI.Group>
+                      ) : (
+                        '-'
+                      )}
+                    </UI.Table.Td>
+                    <UI.Table.Td>
+                      {cultivo.fechaSiembra
+                        ? new Date(cultivo.fechaSiembra).toLocaleDateString()
+                        : '-'}
+                    </UI.Table.Td>
+                    <UI.Table.Td>
+                      {getEstadoBadge(cultivo.estadoCultivo)}
+                    </UI.Table.Td>
+                    <UI.Table.Td>
+                      <UI.Group gap="xs">
+                        <UI.ActionIcon
+                          variant="light"
+                          color="blue"
+                          onClick={() => handleEditar(cultivo)}
+                        >
+                          <UI.IconEdit size={16} />
+                        </UI.ActionIcon>
+                        <UI.ActionIcon
+                          variant="light"
+                          color="red"
+                          onClick={() => handleEliminar(cultivo)}
+                        >
+                          <UI.IconTrash size={16} />
+                        </UI.ActionIcon>
+                      </UI.Group>
+                    </UI.Table.Td>
+                  </UI.Table.Tr>
+                ))}
+              </UI.Table.Tbody>
+            </UI.Table>
+          </UI.Card>
         )}
 
-        <Flex justify="space-between" align="center" mb="lg">
-          <Title order={2}>Gestión de Cultivos</Title>
-          <ActionButtons.Modal onClick={handleNuevo} loading={loading} />
-        </Flex>
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Card withBorder>
-              <Text size="sm" c="dimmed">
-                Área Total Activa
-              </Text>
-              <Text size="xl" fw={700}>
-                {areaTotalActiva ? areaTotalActiva.toFixed(2) : '0.00'} ha
-              </Text>
-            </Card>
-          </Grid.Col>
-        </Grid>
-
-        
-          {loading ? (
-            <Flex justify="center" align="center" py="xl">
-              <Loader size="lg" />
-            </Flex>
-          ) : cultivosFiltrados.length === 0 ? (
-            <Text ta="center" c="dimmed" py="xl">
-              {searchTerm
-                ? 'No se encontraron resultados para tu búsqueda'
-                : 'No se encontraron registros'}
-            </Text>
-          ) : (
-             <Card shadow="sm" p="lg">
-               <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Nombre</Table.Th>
-                    <Table.Th>Variedad Cacao</Table.Th>
-                    <Table.Th>Área (ha)</Table.Th>
-                    <Table.Th>Ubicación</Table.Th>
-                    <Table.Th>Fecha Siembra</Table.Th>
-                    <Table.Th>Estado</Table.Th>
-                    <Table.Th>Acciones</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {paginatedData.map((cultivo) => (
-                    <Table.Tr key={cultivo.id}>
-                      <Table.Td>
-                        <Text fw={500}>{cultivo.nombreCultivo}</Text>
-                      </Table.Td>
-                      <Table.Td>{cultivo.variedadCacao || '-'}</Table.Td>
-                      <Table.Td>
-                        {cultivo.areaHectareas?.toFixed(2) || '0.00'}
-                      </Table.Td>
-                      <Table.Td>
-                        {cultivo.ubicacionNombre ? (
-                          <Group gap="xs">
-                            <IconMapPin size={14} />
-                            <Text size="sm">{cultivo.ubicacionNombre}</Text>
-                          </Group>
-                        ) : (
-                          '-'
-                        )}
-                      </Table.Td>
-                      <Table.Td>
-                        {cultivo.fechaSiembra
-                          ? new Date(cultivo.fechaSiembra).toLocaleDateString()
-                          : '-'}
-                      </Table.Td>
-                      <Table.Td>
-                        {getEstadoBadge(cultivo.estadoCultivo)}
-                      </Table.Td>
-                      <Table.Td>
-                        <Group gap="xs">
-                          <ActionIcon
-                            variant="light"
-                            color="blue"
-                            onClick={() => handleEditar(cultivo)}
-                          >
-                            <IconEdit size={16} />
-                          </ActionIcon>
-                          <ActionIcon
-                            variant="light"
-                            color="red"
-                            onClick={() => handleEliminar(cultivo)}
-                          >
-                            <IconTrash size={16} />
-                          </ActionIcon>
-                        </Group>
-                      </Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Card>
-          )}
-
-          {/* Ref paginacion Global - Controles de paginación */}
-          {lista.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={(value) =>
-                value && setItemsPerPage(Number(value))
-              }
-              startIndex={startIndex}
-              endIndex={endIndex}
-              totalItems={totalItems}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              searchPlaceholder="Buscar por código, nombre o nutriente..."
-            />
-          )}
-        
-      </Stack>
+        {/* Ref paginacion Global - Controles de paginación */}
+        {lista.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(value) =>
+              value && setItemsPerPage(Number(value))
+            }
+            startIndex={startIndex}
+            endIndex={endIndex}
+            totalItems={totalItems}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Buscar por código, nombre o nutriente..."
+          />
+        )}
+      </UI.Stack>
 
       {/* Modal de Formulario */}
-      <Modal
+      <UI.Modal
         opened={opened}
         onClose={close}
         title={modoEdicion ? 'Editar Registro' : 'Nuevo Registro'}
         size="90%"
       >
-        <Stack gap="md">
-          {/* Sección: Información Básica */}
-          <Paper p="md" withBorder>
-            <Text size="sm" fw={600} mb="sm" c="dimmed">
+        <UI.Stack gap="md">
+          <UI.Paper p="md" withBorder>
+            <UI.Text size="sm" fw={600} mb="sm" c="dimmed">
               INFORMACIÓN BÁSICA
-            </Text>
+            </UI.Text>
 
-            <Stack gap="sm">
-              <Grid>
-                <Grid.Col span={{ base: 12, sm: 6 }}>
-                  <TextInput
+            <UI.Stack gap="sm">
+              <UI.Grid>
+                <UI.Grid.Col span={{ base: 12, sm: 6 }}>
+                  <UI.TextInput
                     label="Nombre del Cultivo"
                     placeholder="Ej: Cacao Nacional"
                     required
@@ -365,9 +316,9 @@ export const CultivosAdmin = () => {
                       })
                     }
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 6 }}>
-                  <TextInput
+                </UI.Grid.Col>
+                <UI.Grid.Col span={{ base: 12, sm: 6 }}>
+                  <UI.TextInput
                     label="Variedad de Cacao"
                     placeholder="Ej: CCN-51, Nacional Fino"
                     value={formData.variedadCacao}
@@ -378,12 +329,12 @@ export const CultivosAdmin = () => {
                       })
                     }
                   />
-                </Grid.Col>
-              </Grid>
+                </UI.Grid.Col>
+              </UI.Grid>
 
-              <Grid>
-                <Grid.Col span={{ base: 12, sm: 4 }}>
-                  <NumberInput
+              <UI.Grid>
+                <UI.Grid.Col span={{ base: 12, sm: 4 }}>
+                  <UI.NumberInput
                     label="Área (hectáreas)"
                     placeholder="0.0"
                     required
@@ -398,9 +349,9 @@ export const CultivosAdmin = () => {
                       })
                     }
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 4 }}>
-                  <TextInput
+                </UI.Grid.Col>
+                <UI.Grid.Col span={{ base: 12, sm: 4 }}>
+                  <UI.TextInput
                     label="Fecha de Siembra"
                     type="date"
                     required
@@ -412,9 +363,9 @@ export const CultivosAdmin = () => {
                       })
                     }
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 4 }}>
-                  <Select
+                </UI.Grid.Col>
+                <UI.Grid.Col span={{ base: 12, sm: 4 }}>
+                  <UI.Select
                     label="Estado del Cultivo"
                     required
                     value={formData.estadoCultivo}
@@ -430,18 +381,17 @@ export const CultivosAdmin = () => {
                       { value: 'COSECHADO', label: 'Cosechado' },
                     ]}
                   />
-                </Grid.Col>
-              </Grid>
-            </Stack>
-          </Paper>
+                </UI.Grid.Col>
+              </UI.Grid>
+            </UI.Stack>
+          </UI.Paper>
 
-          {/* Sección: Ubicación */}
-          <Paper p="md" withBorder>
-            <Text size="sm" fw={600} mb="sm" c="dimmed">
+          <UI.Paper p="md" withBorder>
+            <UI.Text size="sm" fw={600} mb="sm" c="dimmed">
               UBICACIÓN
-            </Text>
-            <Stack gap="sm">
-              <TextInput
+            </UI.Text>
+            <UI.Stack gap="sm">
+              <UI.TextInput
                 label="Nombre de Ubicación"
                 placeholder="Ej: Parcela Norte, Lote 5"
                 value={formData.ubicacionNombre}
@@ -453,9 +403,9 @@ export const CultivosAdmin = () => {
                 }
               />
 
-              <Grid>
-                <Grid.Col span={{ base: 12, sm: 4 }}>
-                  <NumberInput
+              <UI.Grid>
+                <UI.Grid.Col span={{ base: 12, sm: 4 }}>
+                  <UI.NumberInput
                     label="Latitud"
                     placeholder="-2.1234"
                     step={0.000001}
@@ -468,9 +418,9 @@ export const CultivosAdmin = () => {
                       })
                     }
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 4 }}>
-                  <NumberInput
+                </UI.Grid.Col>
+                <UI.Grid.Col span={{ base: 12, sm: 4 }}>
+                  <UI.NumberInput
                     label="Longitud"
                     placeholder="-79.1234"
                     step={0.000001}
@@ -483,9 +433,9 @@ export const CultivosAdmin = () => {
                       })
                     }
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 4 }}>
-                  <NumberInput
+                </UI.Grid.Col>
+                <UI.Grid.Col span={{ base: 12, sm: 4 }}>
+                  <UI.NumberInput
                     label="Altitud (m)"
                     placeholder="500"
                     min={0}
@@ -497,19 +447,18 @@ export const CultivosAdmin = () => {
                       })
                     }
                   />
-                </Grid.Col>
-              </Grid>
-            </Stack>
-          </Paper>
+                </UI.Grid.Col>
+              </UI.Grid>
+            </UI.Stack>
+          </UI.Paper>
 
-          {/* Sección: Características del Terreno */}
-          <Paper p="md" withBorder>
-            <Text size="sm" fw={600} mb="sm" c="dimmed">
+          <UI.Paper p="md" withBorder>
+            <UI.Text size="sm" fw={600} mb="sm" c="dimmed">
               CARACTERÍSTICAS DEL TERRENO
-            </Text>
-            <Grid>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
+            </UI.Text>
+            <UI.Grid>
+              <UI.Grid.Col span={{ base: 12, sm: 6 }}>
+                <UI.Select
                   label="Tipo de Suelo"
                   placeholder="Seleccione tipo de suelo"
                   value={formData.tipoSuelo}
@@ -524,9 +473,9 @@ export const CultivosAdmin = () => {
                     { value: 'HUMIFERO', label: 'Humífero' },
                   ]}
                 />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
+              </UI.Grid.Col>
+              <UI.Grid.Col span={{ base: 12, sm: 6 }}>
+                <UI.Select
                   label="Sistema de Riego"
                   placeholder="Seleccione sistema"
                   value={formData.sistemaRiego}
@@ -541,16 +490,15 @@ export const CultivosAdmin = () => {
                     { value: 'NATURAL', label: 'Natural (lluvia)' },
                   ]}
                 />
-              </Grid.Col>
-            </Grid>
-          </Paper>
+              </UI.Grid.Col>
+            </UI.Grid>
+          </UI.Paper>
 
-          {/* Sección: Observaciones */}
-          <Paper p="md" withBorder>
-            <Text size="sm" fw={600} mb="sm" c="dimmed">
+          <UI.Paper p="md" withBorder>
+            <UI.Text size="sm" fw={600} mb="sm" c="dimmed">
               OBSERVACIONES
-            </Text>
-            <Textarea
+            </UI.Text>
+            <UI.Textarea
               label="Notas"
               placeholder="Observaciones adicionales sobre el cultivo..."
               minRows={3}
@@ -559,15 +507,15 @@ export const CultivosAdmin = () => {
                 setFormData({ ...formData, notas: e.currentTarget.value })
               }
             />
-          </Paper>
+          </UI.Paper>
 
           {/* Botones de Acción */}
-          <Group justify="center" mt="md">
+          <UI.Group justify="center" mt="md">
             <ActionButtons.Cancel onClick={close} />
             <ActionButtons.Save onClick={handleSubmit} loading={loading} />
-          </Group>
-        </Stack>
-      </Modal>
+          </UI.Group>
+        </UI.Stack>
+      </UI.Modal>
 
       {/* Modal Generico de Eliminación */}
       <DeleteConfirmModal
@@ -577,6 +525,6 @@ export const CultivosAdmin = () => {
         itemName={cultivoAEliminar?.nombreCultivo || ''}
         itemType="registro"
       />
-    </Box>
+    </UI.Box>
   );
 };

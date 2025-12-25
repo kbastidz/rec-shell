@@ -1,6 +1,5 @@
 import { notifications } from '@mantine/notifications';
 import { NotificationConfig, NotificationService } from './types';
-import { NOTIFICATION_MESSAGES } from './constants';
 
 class NotificationServiceImpl implements NotificationService {
   show(config: NotificationConfig): void {
@@ -49,4 +48,3 @@ class NotificationServiceImpl implements NotificationService {
 }
 
 export const notificationService = new NotificationServiceImpl();
-

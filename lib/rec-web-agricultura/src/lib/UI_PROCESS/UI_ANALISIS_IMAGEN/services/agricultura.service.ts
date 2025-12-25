@@ -1,8 +1,6 @@
 import { InvokeApi } from '@rec-shell/rec-web-shared';
 import { GenerarPlanAnalisisRequest, PlanGeneradoResponse, PlanTratamientoNuevo } from '../../../types/dto';
-import { PlanTratamiento } from '../../../types/model';
 
-const API_URL_ANALISIS = `/agricultura/planes-tratamiento`;
 const API_URL_ANALISIS_V1 = `/agricultura/planes-tratamiento-analisis`;
 
 export class ConexionService extends InvokeApi {

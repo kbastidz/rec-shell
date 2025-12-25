@@ -4,7 +4,7 @@ export class InvokeApi {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = environment.baseUrl;
+    this.baseUrl = environment.api.baseUrl;
   }
 
   private async makeRequest<T>(
@@ -29,25 +29,18 @@ export class InvokeApi {
       ...options,
     });
     
-    // Primero obtener el texto de la respuesta
     const responseText = await response.text();
-    
-    
-    // Intentar parsear como JSON
     let data: any;
     try {
       data = JSON.parse(responseText);
     } catch (error) {
-      // Si no se puede parsear como JSON, usar el texto directamente
       data = responseText;
     }
 
-    // Manejar errores específicos por código de estado
     if (!response.ok) {
       this.handleHttpError(response.status, data);
     }
 
-    // Verificar si la respuesta tiene un campo 'success' que indica fallo
     if (
       data &&
       typeof data === 'object' &&
@@ -61,7 +54,6 @@ export class InvokeApi {
   }
 
   private handleHttpError(status: number, data: any): never {
-    // Intentar obtener un mensaje específico del servidor
     const serverMessage = this.extractErrorMessage(data);
 
     switch (status) {
@@ -128,7 +120,6 @@ export class InvokeApi {
     }
     
     if (data && typeof data === 'object') {
-      // Intentar diferentes campos comunes para mensajes de error
       return data.message || 
              data.error || 
              data.detail || 

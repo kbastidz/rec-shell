@@ -130,7 +130,6 @@ export const useAuth = (): UseAuthReturn => {
         };
 
         setState(newState);
-
         return {
           user: userData,
           accessToken: token,

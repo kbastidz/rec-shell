@@ -1,10 +1,3 @@
-/**
- * Limpia y parsea una respuesta textual (por ejemplo de Gemini o GPT)
- * asegurando que esté en formato JSON y manejando errores de forma controlada.
- *
- * Totalmente genérica, sin dependencias.
- */
-
 interface HandleSuccessOptions<T> {
   text: string;
   onParsed: (data: T) => void;
@@ -40,26 +33,24 @@ export function handleModelResponse<T>({
     // Intentar parsear JSON
     const parsedData = JSON.parse(cleanedText) as T;
     onParsed(parsedData);
-    console.log('✅ Texto parseado correctamente.');
+    console.log('Texto parseado correctamente.');
   } catch (err) {
-    console.error('❌ Error al procesar respuesta del modelo:', err);
+    console.error('Error al procesar respuesta del modelo:', err);
     onError?.(err);
   } finally {
     onFinally?.();
   }
 }
 
-/**
- * Maneja errores genéricos con fallback opcional.
- */
+
 export function handleModelError<T>(
   error: unknown,
   fallback: T | null,
   setResult: (data: T | null) => void
 ): void {
-  console.error('❌ Error al generar texto del modelo:', error);
+  console.error('Error al generar texto del modelo:', error);
   if (fallback !== null) {
-    console.warn('⚠️ Usando datos de respaldo (fallback).');
+    console.warn('Usando datos de respaldo (fallback).');
     setResult(fallback);
   } else {
     setResult(null);

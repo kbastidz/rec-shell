@@ -1,4 +1,4 @@
-import { generateSummaryPrompt, GENERATION_CONFIGS, generateQuestionsPrompt } from "../../../utils/prompts.util";
+/*import { generateSummaryPrompt, GENERATION_CONFIGS, generateQuestionsPrompt } from "../../../utils/prompts.util";
 
 interface GeminiRequest {
   prompt: string;
@@ -24,7 +24,7 @@ class GeminiService {
 
   /**
    * Convierte un archivo PDF a base64
-   */
+   
   async pdfToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -41,7 +41,7 @@ class GeminiService {
 
   /**
    * Genera un resumen del PDF usando Gemini AI
-   */
+   
   async summarizePDF(file: File): Promise<string> {
     if (!this.API_KEY) {
       throw new Error('API Key es requerida');
@@ -103,7 +103,7 @@ class GeminiService {
    * Genera preguntas de opción múltiple basadas en un resumen
    * @param summary - El resumen del documento
    * @param numberOfQuestions - Cantidad de preguntas a generar
-   */
+   
   async generateQuestions(summary: string, numberOfQuestions = 10): Promise<string> {
     if (!this.API_KEY) {
       throw new Error('API Key es requerida');
@@ -158,7 +158,7 @@ class GeminiService {
 
   /**
    * Método original para generar texto
-   */
+   
   async generateText({
     prompt,
     temperature = 0.7,
@@ -217,4 +217,4 @@ class GeminiService {
   }
 }
 
-export const geminiService = new GeminiService();
+export const geminiService = new GeminiService();*/

@@ -33,12 +33,12 @@ import {
   IconCalendar
 } from '@tabler/icons-react';
 
-import { geminiService } from '../services/motor-ia.service';
 import { PREGUNTAS, RESUME } from '../../../utils/CONSTANTE';
 
 import { ActionButtons, NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
 import { useEducacion } from '../hook/useEducacion';
 import { PROMPT_LIMITS } from '../../../utils/prompts.util';
+import { pdfService } from '@rec-shell/rec-web-shared';
 
 interface Question {
   pregunta: string;
@@ -94,7 +94,7 @@ export function GeneradorAdmin() {
     setQuestions([]);
 
     try {
-      const result = await geminiService.summarizePDF(file);
+      const result = await pdfService.summarizePDF(file);
       setSummary(result);
       console.log(result);
       notifications.success(NOTIFICATION_MESSAGES.GENERAL.SUCCESS.title, 'El resumen del PDF se ha generado exitosamente');
@@ -130,7 +130,7 @@ export function GeneradorAdmin() {
 
     try {
       // Pasar el número de preguntas al servicio
-      const result = await geminiService.generateQuestions(summary, numberOfQuestions);
+      const result = await pdfService.generateQuestions(summary, numberOfQuestions);
       
       let parsedQuestions;
       try {
@@ -258,6 +258,11 @@ export function GeneradorAdmin() {
       };
 
       await CREAR(dataToSave);
+
+      clearFile();
+      setNumberOfQuestions(PROMPT_LIMITS.DEFAULT_QUESTIONS);
+      setIdCurso(undefined);
+      setFechaEvaluacion('');
       
     } catch (err) {
       console.error('Error al guardar:', err);

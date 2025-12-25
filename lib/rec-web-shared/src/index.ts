@@ -7,7 +7,6 @@ export { useNotifications } from './lib/notifications/hooks/useNotifications';
 export { NOTIFICATION_MESSAGES } from './lib/notifications/constants';
 export type { NotificationConfig, NotificationService } from './lib/notifications/types';
 
-// lib/shared/components/common/index.ts
 export { DataSummary } from './lib/common/DataSummary';
 export { LoadingScreen } from './lib/common/LoadingScreen';
 export { ErrorAlert } from './lib/common/ErrorAlert';
@@ -29,3 +28,5 @@ export * from './lib/types/rol_opcion';
 export * from './lib/paginacion/components/PaginationControls';
 export * from './lib/paginacion/components/PaginatedTable';
 export * from './lib/paginacion/hooks/usePagination';
+export { pdfService } from './lib/gemini_IA/services/PDFService.service';
+export { configService } from './lib/service/configuracion.service';

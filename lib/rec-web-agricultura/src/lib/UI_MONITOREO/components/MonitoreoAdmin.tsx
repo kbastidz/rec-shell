@@ -3,14 +3,12 @@ import {
   Container,
   Title,
   Button,
-  Table,
   Modal,
   TextInput,
   NumberInput,
   Select,
   Group,
   Stack,
-  ActionIcon,
   Badge,
   Card,
   Grid,
@@ -18,7 +16,6 @@ import {
   Alert,
   Flex,
   Text,
-  Tooltip,
   Box,
   Divider,
 } from '@mantine/core';
@@ -39,9 +36,7 @@ import {
   DeleteConfirmModal,
   NOTIFICATION_MESSAGES,
   PaginatedTable,
-  PaginationControls,
   useNotifications,
-  usePagination,
 } from '@rec-shell/rec-web-shared';
 import { useCultivos } from '../../UI_CULTIVO/hooks/useAgricultura';
 

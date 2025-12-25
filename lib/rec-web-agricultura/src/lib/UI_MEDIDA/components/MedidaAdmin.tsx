@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   Container,
   Title,
-  Button,
   Table,
   ActionIcon,
   Group,
@@ -31,12 +30,9 @@ import {
   IconCalendar,
   IconCategory,
   IconChartBar,
-  IconCheck,
   IconCurrencyDollar,
-  IconDeviceFloppy,
   IconFileText,
   IconSun,
-  IconX,
 } from '@tabler/icons-react';
 import { useMedidaPreventiva } from '../hooks/useAgricultura';
 import { MedidaPreventiva } from '../../types/model';
