@@ -150,6 +150,7 @@ export function Listar() {
                 <Table.Th>Archivo</Table.Th>
                 <Table.Th>Estado</Table.Th>
                 <Table.Th>Detecciones</Table.Th>
+                <Table.Th>Cultivo</Table.Th>
                 <Table.Th>Confianza Promedio</Table.Th>
                 <Table.Th>Deficiencias</Table.Th>
                 <Table.Th>Fecha</Table.Th>
@@ -188,6 +189,14 @@ export function Listar() {
                       </ThemeIcon>
                       <Text size="sm" fw={500}>
                         {analisis.estadisticas.total_detecciones}
+                      </Text>
+                    </Group>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <Group gap="xs">                      
+                      <Text size="sm" fw={500}>
+                        {analisis.nombreCultivo}
                       </Text>
                     </Group>
                   </Table.Td>
@@ -396,11 +405,11 @@ export function Listar() {
 
             <Stack gap="sm">
               {selectedAnalisis.detecciones.map((deteccion) => (
-                <Paper key={deteccion.region} p="md" withBorder>
+                <Paper key={deteccion.area} p="md" withBorder>
                   <Stack gap="xs">
                     <Group justify="space-between">
                       <Badge size="lg" variant="filled" color="blue">
-                        Región {deteccion.region}
+                        Región {deteccion.area}
                       </Badge>
                       <Badge
                         size="lg"
@@ -431,8 +440,8 @@ export function Listar() {
                         Ubicación:
                       </Text>
                       <Text size="sm" c="dimmed">
-                        ({deteccion.ubicacion.x1}, {deteccion.ubicacion.y1}) →
-                        ({deteccion.ubicacion.x2}, {deteccion.ubicacion.y2})
+                        ({deteccion.bbox.x1}, {deteccion.bbox.y1}) →
+                        ({deteccion.bbox.x2}, {deteccion.bbox.y2})
                       </Text>
                     </Group>
                   </Stack>
@@ -448,19 +457,63 @@ export function Listar() {
                     Recomendaciones
                   </Text>
                   <Paper p="md" withBorder bg="blue.0">
-                    <Stack gap="xs">
-                      {Object.entries(selectedAnalisis.recomendaciones).map(
-                        ([key, value]) => (
-                          <Group key={key}>
-                            <Text tt="capitalize" fw={500}>
-                              {key}:
-                            </Text>
-                            <Text>{String(value)}</Text>
-                          </Group>
-                        )
-                      )}
-                    </Stack>
-                  </Paper>
+      <Stack gap="md">
+
+        {/* Confianza general */}
+        <Group>
+          <Text fw={500}>Confianza general:</Text>
+          <Text>{selectedAnalisis.recomendaciones.confianza_general}%</Text>
+        </Group>
+
+        {/* Deficiencias */}
+        {selectedAnalisis.recomendaciones.deficiencias.map((def, index) => (
+          <Paper key={index} p="sm" withBorder>
+            <Stack gap="xs">
+
+              <Text fw={600} c="blue">
+                {def.nombre}
+              </Text>
+
+              <Text size="sm">
+                Confianza: {def.confianza.toFixed(2)}%
+              </Text>
+
+              {/* Tratamiento inmediato */}
+              <Text fw={500} mt="xs">Tratamiento inmediato</Text>
+              <ul>
+                {def.recomendaciones.tratamiento_inmediato.map((item, i) => (
+                  <li key={i}>
+                    <Text size="sm">{item}</Text>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Fertilizantes */}
+              <Text fw={500}>Fertilizantes recomendados</Text>
+              <ul>
+                {def.recomendaciones.fertilizantes_recomendados.map((item, i) => (
+                  <li key={i}>
+                    <Text size="sm">{item}</Text>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Medidas preventivas */}
+              <Text fw={500}>Medidas preventivas</Text>
+              <ul>
+                {def.recomendaciones.medidas_preventivas.map((item, i) => (
+                  <li key={i}>
+                    <Text size="sm">{item}</Text>
+                  </li>
+                ))}
+              </ul>
+
+            </Stack>
+          </Paper>
+        ))}
+
+      </Stack>
+    </Paper>
                 </>
               )}
 

@@ -76,7 +76,7 @@ export function App() {
       <AdminTemplate 
         AdminUserComponent={listMenu.AdminUserComponent}
         AgriculturaComponent={listMenu.AgriculturaComponent}
-        //GamificacionComponent={listMenu.GamificacionComponent}
+        GamificacionComponent={listMenu.GamificacionComponent}
         EducacionComponent={listMenu.EducacionComponent}
         LayoutDashboardComponent={DashboardAdminM2}
         onSignOut={signOut}

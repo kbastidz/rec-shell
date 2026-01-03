@@ -1,5 +1,7 @@
 import { EstadoActividad } from "../enums/Enums";
 import { Cultivo, AnalisisImagen, ParametroMonitoreo, AlertaMonitoreo, ResultadoDiagnostico, DeficienciaNutriente, PlanTratamiento } from "../types/model";
+import { ResultDataYOLO } from "../types/yolo";
+import { RecomendacionesGemini } from "../UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis";
 
 
 // Para crear nuevos registros (sin IDs y campos auto-generados)
@@ -111,6 +113,51 @@ export const temporadas = [
       minute: '2-digit',
     });
   };
+
+ export  function generarFallbackRecomendaciones(data: ResultDataYOLO): RecomendacionesGemini {
+    const deficienciasAgrupadas = data.detecciones.reduce((acc, det) => {
+      if (!acc[det.deficiencia]) {
+        acc[det.deficiencia] = {
+          count: 0,
+          confianzaTotal: 0
+        };
+      }
+      acc[det.deficiencia].count++;
+      acc[det.deficiencia].confianzaTotal += det.confianza;
+      return acc;
+    }, {} as Record<string, { count: number; confianzaTotal: number }>);
+  
+    const deficiencias = Object.entries(deficienciasAgrupadas).map(([nombre, info]) => ({
+      nombre,
+      confianza: info.confianzaTotal / info.count,
+      recomendaciones: {
+        tratamiento_inmediato: [
+          `Aplicar fertilizante rico en ${nombre} de forma foliar`,
+          'Realizar análisis de suelo para confirmar deficiencia',
+          'Ajustar el pH del suelo si es necesario'
+        ],
+        fertilizantes_recomendados: [
+          nombre === 'Nitrogeno' ? 'Urea (46-0-0)' : 
+          nombre === 'Fosforo' ? 'Superfosfato triple (0-46-0)' :
+          nombre === 'Potasio' ? 'Cloruro de potasio (0-0-60)' :
+          'Fertilizante NPK completo',
+          'Compost orgánico',
+          'Humus de lombriz'
+        ],
+        medidas_preventivas: [
+          'Realizar análisis de suelo cada 6 meses',
+          'Mantener un programa de fertilización balanceado',
+          'Monitorear el color y desarrollo de las hojas',
+          'Asegurar buen drenaje del suelo'
+        ]
+      }
+    }));
+  
+    return {
+      confianza_general: 75,
+      deficiencias
+    };
+  }
 
   
 /*

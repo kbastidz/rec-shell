@@ -61,7 +61,7 @@ export const TransaccionPuntosAdmin = () => {
       case 'ajuste':
         return 'blue';
       default:
-        return 'gray';
+        return 'green';
     }
   };
 
@@ -110,14 +110,6 @@ export const TransaccionPuntosAdmin = () => {
         >
           {item.cantidad >= 0 ? '+' : ''}{item.cantidad}
         </Text>
-      ),
-    },
-    {
-      key: 'balanceDespues',
-      label: 'Balance',
-      width: '120px',
-      render: (item) => (
-        <Text size="sm" fw={500}>{item.balanceDespues}</Text>
       ),
     },
     {
@@ -341,7 +333,7 @@ export const TransaccionPuntosAdmin = () => {
           columns={columns}
           actions={actions}
           loading={loading}
-          itemsPerPage={20}
+          itemsPerPage={5}
           searchFields={['tipoPuntoNombre', 'tipoTransaccion', 'descripcion']}
           searchPlaceholder="Buscar por tipo de punto, transacción o descripción..."
           emptyMessage="No hay transacciones para mostrar"
@@ -376,12 +368,7 @@ export const TransaccionPuntosAdmin = () => {
                     {transaccionSeleccionada.cantidad >= 0 ? '+' : ''}
                     {transaccionSeleccionada.cantidad}
                   </Text>
-                </Group>
-                <Group justify="apart">
-                  <Text size="sm" c="dimmed">Balance Actual:</Text>
-                  <Text size="sm" fw={500}>
-                    {transaccionSeleccionada.balanceDespues}
-                  </Text>
+                  <Text size="sm" fw={500} style={{ display: 'none' }}>{transaccionSeleccionada.balanceDespues}</Text>
                 </Group>
               </Stack>
             </Paper>
@@ -401,7 +388,7 @@ export const TransaccionPuntosAdmin = () => {
             {cantidadARestar > 0 && (
               <Paper p="sm" withBorder bg="red.0">
                 <Group justify="apart">
-                  <Text size="sm" fw={500}>Balance después de restar:</Text>
+                  <Text size="sm" fw={500}>Cantidad después de restar:</Text>
                   <Text size="lg" fw={700} c="red">
                     {transaccionSeleccionada.balanceDespues - cantidadARestar}
                   </Text>

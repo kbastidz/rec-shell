@@ -275,7 +275,7 @@ export function ListarAdmin() {
                               size="sm"
                               variant="dot"
                               color="teal"
-                              leftSection={<IconLeaf size={12} />}
+                              
                             >
                               {formatDeficiencia(deficiencia)}
                             </Badge>

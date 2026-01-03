@@ -11,13 +11,13 @@ export const useAnalisisImagen = () => {
   const [analisisList, setAnalisisList] = useState<AnalisisImagenYOLO_DTO[]>([]);
 
   const REGISTRAR = async (
-    //analisisData: AnalisisImagenMCHLDTO
     analisisData: AnalisisImagenYOLO_DTO
   ): Promise<AnalisisImagenMCHL | null> => {
     setLoading(true);
     setError(null);
     
     try {
+      console.log('AnalisisData:',analisisData);
       const response = await service.POST(analisisData);
       return response;
     } catch (err: unknown) {
@@ -34,6 +34,7 @@ export const useAnalisisImagen = () => {
     setError(null);
     try {
       const response = await service.GET();
+      console.log('🔄 Análisis obtenidos:', response);
       setAnalisisList(response);
     } catch (err: unknown) {
       setError(GET_ERROR(error));

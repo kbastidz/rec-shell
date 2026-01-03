@@ -198,6 +198,7 @@ function RecompensaFormModal({
               placeholder="0"
               required
               min={0}
+              max={10}
               disabled={loading}
               {...form.getInputProps('costoPuntos')}
             />
@@ -207,6 +208,7 @@ function RecompensaFormModal({
               label="Cantidad en Stock"
               placeholder="0"
               min={0}
+              max={10}
               disabled={loading || form.values.esIlimitado}
               {...form.getInputProps('cantidadStock')}
             />

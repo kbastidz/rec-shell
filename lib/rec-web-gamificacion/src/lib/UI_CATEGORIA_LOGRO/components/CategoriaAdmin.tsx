@@ -138,23 +138,6 @@ export function CategoriaAdmin() {
         </Text>
       ),
     },
-    {
-      key: 'color',
-      label: 'Color',
-      render: (categoria: CategoriaLogro) => (
-        <Group gap="xs">
-          <Box
-            w={20}
-            h={20}
-            style={{
-              backgroundColor: categoria.color || '#228BE6',
-              borderRadius: 4,
-            }}
-          />
-          <Text size="xs">{categoria.color}</Text>
-        </Group>
-      ),
-    },
     { key: 'ordenClasificacion', label: 'Orden' },
     {
       key: 'estaActivo',
@@ -242,16 +225,11 @@ export function CategoriaAdmin() {
             {...form.getInputProps('descripcion')}
           />
 
-          <ColorInput
-            label="Color"
-            format="hex"
-            {...form.getInputProps('color')}
-          />
-
           <NumberInput
             label="Orden de Clasificación"
             placeholder="0"
             min={0}
+            max={10}
             required
             {...form.getInputProps('ordenClasificacion')}
           />

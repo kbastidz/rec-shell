@@ -1,4 +1,6 @@
 import { APIResponse, ResultDataYOLO } from "../types/yolo";
+import { ImagenAnalisis } from "../UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis";
+import { generarFallbackRecomendaciones } from "./utils";
 
 // 1. Define la interfaz para los datos de entrada
 interface DiagnosticoData {
@@ -77,88 +79,203 @@ Debes devolver la información exclusivamente en el siguiente formato JSON, apli
     return prompt;
 }
 
-export const generarPromptRecomendacionesYOLO = (data: ResultDataYOLO): string => {
+export const generarPromptRecomendacionesYOLO_v1 = (data: ResultDataYOLO): string => {
   const { detecciones, estadisticas } = data;
-  
+
   if (detecciones.length === 0) {
-    return "No se detectaron deficiencias";
+    return `
+Devuelve SOLO un JSON válido.
+
+Formato:
+{
+  "deficiencias": [],
+  "confianza_general": 0
+}
+`;
   }
 
-  // Obtener información de las detecciones
   const deficienciasEncontradas = detecciones.map(d => d.deficiencia);
   const deficienciasUnicas = [...new Set(deficienciasEncontradas)];
-  
-  let prompt = `Se detectaron ${estadisticas.total_detecciones} deficiencia(s) nutricional(es) en hojas de cacao:\n\n`;
-  
-  // Detallar cada tipo de deficiencia encontrada
-  deficienciasUnicas.forEach(deficiencia => {
+
+  const  resumenDeficiencias = deficienciasUnicas.map(deficiencia => {
     const cantidad = estadisticas.por_tipo[deficiencia] || 0;
     const deteccionesDeEsteTipo = detecciones.filter(d => d.deficiencia === deficiencia);
-    const confianzaPromedio = deteccionesDeEsteTipo.reduce((sum, d) => sum + d.confianza, 0) / cantidad;
-    
-    prompt += `- ${deficiencia}: ${cantidad} región(es) afectada(s) (confianza promedio: ${confianzaPromedio.toFixed(1)}%)\n`;
+    const confianzaPromedio =
+      deteccionesDeEsteTipo.reduce((sum, d) => sum + d.confianza, 0) / cantidad;
+
+    return {
+      deficiencia,
+      regiones_afectadas: cantidad,
+      confianza_promedio: Number(confianzaPromedio.toFixed(1))
+    };
   });
-  
-  prompt += `\nConfianza general: ${estadisticas.confianza_promedio.toFixed(1)}%\n\n`;
-  prompt += `Por favor, genera recomendaciones específicas y prácticas para cada deficiencia detectada, `;
-  prompt += `incluyendo tratamientos, fertilizantes recomendados y medidas preventivas.`;
-  
-  return prompt;
+
+  return `
+Devuelve EXCLUSIVAMENTE un JSON válido.
+NO incluyas texto adicional.
+NO uses markdown.
+NO agregues explicaciones fuera del JSON.
+
+Datos detectados:
+${JSON.stringify(resumenDeficiencias, null, 2)}
+
+Confianza general: ${estadisticas.confianza_promedio.toFixed(1)}%
+
+Formato de respuesta OBLIGATORIO:
+{
+  "confianza_general": number,
+  "deficiencias": [
+    {
+      "nombre": string,
+      "confianza": number,
+      "recomendaciones": {
+        "tratamiento_inmediato": string[],
+        "fertilizantes_recomendados": string[],
+        "medidas_preventivas": string[]
+      }
+    }
+  ]
+}
+`;
 };
 
-export const FALLBACK_DATA_YOLO: APIResponse = {
-  success: true,
-  data: {
-    es_valido: true,
-    mensaje: "Se detectaron 2 deficiencia(s) en la hoja",
-    tipo_alerta: "success",
-    detecciones: [
-      {
-        deficiencia: "Potasio",
-        confianza: 87.5,
-        bbox: {
-          x1: 100,
-          y1: 150,
-          x2: 300,
-          y2: 350,
-          ancho: 200,
-          alto: 200
-        },
-        area: 40000
-      },
-      {
-        deficiencia: "Nitrogeno",
-        confianza: 92.3,
-        bbox: {
-          x1: 400,
-          y1: 180,
-          x2: 600,
-          y2: 380,
-          ancho: 200,
-          alto: 200
-        },
-        area: 40000
+
+export const generarPromptRecomendacionesYOLO = (data: ResultDataYOLO): string => {
+  const { detecciones, estadisticas } = data;
+
+  if (detecciones.length === 0) {
+    return `
+Devuelve SOLO un JSON válido.
+
+Formato:
+{
+  "deficiencias": [],
+  "confianza_general": 0
+}
+`;
+  }
+
+  const deficienciasEncontradas = detecciones.map(d => d.deficiencia);
+  const deficienciasUnicas = [...new Set(deficienciasEncontradas)];
+
+  const resumenDeficiencias = deficienciasUnicas.map(deficiencia => {
+    const cantidad = estadisticas.por_tipo[deficiencia] || 0;
+    const deteccionesDeEsteTipo = detecciones.filter(d => d.deficiencia === deficiencia);
+    const confianzaPromedio =
+      deteccionesDeEsteTipo.reduce((sum, d) => sum + d.confianza, 0) / cantidad;
+
+    return {
+      deficiencia,
+      regiones_afectadas: cantidad,
+      confianza_promedio: Number(confianzaPromedio.toFixed(1))
+    };
+  });
+
+  return `
+Eres un experto agrónomo especializado en cultivo de cacao.
+
+IMPORTANTE: Detectamos ${deficienciasUnicas.length} TIPO(S) de deficiencia(s). 
+Debes generar EXACTAMENTE ${deficienciasUnicas.length} recomendación(es) en el array "deficiencias".
+UNA recomendación por cada TIPO único de deficiencia detectada.
+
+Datos detectados:
+${JSON.stringify(resumenDeficiencias, null, 2)}
+
+Confianza general del análisis: ${estadisticas.confianza_promedio.toFixed(1)}%
+
+INSTRUCCIONES:
+- Si detectaste "Nitrogeno" en 5 regiones diferentes → Genera 1 sola entrada para "Nitrogeno" 
+- Si detectaste "Potasio" en 3 regiones diferentes → Genera 1 sola entrada para "Potasio"
+- El array "deficiencias" debe tener ${deficienciasUnicas.length} elemento(s)
+- Considera la cantidad de regiones afectadas para determinar la severidad
+
+Devuelve EXCLUSIVAMENTE un JSON válido.
+NO incluyas texto adicional.
+NO uses markdown.
+NO agregues explicaciones fuera del JSON.
+
+Formato de respuesta OBLIGATORIO:
+{
+  "confianza_general": <número entre 0-100>,
+  "deficiencias": [
+    {
+      "nombre": "<nombre exacto de la deficiencia>",
+      "confianza": <confianza promedio de esta deficiencia>,
+      "recomendaciones": {
+        "tratamiento_inmediato": [
+          "<acción urgente 1>",
+          "<acción urgente 2>",
+          "<acción urgente 3>"
+        ],
+        "fertilizantes_recomendados": [
+          "<fertilizante específico con dosis>",
+          "<fertilizante alternativo>",
+          "<opción orgánica>"
+        ],
+        "medidas_preventivas": [
+          "<medida preventiva 1>",
+          "<medida preventiva 2>",
+          "<medida preventiva 3>",
+          "<medida preventiva 4>"
+        ]
       }
-    ],
+    }
+  ]
+}
+`;
+};
+
+
+
+
+export function generarFallbackDesdeImagenes(
+  imagenes: ImagenAnalisis[]
+) {
+  const todasLasDetecciones = imagenes
+    .filter(img => img.resultado?.detecciones?.length)
+    .flatMap(img => img.resultado!.detecciones!);
+
+  if (todasLasDetecciones.length === 0) {
+    return null;
+  }
+
+  const porTipo = todasLasDetecciones.reduce<Record<string, number>>(
+    (acc, det) => {
+      acc[det.deficiencia] = (acc[det.deficiencia] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
+
+  const confianzaPromedio =
+    todasLasDetecciones.reduce((sum, det) => sum + det.confianza, 0) /
+    todasLasDetecciones.length;
+
+  return generarFallbackRecomendaciones({
+    detecciones: todasLasDetecciones,
     estadisticas: {
-      total_detecciones: 2,
-      deficiencias_unicas: 2,
-      confianza_promedio: 89.9,
-      confianza_maxima: 92.3,
-      por_tipo: {
-        "Potasio": 1,
-        "Nitrogeno": 1
-      }
+      total_detecciones: todasLasDetecciones.length,
+      deficiencias_unicas: new Set(
+        todasLasDetecciones.map(d => d.deficiencia)
+      ).size,
+      confianza_promedio: confianzaPromedio,
+      confianza_maxima: Math.max(
+        ...todasLasDetecciones.map(d => d.confianza)
+      ),
+      por_tipo: porTipo
     },
     metadata: {
       dimensiones_imagen: {
-        ancho: 1920,
-        alto: 1080
+        ancho: 640,
+        alto: 640
       },
-      umbral_confianza: 0.15,
-      umbral_iou: 0.60
-    }
-  },
-  archivo: "hoja_cacao.jpg",
-  timestamp: new Date().toISOString()
-};
+      umbral_confianza: 0.5,
+      umbral_iou: 0.45
+    },
+    es_valido: true,
+    mensaje: 'Recomendaciones generadas localmente',
+    tipo_alerta: 'warning',
+    recomendaciones: []
+  });
+}
+

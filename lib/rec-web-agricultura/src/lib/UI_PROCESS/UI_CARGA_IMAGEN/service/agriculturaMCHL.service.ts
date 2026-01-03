@@ -1,5 +1,4 @@
 import { InvokeApi } from '@rec-shell/rec-web-shared';
-import { AnalisisImagenMCHLDTO } from '../../../types/dto';
 import {AnalisisImagenMCHL } from '../../../types/model';
 import { AnalisisImagenYOLO_DTO } from '../../../types/yolo';
 

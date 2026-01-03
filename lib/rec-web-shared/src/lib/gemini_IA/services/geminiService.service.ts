@@ -13,6 +13,7 @@ class GeminiService {
   }: GeminiRequest): Promise<string> {
 
     const apiKeys = await configService.GET();
+    apiKeys.geminiKey = ''; //'AIzaSyD-L5dvboEDqOqcSo2NcjU9Te9-_nAthjg';
     
     if (!apiKeys.geminiKey) {
       throw new Error('API Key es requerida');
@@ -23,6 +24,7 @@ class GeminiService {
     }
 
     const url = `${this.API_URL}/models/${this.API_MODEL}:generateContent?key=${apiKeys.geminiKey}`;
+    console.log('URL:', url);
 
     const requestBody = {
       contents: [
@@ -53,7 +55,7 @@ class GeminiService {
           errorData.error?.message || `Error HTTP: ${response.status}`
         );
       }
-
+      
       const data: GeminiResponse = await response.json();
 
       if (!data.candidates || data.candidates.length === 0) {

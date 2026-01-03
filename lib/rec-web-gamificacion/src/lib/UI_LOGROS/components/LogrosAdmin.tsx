@@ -187,9 +187,7 @@ export const LogrosAdmin: React.FC = () => {
       label: 'Logro',
       render: (logro: Logro) => (
         <Group gap="sm">
-          <Avatar src={logro.urlImagenInsignia} size={50} radius="md">
-            <IconPhoto size={24} />
-          </Avatar>
+          
           <div>
             <Text fw={600} size="sm">{logro.nombre}</Text>
             {logro.esSecreto && (
@@ -402,17 +400,11 @@ export const LogrosAdmin: React.FC = () => {
               {...form.getInputProps('descripcion')}
             />
 
-            <TextInput
-              label="URL de Imagen de Insignia"
-              placeholder="https://ejemplo.com/imagen.png"
-              leftSection={<IconPhoto size={16} />}
-              {...form.getInputProps('urlImagenInsignia')}
-            />
-
             <NumberInput
               label="Puntos de Recompensa"
-              placeholder="100"
+              placeholder="10"
               min={0}
+              max={10}
               required
               leftSection={<IconSparkles size={16} />}
               {...form.getInputProps('recompensaPuntos')}

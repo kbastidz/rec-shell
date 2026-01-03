@@ -190,7 +190,6 @@ export const TransaccionesTable = ({ transacciones }: Props) => {
                 <Table.Th>Origen</Table.Th>
                 <Table.Th>Descripción</Table.Th>
                 <Table.Th ta="right">Cantidad</Table.Th>
-                <Table.Th ta="right">Balance</Table.Th>
               </Table.Tr>
             </Table.Thead>
 
@@ -267,12 +266,6 @@ export const TransaccionesTable = ({ transacciones }: Props) => {
                         >
                           {tx.tipoTransaccion === 'GANAR' ? '+' : '-'}
                           {Math.abs(tx.cantidad).toLocaleString()}
-                        </Text>
-                      </Table.Td>
-
-                      <Table.Td ta="right">
-                        <Text size="sm" fw={500} c="blue">
-                          {tx.balanceDespues.toLocaleString()}
                         </Text>
                       </Table.Td>
                     </Table.Tr>
