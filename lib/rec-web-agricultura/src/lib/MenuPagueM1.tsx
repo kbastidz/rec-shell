@@ -20,13 +20,13 @@ import { MedidaAdmin } from './UI_MEDIDA/components/MedidaAdmin';
 import { NutrienteAdmin } from './UI_NUTRIENTES/components/NutrienteAdmin';
 import { SeguimientosAdmin } from './UI_SEGUIMIENTO/components/SeguimientosAdmin';
 import { TratamientosAdmin } from './UI_TRATANIENTO/components/TratamientosAdmin';
-import { Listar } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Listar';
 import { Analisis } from './UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis';
 import { ListarAdmin } from './UI_PROCESS/UI_ANALISIS_IMAGEN/components/ListarAdmin';
 import { PlanTratamientoListAdmin } from './UI_PROCESS/UI_PLAN_TRATAMIENTO/PlanTratamientoListAdmin';
 
 import { useOpciones } from '@rec-shell/rec-web-auth';
 import { OpcionDTO, ST_GET_ROLE_USER_ID } from '@rec-shell/rec-web-shared';
+import { Listar } from './UI_PROCESS/UI_CONSULTAR_ANALISIS/components/Listar';
 
 
 interface ComponentWithNavigation {

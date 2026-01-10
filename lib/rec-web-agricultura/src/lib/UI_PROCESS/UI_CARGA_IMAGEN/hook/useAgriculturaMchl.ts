@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import {  AnalisisImagenMCHLDTO } from '../../../types/dto';
+
 import { service } from '../service/agriculturaMCHL.service';
 import { AnalisisImagenMCHL } from '../../../types/model';
 import { GET_ERROR } from '../../../utils/utils';
@@ -34,7 +34,6 @@ export const useAnalisisImagen = () => {
     setError(null);
     try {
       const response = await service.GET();
-      console.log('🔄 Análisis obtenidos:', response);
       setAnalisisList(response);
     } catch (err: unknown) {
       setError(GET_ERROR(error));

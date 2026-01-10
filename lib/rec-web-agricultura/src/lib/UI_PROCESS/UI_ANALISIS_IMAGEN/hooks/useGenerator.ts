@@ -1,0 +1,76 @@
+import { useState, useRef } from 'react';
+import { useGemini, handleModelResponse } from '@rec-shell/rec-web-shared';
+import { usePlanesTratamiento } from '../hooks/useAgricultura';
+import {
+  GenerarPlanAnalisisRequest,
+  PlanTratamientoResponse,
+} from '../../../types/dto';
+import { AnalisisImagenYOLO_DTO } from '../../../types/yolo';
+import {
+  fallbackPlan,
+  generarPromptPlanTratamiento,
+} from '../../../utils/generarPromptPlanTratamiento';
+
+export function usePlanTratamientoGenerator() {
+  const { loading: loadingPlan, generarPlan } = usePlanesTratamiento();
+  const [planTratamientoGenerado, setPlanTratamientoGenerado] =
+    useState<PlanTratamientoResponse>(fallbackPlan);
+  const analisisActualRef = useRef<AnalisisImagenYOLO_DTO | null>(null);
+
+  const guardarPlanTratamiento = (plan: PlanTratamientoResponse) => {
+    if (analisisActualRef.current) {
+      const request: GenerarPlanAnalisisRequest = {
+        analisisId: analisisActualRef.current.id,
+        planTratamiento: plan,
+      };
+      generarPlan(request);
+      analisisActualRef.current = null;
+    }
+  };
+
+  const { loading: loadingGemini, error: errorGemini, generateText } = useGemini({
+    onSuccess: (text: string) =>
+      handleModelResponse<PlanTratamientoResponse>({
+        text,
+        onParsed: (data: PlanTratamientoResponse) => {
+          setPlanTratamientoGenerado(data);
+          guardarPlanTratamiento(data);
+        },
+        onError: (err) => {
+          console.error('Error al parsear plan de tratamiento:', err);
+          setPlanTratamientoGenerado(fallbackPlan);
+          guardarPlanTratamiento(fallbackPlan);
+        },
+        onFinally: () => {
+          console.log('✨ Finalizó el procesamiento del plan de tratamiento');
+        },
+      }),
+    onError: (err: string) => {
+      console.error('Error de Gemini API:', err);
+      setPlanTratamientoGenerado(fallbackPlan);
+      guardarPlanTratamiento(fallbackPlan);
+    },
+  });
+
+  const handleGenerarPlan = async (analisis: AnalisisImagenYOLO_DTO) => {
+    try {
+      analisisActualRef.current = analisis;
+      analisis.imagenBase64 = "";
+      const prompt = generarPromptPlanTratamiento(analisis);
+
+      console.log('Generando plan de tratamiento para:', analisis.archivo);
+      await generateText(prompt);
+    } catch (error) {
+      console.error('Error al generar plan:', error);
+      analisisActualRef.current = null;
+    }
+  };
+
+  return {
+    loadingGemini,
+    errorGemini,
+    loadingPlan,
+    planTratamientoGenerado,
+    handleGenerarPlan,
+  };
+}
