@@ -91,6 +91,8 @@ export interface AnalisisImagenYOLO_DTO {
   //recomendaciones: Record<string, any>;
   recomendaciones: RecomendacionesIA;
   nombreCultivo : string
+  sector: string | null
+  usuarioId? : string
   
   // Metadata opcional
   metadata?: {
@@ -185,7 +187,9 @@ export function construirAnalisisDTO(
   imagenBase64: string,
   //recomendacionesGlobal: Record<string, any>
   recomendacionesGlobal: RecomendacionesIA,
-  nombreCultivo : string
+  nombreCultivo : string,
+  sector: string | null,
+  usuarioId: string | undefined
 ): AnalisisImagenYOLO_DTO {
 
   // Fecha actual en ISO
@@ -209,7 +213,8 @@ export function construirAnalisisDTO(
       },
       detecciones: [],
       recomendaciones: recomendacionesGlobal ?? {},
-      nombreCultivo: nombreCultivo
+      nombreCultivo: nombreCultivo,
+      sector: sector
     };
   }
 
@@ -261,7 +266,8 @@ export function construirAnalisisDTO(
     // Recomendaciones IA (Gemini)
     recomendaciones: recomendacionesGlobal ?? {},
     nombreCultivo: nombreCultivo,
-
+    sector: sector,
+    usuarioId: usuarioId,
     // Metadata opcional
     metadata: data.metadata
       ? {

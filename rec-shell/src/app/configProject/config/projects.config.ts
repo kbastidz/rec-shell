@@ -5,7 +5,7 @@ import { DashboardAdminM2, MenuPagueM2 } from '@rec-shell/rec-web-gamificacion';
 import { DashboardAdminM3, MenuPagueM3 } from '@rec-shell/rec-web-educacion';
 
 export const PROJECTS: Record<string, ProjectConfig> = {
-  agricultura: {
+  /*agricultura: {
     id: 'agricultura',
     name: 'Agricultura',
     menuComponent: MenuPagueM1,
@@ -18,7 +18,7 @@ export const PROJECTS: Record<string, ProjectConfig> = {
     menuComponent: MenuPagueM2,
     dashboardComponent: DashboardAdminM2,
     roles: ['ADMIN', 'USER', 'EST']
-  },
+  },*/
   educacion: {
     id: 'educacion',
     name: 'Educación',

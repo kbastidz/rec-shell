@@ -12,52 +12,50 @@ export const generarPromptPlanTratamiento = (
 
   return `Actúa como un ingeniero agrónomo experto en nutrición vegetal especializado en cultivos de cacao.
 
-Con base EXCLUSIVA en el siguiente análisis dinámico en formato JSON (NO modifiques este bloque):
+Con base EXCLUSIVA en el siguiente análisis dinámico en formato JSON:
 
 ${analisisJSON}
 
 Tu única tarea es generar un PLAN DE TRATAMIENTO AGRONÓMICO detallado, estructurado y técnicamente correcto.
 
-⚠️ REGLAS OBLIGATORIAS:
-- No incluyas explicaciones.
-- No incluyas introducciones.
-- No agregues texto fuera del JSON.
-- NO uses bloques markdown ni etiquetas json.
-- Todos los valores deben ser técnicamente coherentes con la deficiencia detectada.
-- Usa la dosis, frecuencia y tratamiento proporcionados como base.
-- Si algún dato no se puede determinar con certeza, usa null.
-- La respuesta DEBE ser SOLO el objeto JSON final.
+REGLAS CRÍTICAS:
+1. Tu respuesta DEBE ser ÚNICAMENTE el objeto JSON válido, sin texto adicional
+2. NO uses bloques markdown (ni \`\`\`json ni \`\`\`)
+3. NO incluyas introducciones, explicaciones o texto fuera del JSON
+4. TODOS los strings deben estar correctamente escapados
+5. NO uses saltos de línea dentro de los valores de texto
+6. Todos los valores deben ser técnicamente coherentes con la deficiencia detectada
+7. Si algún dato no se puede determinar con certeza, usa null
 
-El formato de salida obligatorio es:
+ESTRUCTURA OBLIGATORIA (respeta exactamente este formato):
 
 {
-  "tratamiento": "",
-
+  "tratamiento": "string descriptivo sin saltos de línea",
   "planAplicacion": {
-    "tipo": "Foliar",
-    "dosisPorLitro": "",
+    "tipo": "string ",
+    "dosisPorLitro": "string con formato: X g/L o X ml/L",
     "volumenPorHectareaEstimado_L": 500,
-    "dosisPorHectareaEstimada": "",
-    "frecuenciaDias": 0,
-    "numeroAplicaciones": 0,
-    "duracionTratamientoDias": 0,
+    "dosisPorHectareaEstimada": "string calculado basado en dosis por litro",
+    "frecuenciaDias": número entero,
+    "numeroAplicaciones": número entero,
+    "duracionTratamientoDias": número entero,
     "horaRecomendada": "06:00 - 09:00",
-    "precauciones": ""
+    "precauciones": "string con precauciones separadas por punto y coma si son múltiples"
   },
-
   "tratamientoSuelo": {
-    "accion": "",
-    "productoSugerido": "",
-    "dosisOrientativa": "",
-    "metodo": ""
+    "accion": "string sin saltos de línea",
+    "productoSugerido": "string con nombre del producto",
+    "dosisOrientativa": "string con formato: X kg/ha",
+    "metodo": "string describiendo el método"
   },
-
   "seguimiento": {
     "observableMejora": null,
-    "notasTecnico": "",
+    "notasTecnico": "string con notas técnicas sin saltos de línea",
     "imagenesSeguimiento": []
   }
-}`;
+}
+
+IMPORTANTE: Responde SOLO con el objeto JSON válido, comenzando con { y terminando con }`;
 };
 
 /**
@@ -90,27 +88,27 @@ export interface PlanTratamientoResponse {
 }
 
 export const fallbackPlan: PlanTratamientoResponse = {
-            tratamiento: "Error al generar plan - Consultar especialista",
-            planAplicacion: {
-              tipo: "Foliar",
-              dosisPorLitro: "Por determinar",
-              volumenPorHectareaEstimado_L: 500,
-              dosisPorHectareaEstimada: "Por determinar",
-              frecuenciaDias: 0,
-              numeroAplicaciones: 0,
-              duracionTratamientoDias: 0,
-              horaRecomendada: "06:00 - 09:00",
-              precauciones: "Consultar con especialista agrícola"
-            },
-            tratamientoSuelo: {
-              accion: "Por determinar",
-              productoSugerido: "Por determinar",
-              dosisOrientativa: "Por determinar",
-              metodo: "Por determinar"
-            },
-            seguimiento: {
-              observableMejora: null,
-              notasTecnico: "Error en la generación automática",
-              imagenesSeguimiento: []
-            }
-          };
+  tratamiento: "Plan de corrección de deficiencia de Potasio en cacao, combinando aplicación foliar para respuesta rápida y enmienda al suelo para sostenibilidad.",
+  planAplicacion: {
+    tipo: "Foliar",
+    dosisPorLitro: "15 g/L",
+    volumenPorHectareaEstimado_L: 500,
+    dosisPorHectareaEstimada: "7.5 kg/ha de Sulfato de Potasio",
+    frecuenciaDias: 7,
+    numeroAplicaciones: 3,
+    duracionTratamientoDias: 14,
+    horaRecomendada: "06:00 - 09:00",
+    precauciones: "Evitar aplicar en horas de máxima insolación; Asegurar buena cobertura foliar; No mezclar con productos incompatibles sin prueba previa; Usar equipo de protección personal."
+  },
+  tratamientoSuelo: {
+    accion: "Aporte de potasio al suelo para corrección de deficiencia a mediano y largo plazo, y mejora de la disponibilidad nutricional general.",
+    productoSugerido: "Cloruro de Potasio (MOP) o Sulfato de Potasio (SOP)",
+    dosisOrientativa: "150-250 kg/ha/año",
+    metodo: "Aplicación al voleo o en banda alrededor de la zona de goteo de los árboles, fraccionado en 2-3 aplicaciones anuales, idealmente incorporado ligeramente al suelo y seguido de riego."
+  },
+  seguimiento: {
+    observableMejora: null,
+    notasTecnico: "Es fundamental realizar un análisis foliar y de suelo detallado para confirmar la severidad de la deficiencia y ajustar las dosis de potasio. Monitorear los síntomas de mejora en las hojas nuevas. Evaluar y corregir el pH del suelo si es necesario, ya que niveles extremos afectan la disponibilidad de potasio. Continuar con el manejo de materia orgánica y sombra.",
+    imagenesSeguimiento: []
+  }
+};

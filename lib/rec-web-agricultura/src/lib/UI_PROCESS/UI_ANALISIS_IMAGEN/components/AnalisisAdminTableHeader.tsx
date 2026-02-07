@@ -5,6 +5,7 @@ export function AnalisisAdminTableHeader() {
     <Table.Thead>
       <Table.Tr>
         <Table.Th>Archivo</Table.Th>
+        <Table.Th>Sector</Table.Th>
         <Table.Th>Estado</Table.Th>
         <Table.Th>Detecciones</Table.Th>
         <Table.Th>Confianza Promedio</Table.Th>

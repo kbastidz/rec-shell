@@ -69,6 +69,14 @@ export function AnalisisTableRow({ analisis, onViewDetails }: AnalisisTableRowPr
       </Table.Td>
 
       <Table.Td>
+        <Group gap="xs">
+          <Text size="sm" fw={500}>
+            {analisis.sector}
+          </Text>
+        </Group>
+      </Table.Td>
+
+      <Table.Td>
         <Badge
           color={getConfianzaColor(analisis.estadisticas.confianza_promedio)}
           variant="light"

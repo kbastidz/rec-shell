@@ -33,6 +33,7 @@ export function usePlanTratamientoGenerator() {
       handleModelResponse<PlanTratamientoResponse>({
         text,
         onParsed: (data: PlanTratamientoResponse) => {
+          console.log('Plan de tratamiento generado:', data);
           setPlanTratamientoGenerado(data);
           guardarPlanTratamiento(data);
         },

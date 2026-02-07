@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { service } from '../service/agriculturaMCHL.service';
 import { AnalisisImagenMCHL } from '../../../types/model';
-import { GET_ERROR } from '../../../utils/utils';
+import { GET_ERROR, ST_GET_USER_ID } from '../../../utils/utils';
 import { AnalisisImagenYOLO_DTO } from '../../../types/yolo';
 
 export const useAnalisisImagen = () => {
@@ -34,7 +34,8 @@ export const useAnalisisImagen = () => {
     setError(null);
     try {
       const response = await service.GET();
-      setAnalisisList(response);
+      const filteredResponse = response.filter(analisis => analisis.usuarioId === ST_GET_USER_ID());
+      setAnalisisList(filteredResponse);
     } catch (err: unknown) {
       setError(GET_ERROR(error));
       console.error('Error obteniendo análisis:', err);

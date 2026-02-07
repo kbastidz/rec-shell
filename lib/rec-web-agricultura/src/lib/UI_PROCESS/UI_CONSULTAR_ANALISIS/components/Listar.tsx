@@ -98,6 +98,7 @@ export function Listar() {
                 <Table.Th>Estado</Table.Th>
                 <Table.Th>Detecciones</Table.Th>
                 <Table.Th>Cultivo</Table.Th>
+                <Table.Th>Sector</Table.Th>
                 <Table.Th>Confianza Promedio</Table.Th>
                 <Table.Th>Deficiencias</Table.Th>
                 <Table.Th>Fecha</Table.Th>

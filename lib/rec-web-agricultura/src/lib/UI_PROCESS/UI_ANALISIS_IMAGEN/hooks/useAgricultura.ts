@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NOTIFICATION_MESSAGES, useNotifications } from '@rec-shell/rec-web-shared';
-import { GET_ERROR } from '../../../utils/utils';
+import { GET_ERROR, ST_GET_USER_ID } from '../../../utils/utils';
 import { GenerarPlanAnalisisRequest, PlanGeneradoResponse, PlanTratamientoNuevo } from '../../../types/dto';
 import { service } from '../services/agricultura.service';
 
@@ -15,9 +15,9 @@ export function   usePlanesTratamiento() {
 
     try {
       const response = await service.GET();
-      setListaPlanes(response);
+      const filteredRespose = response.filter(analisis => analisis.usuarioId === ST_GET_USER_ID());
+      setListaPlanes(filteredRespose);
     } catch (error: unknown) {
-      console.error('Error al obtener planes de tratamiento:', error);
       notifications.error(
         NOTIFICATION_MESSAGES.GENERAL.ERROR.title,
         GET_ERROR(error)
@@ -31,6 +31,7 @@ export function   usePlanesTratamiento() {
     setLoading(true);
 
     try {
+      request.usuarioId = ST_GET_USER_ID();
       const response = await service.POST(request);
       setPlanGenerado(response);
       

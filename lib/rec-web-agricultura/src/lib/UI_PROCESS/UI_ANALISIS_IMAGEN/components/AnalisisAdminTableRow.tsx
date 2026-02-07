@@ -40,6 +40,12 @@ export function AnalisisAdminTableRow({
       </Table.Td>
 
       <Table.Td>
+        <Text size="sm" lineClamp={2} style={{ maxWidth: 200 }}>
+          {analisis.sector}
+        </Text>
+      </Table.Td>
+
+      <Table.Td>
         <Badge
           color={getTipoAlertaColor(analisis.tipo_alerta)}
           variant="filled"

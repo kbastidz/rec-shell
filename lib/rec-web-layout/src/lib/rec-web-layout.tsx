@@ -1,47 +1,62 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings,
-  Search,
-  Bell,
-  ChevronDown,
-  User,
-  LogOut,
-  MoreHorizontal,
-  Leaf,
-  GraduationCap
-} from 'lucide-react';
+import {
+  Group,
+  Text,
+  Avatar,
+  Menu,
+  UnstyledButton,
+  Box,
+  Indicator,
+  ActionIcon,
+  Paper,
+  Title,
+  useMantineTheme,
+  Tooltip,
+  Badge,
+  Container,
+  Center,
+  Transition,
+  Stack,
+} from '@mantine/core';
+import { useHover } from '@mantine/hooks';
+import {
+  IconLayoutDashboard,
+  IconUsers,
+  IconSettings,
+  IconSearch,
+  IconBell,
+  IconChevronDown,
+  IconUser,
+  IconLogout,
+  IconLeaf,
+  IconTrophy,
+  IconBook,
+  IconSparkles,
+} from '@tabler/icons-react';
 
 // Interfaz para componentes que pueden recibir navegación
 interface ComponentWithNavigation {
   onNavigate?: (tabKey: string) => void;
 }
 
-// Tipo para componentes que pueden recibir la función de navegación
 type NavigableComponent = React.ComponentType<ComponentWithNavigation>;
 
 interface MenuItem {
   key: string;
   label: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: React.ComponentType<{ size?: number | string; stroke?: number }>;
   component?: NavigableComponent;
-}
-
-interface HorizontalMenuItemProps {
-  item: MenuItem;
-  isActive: boolean;
-  onClick: (key: string) => void;
+  description?: string;
+  gradient?: { from: string; to: string };
+  badge?: string;
 }
 
 interface AdminTemplateProps {
-  // Props opcionales para inyectar componentes desde fuera
   AdminUserComponent?: NavigableComponent;
   AgriculturaComponent?: NavigableComponent;
   GamificacionComponent?: NavigableComponent;
   EducacionComponent?: NavigableComponent;
   LayoutDashboardComponent?: NavigableComponent;
-
   onSignOut?: () => void;
   userInfo?: {
     name?: string;
@@ -56,249 +71,446 @@ export function AdminTemplate({
   GamificacionComponent,
   EducacionComponent,
   LayoutDashboardComponent,
-
   onSignOut,
   userInfo = {
     name: 'Admin User',
     email: 'admin@hotmail.com',
-    initials: 'A'
-  }
+    initials: 'AU',
+  },
 }: AdminTemplateProps) {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
+  const theme = useMantineTheme();
 
-  // Elementos del menú con sus componentes asociados
+  // Elementos del menú con gradientes personalizados
   const allMenuItems: MenuItem[] = [
-    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, component: LayoutDashboardComponent },
-    { key: 'users', label: 'Usuarios', icon: Users, component: AdminUserComponent },
-    { key: 'cultivo', label: 'Agricultura', icon: Leaf, component: AgriculturaComponent },
-    { key: 'gamificacion', label: 'Gamificacion', icon: GraduationCap, component: GamificacionComponent },
-    { key: 'educacion', label: 'Educación', icon: GraduationCap, component: EducacionComponent }
+    {
+      key: 'dashboard',
+      label: 'Dashboard',
+      icon: IconLayoutDashboard,
+      component: LayoutDashboardComponent,
+      description: 'Vista general',
+      gradient: { from: 'blue', to: 'cyan' },
+    },
+    {
+      key: 'users',
+      label: 'Usuarios',
+      icon: IconUsers,
+      component: AdminUserComponent,
+      description: 'Gestión de usuarios',
+      gradient: { from: 'violet', to: 'grape' },
+      
+    },
+    {
+      key: 'cultivo',
+      label: 'Agricultura',
+      icon: IconLeaf,
+      component: AgriculturaComponent,
+      description: 'Cultivos',
+      gradient: { from: 'teal', to: 'green' },
+    },
+    {
+      key: 'gamificacion',
+      label: 'Gamificación',
+      icon: IconTrophy,
+      component: GamificacionComponent,
+      description: 'Logros',
+      gradient: { from: 'yellow', to: 'orange' },
+     
+    },
+    {
+      key: 'educacion',
+      label: 'Educación',
+      icon: IconBook,
+      component: EducacionComponent,
+      description: 'Recursos',
+      gradient: { from: 'orange', to: 'red' },
+    },
   ];
 
-  // Filtrar elementos del menú según los componentes disponibles
+  // Filtrar elementos del menú
   const menuItems = useMemo(() => {
-    return allMenuItems.filter(item => {
-      // Siempre mostrar el dashboard
+    return allMenuItems.filter((item) => {
       if (item.key === 'dashboard') return true;
-      
-      // Solo mostrar elementos que tienen componente asociado
       return item.component !== undefined;
     });
-  }, [LayoutDashboardComponent, AdminUserComponent, AgriculturaComponent, GamificacionComponent, EducacionComponent]);
+  }, [
+    LayoutDashboardComponent,
+    AdminUserComponent,
+    AgriculturaComponent,
+    GamificacionComponent,
+    EducacionComponent,
+  ]);
 
-  // Verificar si la pestaña activa está disponible, si no, cambiar a dashboard
   React.useEffect(() => {
-    const isActiveTabAvailable = menuItems.some(item => item.key === activeTab);
+    const isActiveTabAvailable = menuItems.some((item) => item.key === activeTab);
     if (!isActiveTabAvailable && activeTab !== 'dashboard') {
       setActiveTab('dashboard');
     }
   }, [menuItems, activeTab]);
 
-  const HorizontalMenuItem: React.FC<HorizontalMenuItemProps> = ({ item, isActive, onClick }) => {
-    const IconComponent = item.icon;
-    return (
-      <button
-        onClick={() => onClick(item.key)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 whitespace-nowrap ${
-          isActive 
-            ? 'bg-blue-100 text-blue-700 font-semibold' 
-            : 'text-gray-700 hover:bg-gray-100'
-        }`}
-      >
-        <IconComponent size={18} />
-        <span className="text-sm hidden sm:block">{item.label}</span>
-      </button>
-    );
-  };
-
-  // Función para manejar el cerrar sesión
   const handleSignOut = () => {
     if (onSignOut) {
       onSignOut();
     }
-    setDropdownOpen(false);
   };
 
-  // Función para renderizar el contenido según la pestaña activa
+  // Componente de ítem del dock
+  const DockItem = ({ item }: { item: MenuItem }) => {
+    const { hovered, ref } = useHover();
+    const isActive = activeTab === item.key;
+
+    return (
+      <Tooltip
+        label={
+          <Box>
+            <Text size="sm" fw={600}>
+              {item.label}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {item.description}
+            </Text>
+          </Box>
+        }
+        position="top"
+        offset={15}
+      >
+        <Box
+          ref={ref}
+          style={{
+            position: 'relative',
+            transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+        >
+          {item.badge && !isActive && (
+            <Badge
+              size="xs"
+              variant="filled"
+              color={item.gradient?.from}
+              style={{
+                position: 'absolute',
+                top: -8,
+                right: -8,
+                zIndex: 10,
+                boxShadow: `0 2px 8px ${theme.colors[item.gradient?.from || 'blue'][4]}`,
+              }}
+            >
+              {item.badge}
+            </Badge>
+          )}
+          <UnstyledButton
+            onClick={() => setActiveTab(item.key)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: hovered ? 72 : 64,
+              height: hovered ? 72 : 64,
+              borderRadius: theme.radius.xl,
+              transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              background: isActive
+                ? `linear-gradient(135deg, ${theme.colors[item.gradient?.from || 'blue'][5]} 0%, ${
+                    theme.colors[item.gradient?.to || 'cyan'][6]
+                  } 100%)`
+                : hovered
+                ? `linear-gradient(135deg, ${theme.colors[item.gradient?.from || 'blue'][1]} 0%, ${
+                    theme.colors[item.gradient?.to || 'cyan'][1]
+                  } 100%)`
+                : theme.colors.gray[0],
+              color: isActive ? 'white' : theme.colors.gray[7],
+              transform: hovered ? 'translateY(-12px) scale(1.05)' : isActive ? 'translateY(-4px)' : 'none',
+              boxShadow: isActive
+                ? `0 12px 24px ${theme.colors[item.gradient?.from || 'blue'][3]}`
+                : hovered
+                ? `0 8px 16px ${theme.colors.gray[3]}`
+                : '0 2px 8px rgba(0,0,0,0.08)',
+            }}
+          >
+            <item.icon size={hovered ? 28 : 24} stroke={isActive ? 2.5 : 1.8} />
+          </UnstyledButton>
+          
+          {/* Indicador de activo */}
+          <Transition
+            mounted={isActive}
+            transition="scale"
+            duration={200}
+          >
+            {(styles) => (
+              <Box
+                style={{
+                  ...styles,
+                  position: 'absolute',
+                  bottom: -6,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${theme.colors[item.gradient?.from || 'blue'][5]} 0%, ${
+                    theme.colors[item.gradient?.to || 'cyan'][6]
+                  } 100%)`,
+                }}
+              />
+            )}
+          </Transition>
+        </Box>
+      </Tooltip>
+    );
+  };
+
+  // Renderizar contenido
   const renderContent = () => {
-    const currentItem = allMenuItems.find(item => item.key === activeTab);
-    
+    const currentItem = allMenuItems.find((item) => item.key === activeTab);
+
     if (currentItem?.component) {
       const Component = currentItem.component;
       return <Component onNavigate={setActiveTab} />;
     }
 
-    // Contenido por defecto (Dashboard)
     if (activeTab === 'dashboard') {
       return (
-        <>
-          {/* Área de contenido principal */}
-          <div className="min-h-96 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-center p-8">
-            <LayoutDashboard size={48} className="text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">Dashboard Principal</h3>
-            <p className="text-gray-500">Bienvenido al panel de administración</p>
-          </div>
-        </>
+        <Paper
+          shadow="md"
+          p="xl"
+          radius="xl"
+          style={{
+            minHeight: 500,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: `linear-gradient(135deg, ${theme.colors.blue[0]} 0%, ${theme.colors.cyan[0]} 100%)`,
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <Box
+            style={{
+              position: 'absolute',
+              top: -50,
+              right: -50,
+              width: 300,
+              height: 300,
+              borderRadius: '50%',
+              background: `linear-gradient(135deg, ${theme.colors.blue[1]} 0%, ${theme.colors.cyan[2]} 100%)`,
+              opacity: 0.4,
+              filter: 'blur(40px)',
+            }}
+          />
+          <Avatar
+            size={120}
+            radius="xl"
+            variant="gradient"
+            gradient={{ from: 'blue', to: 'cyan', deg: 135 }}
+            style={{
+              boxShadow: `0 12px 24px ${theme.colors.blue[3]}`,
+              position: 'relative',
+            }}
+          >
+            <IconSparkles size={60} stroke={1.5} />
+          </Avatar>
+          <Title order={1} mt="xl" c="blue.8" style={{ position: 'relative' }}>
+            Dashboard Principal
+          </Title>
+          <Text c="dimmed" size="lg" mt="md" ta="center" maw={500} style={{ position: 'relative' }}>
+            Bienvenido al panel de administración. Usa el dock inferior para navegar.
+          </Text>
+        </Paper>
       );
     }
 
-    // Placeholder para otras pestañas sin componente asignado (esto no debería ocurrir ahora)
     return (
-      <div className="min-h-96 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-center p-8">
-        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-          {React.createElement(currentItem?.icon || LayoutDashboard, { size: 32 })}
-        </div>
-        <h3 className="text-lg font-semibold text-gray-600 mb-2">{currentItem?.label}</h3>
-        <p className="text-gray-500 mb-4">No tienes permisos para acceder a esta sección</p>
-        <button 
+      <Paper
+        shadow="md"
+        p="xl"
+        radius="xl"
+        style={{
+          minHeight: 500,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Avatar
+          size={110}
+          radius="xl"
+          variant="gradient"
+          gradient={{
+            from: currentItem?.gradient?.from || 'gray',
+            to: currentItem?.gradient?.to || 'gray',
+            deg: 135,
+          }}
+          style={{
+            boxShadow: `0 12px 24px ${theme.colors[currentItem?.gradient?.from || 'gray'][3]}`,
+          }}
+        >
+          {currentItem?.icon && <currentItem.icon size={55} stroke={1.5} />}
+        </Avatar>
+        <Title order={2} mt="xl">
+          {currentItem?.label}
+        </Title>
+        <Text c="dimmed" mt="xs" mb="xl" ta="center">
+          No tienes permisos para acceder a esta sección
+        </Text>
+        <UnstyledButton
           onClick={() => setActiveTab('dashboard')}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          style={{
+            padding: '12px 28px',
+            borderRadius: theme.radius.md,
+            background: `linear-gradient(135deg, ${theme.colors.blue[5]} 0%, ${theme.colors.cyan[6]} 100%)`,
+            color: 'white',
+            fontWeight: 600,
+            fontSize: 15,
+            boxShadow: `0 8px 16px ${theme.colors.blue[3]}`,
+          }}
         >
           Volver al Dashboard
-        </button>
-      </div>
+        </UnstyledButton>
+      </Paper>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">Panel Administrativo</h1>
-          </div>
+    <Box style={{ minHeight: '100vh',  paddingRight: 120 }}>
 
-          {/* Menú horizontal - visible en pantallas medianas y grandes */}
-          <div className="hidden md:flex items-center gap-2 flex-1 justify-center max-w-4xl mx-8">
-            {menuItems.map((item) => (
-              <HorizontalMenuItem
-                key={item.key}
-                item={item}
-                isActive={activeTab === item.key}
-                onClick={setActiveTab}
-              />
-            ))}
-          </div>
-
-          {/* Menú dropdown para móvil */}
-          <div className="md:hidden relative">
-            <button
-              onClick={() => setMenuDropdownOpen(!menuDropdownOpen)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                menuDropdownOpen ? 'bg-gray-100' : 'hover:bg-gray-100'
-              }`}
-            >
-              <MoreHorizontal size={20} />
-              <span className="text-sm hidden sm:block">Menú</span>
-            </button>
-            
-            {menuDropdownOpen && (
-              <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                {menuItems.map((item) => {
-                  const IconComponent = item.icon;
-                  return (
-                    <button
-                      key={item.key}
-                      onClick={() => {
-                        setActiveTab(item.key);
-                        setMenuDropdownOpen(false);
-                      }}
-                      className={`flex items-center gap-3 px-4 py-2 text-sm w-full text-left transition-colors ${
-                        activeTab === item.key
-                          ? 'bg-blue-100 text-blue-700 font-semibold'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      <IconComponent size={16} />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Controles del header */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Search size={20} className="text-gray-600" />
-            </button>
-            
-            <div className="relative">
-              <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <Bell size={20} className="text-gray-600" />
-              </button>
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
-            </div>
-
-            {/* Dropdown de usuario */}
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+      {/* Header superior */}
+      <Paper
+        shadow="sm"
+        p="md"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          borderBottom: `1px solid ${theme.colors.gray[2]}`,
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <Container size="xl">
+          <Group justify="space-between">
+            <Group gap="sm">
+              <Avatar
+                size={42}
+                radius="md"
+                variant="gradient"
+                gradient={{ from: 'blue', to: 'cyan', deg: 135 }}
               >
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">{userInfo.initials}</span>
-                </div>
-                <div className="hidden lg:block text-left">
-                  <p className="text-sm font-semibold text-gray-800">{userInfo.name}</p>
-                  <p className="text-xs text-gray-600">{userInfo.email}</p>
-                </div>
-                <ChevronDown size={16} className="text-gray-600" />
-              </button>
+                <IconSparkles size={24} />
+              </Avatar>
+              <Box>
+                <Text
+                  size="lg"
+                  fw={700}
+                  variant="gradient"
+                  gradient={{ from: 'blue', to: 'cyan', deg: 135 }}
+                  style={{ lineHeight: 1.2 }}
+                >
+                  Panel Admin
+                </Text>
+                <Text size="xs" c="dimmed" style={{ lineHeight: 1.2 }}>
+                  Sistema de Gestión Inteligente
+                </Text>
+              </Box>
+            </Group>
 
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <button className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
-                    <User size={16} />
-                    Mi Perfil
-                  </button>
-                  <button className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
-                    <Settings size={16} />
-                    Configuración
-                  </button>
-                  <hr className="my-2 border-gray-200" />
-                  <button 
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
+            <Group gap="xs">
+              <Tooltip label="Buscar (Ctrl+K)">
+                <ActionIcon variant="light" color="gray" size="lg" radius="md">
+                  <IconSearch size={20} />
+                </ActionIcon>
+              </Tooltip>
+
+              <Tooltip label="3 notificaciones nuevas">
+                <Indicator inline processing color="red" size={8} offset={5}>
+                  <ActionIcon variant="light" color="gray" size="lg" radius="md">
+                    <IconBell size={20} />
+                  </ActionIcon>
+                </Indicator>
+              </Tooltip>
+
+              <Menu shadow="xl" width={240} position="bottom-end" offset={12}>
+                <Menu.Target>
+                  <UnstyledButton
+                    style={{
+                      padding: '4px 12px 4px 4px',
+                      borderRadius: theme.radius.md,
+                    }}
+                  >
+                    <Group gap="xs">
+                      <Avatar
+                        color="blue"
+                        radius="xl"
+                        size="md"
+                        variant="gradient"
+                        gradient={{ from: 'blue', to: 'cyan' }}
+                      >
+                        {userInfo.initials}
+                      </Avatar>
+                      <Box visibleFrom="sm">
+                        <Text size="sm" fw={600} style={{ lineHeight: 1.2 }}>
+                          {userInfo.name}
+                        </Text>
+                        <Text size="xs" c="dimmed" style={{ lineHeight: 1.2 }}>
+                          {userInfo.email}
+                        </Text>
+                      </Box>
+                      <IconChevronDown size={16} stroke={1.5} />
+                    </Group>
+                  </UnstyledButton>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  <Menu.Label>Mi Cuenta</Menu.Label>
+                  <Menu.Item leftSection={<IconUser size={18} />}>Mi Perfil</Menu.Item>
+                  <Menu.Item leftSection={<IconSettings size={18} />}>Configuración</Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IconLogout size={18} />}
                     onClick={handleSignOut}
                   >
-                    <LogOut size={16} />
                     Cerrar Sesión
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </Group>
+        </Container>
+      </Paper>
 
       {/* Contenido principal */}
-      <main className="p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
-            
-            {/* Contenido dinámico */}
-            {renderContent()}
-          </div>
-        </div>
-      </main>
+      <Container size="xl" py="xl" px="md">
+        {renderContent()}
+      </Container>
 
-      {/* Overlay para cerrar dropdowns al hacer clic fuera */}
-      {(dropdownOpen || menuDropdownOpen) && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => {
-            setDropdownOpen(false);
-            setMenuDropdownOpen(false);
+      {/* Dock flotante inferior */}
+      <Box
+  style={{
+    position: 'fixed',
+    right: 20,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 1000,
+  }}
+>
+        <Paper
+          shadow="xl"
+          p="lg"
+          radius="xl"
+          style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${theme.colors.gray[2]}`,
           }}
-        />
-      )}
-    </div>
+        >
+          <Stack gap="lg" align="center">
+  {menuItems.map((item) => (
+    <DockItem key={item.key} item={item} />
+  ))}
+</Stack>
+        </Paper>
+      </Box>
+    </Box>
   );
 }

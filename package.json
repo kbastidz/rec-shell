@@ -10,6 +10,7 @@
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.14.0",
+    "@mantine/carousel": "^8.2.4",
     "@mantine/core": "^8.2.4",
     "@mantine/dates": "^8.2.4",
     "@mantine/form": "^8.2.4",
@@ -17,6 +18,7 @@
     "@mantine/modals": "^8.2.4",
     "@mantine/notifications": "^8.2.4",
     "@tabler/icons-react": "^3.34.1",
+    "embla-carousel-react": "^8.6.0",
     "empty": "0.10.1",
     "lucide-react": "^0.541.0",
     "pdfjs-dist": "^4.0.379",

@@ -1,695 +1,544 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
+  Title,
+  Paper,
   Grid,
   Card,
   Text,
-  Title,
   Group,
-  Badge,
   Stack,
   ThemeIcon,
-  Loader,
-  Alert,
   RingProgress,
-  ActionIcon,
-  Tooltip,
-  Paper,
-  SimpleGrid,
-  Box,
-  Divider,
+  Timeline,
   Select,
-  Button
+  SimpleGrid,
+  Tabs,
+  Alert,
+  Progress
 } from '@mantine/core';
 import {
-  IconPlant,
-  IconAlertTriangle,
-  IconCalendarEvent,
-  IconChartBar,
-  IconDroplet,
-  IconSun,
-  IconTemperature,
-  IconFlask,
-  IconCurrencyDollar,
-  IconCheck,
-  IconClock,
-  IconEye,
-  IconRefresh
-} from '@tabler/icons-react';
-import { useDashboard } from '../hooks/useDashboard';
-import { AlertaDTO, CultivoResumenDTO } from '../dto/dto';
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Area,
+  AreaChart
+} from 'recharts';
+import {
+  TrendingUp,
+  Activity,
+  Clock,
+  BarChart3,
+  Leaf,
+  CheckCircle
+} from 'lucide-react';
 
+import { useAnalisisImagen } from '../../UI_CARGA_IMAGEN/hook/useAgriculturaMchl';
 
-// Tipos de interfaces
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-  subtitle?: string;
-}
-
-
-interface AlertCardProps {
-  alerta: AlertaDTO;
-}
-
-
-interface CultivoCardProps {
-  cultivo: CultivoResumenDTO ;
-  onVerDetalle: (id: number) => void;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, color, subtitle }) => (
-  <Card shadow="sm" padding="lg" radius="md" withBorder>
-    <Group justify="space-between" mb="xs">
-      <ThemeIcon size="xl" radius="md" color={color} variant="light">
-        <Icon size={24} />
-      </ThemeIcon>
-      <Box style={{ flex: 1, marginLeft: 16 }}>
-        <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
-          {title}
-        </Text>
-        <Text size="xl" fw={700}>
-          {value}
-        </Text>
-        {subtitle && (
-          <Text size="xs" c="dimmed" mt={4}>
-            {subtitle}
-          </Text>
-        )}
-      </Box>
-    </Group>
-  </Card>
-);
-
-// Componente de alerta
-const AlertCard: React.FC<AlertCardProps> = ({ alerta }) => {
-  const getSeverityColor = (sev: string): string => { // Cambiar a string
-    switch (sev) {
-      case 'ALTA': return 'red';
-      case 'MEDIA': return 'yellow';
-      case 'BAJA': return 'blue';
-      default: return 'gray';
+// Datos mock basados en la estructura de tu tabla
+const analisisData = [
+  {
+    id: 1,
+    es_valido: true,
+    fecha: '2025-01-08 14:30:00',
+    archivo: 'cacao_lote_A_001.jpg',
+    mensaje: 'Análisis completado exitosamente',
+    nombre_cultivo: 'Cacao',
+    tipo_alerta: 'media',
+    detecciones: [
+      { area: 432540, bbox: { x1: 426, x2: 782, y1: 261, y2: 1476 }, region: 1, confianza: 94.3, deficiencia: 'Potasio' },
+      { area: 19865, bbox: { x1: 1054, x2: 1199, y1: 2, y2: 139 }, region: 2, confianza: 50.15, deficiencia: 'Potasio' },
+      { area: 59430, bbox: { x1: 989, x2: 1199, y1: 214, y2: 497 }, region: 3, confianza: 27.14, deficiencia: 'Potasio' }
+    ],
+    estadisticas: {
+      por_tipo: { Potasio: 3 },
+      confianza_maxima: 94.3,
+      total_detecciones: 3,
+      confianza_promedio: 57.2,
+      deficiencias_unicas: 1
     }
-  };
-
-  const getTipoIcon = (tipo: string): React.ElementType => {
-    switch (tipo) {
-      case 'DEFICIENCIA': return IconAlertTriangle;
-      case 'ACTIVIDAD': return IconCalendarEvent;
-      case 'TRATAMIENTO': return IconFlask;
-      case 'PARAMETRO': return IconTemperature;
-      default: return IconAlertTriangle;
+  },
+  {
+    id: 2,
+    es_valido: true,
+    fecha: '2025-01-07 10:15:00',
+    archivo: 'cacao_lote_B_002.jpg',
+    mensaje: 'Análisis completado exitosamente',
+    nombre_cultivo: 'Cacao',
+    tipo_alerta: 'alta',
+    detecciones: [
+      { area: 523000, bbox: { x1: 300, x2: 900, y1: 200, y2: 1400 }, region: 1, confianza: 89.5, deficiencia: 'Nitrógeno' },
+      { area: 145000, bbox: { x1: 100, x2: 400, y1: 50, y2: 500 }, region: 2, confianza: 76.2, deficiencia: 'Nitrógeno' }
+    ],
+    estadisticas: {
+      por_tipo: { Nitrógeno: 2 },
+      confianza_maxima: 89.5,
+      total_detecciones: 2,
+      confianza_promedio: 82.85,
+      deficiencias_unicas: 1
     }
-  };
+  },
+  {
+    id: 3,
+    es_valido: true,
+    fecha: '2025-01-06 16:45:00',
+    archivo: 'cacao_lote_C_003.jpg',
+    mensaje: 'Análisis completado exitosamente',
+    nombre_cultivo: 'Cacao',
+    tipo_alerta: 'baja',
+    detecciones: [
+      { area: 95000, bbox: { x1: 500, x2: 750, y1: 300, y2: 900 }, region: 1, confianza: 45.8, deficiencia: 'Magnesio' }
+    ],
+    estadisticas: {
+      por_tipo: { Magnesio: 1 },
+      confianza_maxima: 45.8,
+      total_detecciones: 1,
+      confianza_promedio: 45.8,
+      deficiencias_unicas: 1
+    }
+  },
+  {
+    id: 4,
+    es_valido: false,
+    fecha: '2025-01-05 09:20:00',
+    archivo: 'cacao_lote_D_004.jpg',
+    mensaje: 'Imagen de baja calidad',
+    nombre_cultivo: 'Cacao',
+    tipo_alerta: null,
+    detecciones: [],
+    estadisticas: {
+      por_tipo: {},
+      confianza_maxima: 0,
+      total_detecciones: 0,
+      confianza_promedio: 0,
+      deficiencias_unicas: 0
+    }
+  },
+  {
+    id: 5,
+    es_valido: true,
+    fecha: '2025-01-04 13:10:00',
+    archivo: 'cacao_lote_E_005.jpg',
+    mensaje: 'Análisis completado exitosamente',
+    nombre_cultivo: 'Cacao',
+    tipo_alerta: 'media',
+    detecciones: [
+      { area: 280000, bbox: { x1: 200, x2: 600, y1: 100, y2: 800 }, region: 1, confianza: 72.3, deficiencia: 'Fósforo' },
+      { area: 180000, bbox: { x1: 650, x2: 950, y1: 200, y2: 950 }, region: 2, confianza: 68.9, deficiencia: 'Fósforo' }
+    ],
+    estadisticas: {
+      por_tipo: { Fósforo: 2 },
+      confianza_maxima: 72.3,
+      total_detecciones: 2,
+      confianza_promedio: 70.6,
+      deficiencias_unicas: 1
+    }
+  }
+];
 
-  const Icon = getTipoIcon(alerta.tipo);
+// Datos mock de historial de tiempo de sesión del usuario
+const sessionHistoryData = [
+  { fecha: '2025-01-01', duracion: 45, sesiones: 2, horaInicio: '08:30', horaFin: '09:15' },
+  { fecha: '2025-01-02', duracion: 120, sesiones: 3, horaInicio: '09:00', horaFin: '11:00' },
+  { fecha: '2025-01-03', duracion: 90, sesiones: 2, horaInicio: '10:15', horaFin: '11:45' },
+  { fecha: '2025-01-04', duracion: 180, sesiones: 4, horaInicio: '08:00', horaFin: '11:00' },
+  { fecha: '2025-01-05', duracion: 60, sesiones: 1, horaInicio: '14:30', horaFin: '15:30' },
+  { fecha: '2025-01-06', duracion: 150, sesiones: 3, horaInicio: '09:30', horaFin: '12:00' },
+  { fecha: '2025-01-07', duracion: 105, sesiones: 2, horaInicio: '10:00', horaFin: '11:45' },
+  { fecha: '2025-01-08', duracion: 135, sesiones: 3, horaInicio: '08:45', horaFin: '11:00' },
+  { fecha: '2025-01-09', duracion: 75, sesiones: 2, horaInicio: '15:00', horaFin: '16:15' },
+  { fecha: '2025-01-10', duracion: 95, sesiones: 2, horaInicio: '09:15', horaFin: '10:50' }
+];
 
-  return (
-    <Card shadow="sm" padding="md" radius="md" withBorder>
-      <Group justify="space-between" wrap="nowrap">
-        <Group wrap="nowrap">
-          <ThemeIcon 
-            size="lg" 
-            radius="md" 
-            color={getSeverityColor(alerta.severidad)}
-            variant="light"
-          >
-            <Icon size={20} />
-          </ThemeIcon>
-          <Box style={{ flex: 1 }}>
-            <Text size="sm" fw={600}>
-              {alerta.mensaje}
-            </Text>
-            <Group gap="xs" mt={4}>
-              <Text size="xs" c="dimmed">
-                {alerta.cultivoNombre}
-              </Text>
-              <Badge size="xs" color={getSeverityColor(alerta.severidad)}>
-                {alerta.severidad}
-              </Badge>
-            </Group>
-          </Box>
-        </Group>
-        {!alerta.leida && (
-          <Tooltip label="Marcar como leída">
-            <ActionIcon variant="subtle" color="gray">
-              <IconEye size={18} />
-            </ActionIcon>
-          </Tooltip>
-        )}
-      </Group>
-    </Card>
-  );
+// Datos agregados para gráficos
+const deficienciasPorTipo = analisisData
+  .filter(item => item.es_valido)
+  .reduce((acc: Record<string, number>, item) => {
+    Object.entries(item.estadisticas.por_tipo).forEach(([tipo, cantidad]) => {
+      acc[tipo] = (acc[tipo] || 0) + cantidad;
+    });
+    return acc;
+  }, {} as Record<string, number>);
+
+const chartDeficiencias = Object.entries(deficienciasPorTipo).map(([nombre, cantidad]) => ({
+  nombre,
+  cantidad
+}));
+
+const COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe'];
+
+type AlertaPorDia = {
+  fecha: string;
+  alta: number;
+  media: number;
+  baja: number;
 };
 
-
-const CultivoCard: React.FC<CultivoCardProps> = ({ cultivo, onVerDetalle }) => {
-  const getSaludColor = (salud: string): string => {
-    switch (salud) {
-      case 'BUENA': return 'green';
-      case 'REGULAR': return 'yellow';
-      case 'CRITICA': return 'red';
-      default: return 'gray';
+const alertasPorDia = analisisData
+  .filter(item => item.es_valido && item.tipo_alerta)
+  .reduce((acc: { [key: string]: AlertaPorDia }, item) => {
+    const fecha = item.fecha.split(' ')[0];
+    if (!acc[fecha]) {
+      acc[fecha] = { fecha, alta: 0, media: 0, baja: 0 };
     }
-  };
+    acc[fecha][item.tipo_alerta as 'alta' | 'media' | 'baja']++;
+    return acc;
+  }, {} as { [key: string]: AlertaPorDia });
 
-  const getSaludValue = (salud: string): number => {
-    switch (salud) {
-      case 'BUENA': return 85;
-      case 'REGULAR': return 55;
-      case 'CRITICA': return 25;
-      default: return 50;
-    }
-  };
+const chartAlertas = Object.values(alertasPorDia);
 
-  return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Group justify="space-between" mb="md">
-        <Box>
-          <Text size="lg" fw={700}>
-            {cultivo.nombreCultivo}
-          </Text>
-          <Text size="sm" c="dimmed">
-            {cultivo.variedadCacao}
-          </Text>
-        </Box>
-        <Badge color={cultivo.estadoCultivo === 'ACTIVO' ? 'green' : 'gray'}>
-          {cultivo.estadoCultivo}
-        </Badge>
-      </Group>
+export  function DashboardAdminM1() {
+  const [selectedPeriod, setSelectedPeriod] = useState('7d');
 
-      <Group mb="md">
-        <RingProgress
-          size={80}
-          thickness={8}
-          sections={[{ value: getSaludValue(cultivo.saludGeneral), color: getSaludColor(cultivo.saludGeneral) }]}
-          label={
-            <Text size="xs" ta="center" fw={700}>
-              {cultivo.saludGeneral}
-            </Text>
-          }
-        />
-        <Box style={{ flex: 1 }}>
-          <Group gap="xs">
-            <IconPlant size={16} />
-            <Text size="sm">
-              {cultivo.areaHectareas} ha
-            </Text>
-          </Group>
-          <Group gap="xs" mt={4}>
-            <Text size="sm" c="dimmed">
-              {cultivo.ubicacionNombre}
-            </Text>
-          </Group>
-        </Box>
-      </Group>
+  const totalAnalisis = analisisData.length;
+  const analisisValidos = analisisData.filter(a => a.es_valido).length;
+  const tasaExito = ((analisisValidos / totalAnalisis) * 100).toFixed(1);
+  const totalDetecciones = analisisData.reduce((sum, a) => sum + a.estadisticas.total_detecciones, 0);
+  const promedioConfianza = (
+    analisisData
+      .filter(a => a.es_valido)
+      .reduce((sum, a) => sum + a.estadisticas.confianza_promedio, 0) / analisisValidos
+  ).toFixed(1);
 
-      <Divider mb="md" />
+  // Estadísticas de sesiones
+  const totalTiempoSesion = sessionHistoryData.reduce((sum, s) => sum + s.duracion, 0);
+  const promedioSesion = (totalTiempoSesion / sessionHistoryData.length).toFixed(0);
+  const totalSesiones = sessionHistoryData.reduce((sum, s) => sum + s.sesiones, 0);
 
-      <SimpleGrid cols={2} spacing="xs">
-        <Box>
-          <Group gap={4}>
-            <IconTemperature size={14} color="orange" />
-            <Text size="xs" c="dimmed">Temp</Text>
-          </Group>
-          <Text size="sm" fw={600}>
-            {cultivo.parametrosActuales?.temperatura ?? '—'}°C
-          </Text>
-        </Box>
-        <Box>
-          <Group gap={4}>
-            <IconDroplet size={14} color="blue" />
-            <Text size="xs" c="dimmed">Humedad</Text>
-          </Group>
-          <Text size="sm" fw={600}>
-            {cultivo.parametrosActuales?.humedadSuelo ?? 0}%
-          </Text>
-        </Box>
-        <Box>
-          <Group gap={4}>
-            <IconFlask size={14} color="purple" />
-            <Text size="xs" c="dimmed">pH</Text>
-          </Group>
-          <Text size="sm" fw={600}>
-            {cultivo.parametrosActuales?.phSuelo ?? 0}
-          </Text>
-        </Box>
-        <Box>
-          <Group gap={4}>
-            <IconSun size={14} color="yellow" />
-            <Text size="xs" c="dimmed">Sol</Text>
-          </Group>
-          <Text size="sm" fw={600}>
-            {cultivo.parametrosActuales?.horasSol ?? 0}h
-          </Text>
-        </Box>
-      </SimpleGrid>
-
-      <Group justify="space-between" mt="md">
-        <Text size="xs" c="dimmed">
-          Análisis: {cultivo.analisisRealizados}
-        </Text>
-        <Text size="xs" c="dimmed">
-          Deficiencias: {cultivo.deficienciasActivas}
-        </Text>
-      </Group>
-
-      <Button 
-        fullWidth 
-        mt="md" 
-        variant="light"
-        onClick={() => onVerDetalle(cultivo.id)}
-      >
-        Ver Detalle
-      </Button>
-    </Card>
-  );
-};
-
-// Componente principal
-export const DashboardAdminM1: React.FC = () => {
-  const {
-    resumen,
-    estadisticasGenerales,
-    cultivosActivos,
-    cultivoDetalle,
-    alertas,
-    proximasActividades,
-    estadisticasDeficiencias,
-    estadisticasTratamientos,
-    loading,
-    error,
-    obtenerResumen,
-    obtenerEstadisticasGenerales,
-    obtenerCultivosActivos,
-    obtenerDetalleCultivo,
-    obtenerAlertas,
-    obtenerProximasActividades,
-    obtenerEstadisticasDeficiencias,
-    obtenerEstadisticasTratamientos,
-    clearError
-  } = useDashboard();
-
-  const [filtros, setFiltros] = useState({
-    fechaInicio: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    fechaFin: new Date().toISOString(),
-    cultivoIds: [],
-    estadoCultivo: 'ACTIVO',
-    severidadMinima: 'BAJA'
-  });
-
-  // Cargar datos iniciales
-  useEffect(() => {
-    cargarDatosIniciales();
-  }, []);
-
-  const cargarDatosIniciales = async (): Promise<void> => {
-    try {
-      // Cargar resumen principal (incluye estadísticas, cultivos, alertas y actividades)
-      await obtenerResumen(filtros);
-      
-      // Cargar datos adicionales específicos si es necesario
-      await obtenerEstadisticasGenerales({
-        fechaInicio: filtros.fechaInicio,
-        fechaFin: filtros.fechaFin
-      });
-      
-      await obtenerCultivosActivos(filtros.cultivoIds);
-      
-      await obtenerAlertas({
-        tipo: '',
-        severidad: '',
-        soloNoLeidas: false
-      });
-      
-      await obtenerProximasActividades({
-        dias: 30,
-        soloPrioridadAlta: false
-      });
-      
-      await obtenerEstadisticasDeficiencias({
-        fechaInicio: filtros.fechaInicio,
-        fechaFin: filtros.fechaFin
-      });
-      
-      await obtenerEstadisticasTratamientos({
-        fechaInicio: filtros.fechaInicio,
-        fechaFin: filtros.fechaFin
-      });
-    } catch (err) {
-      console.error('Error cargando datos:', err);
-    }
-  };
-
-  const handleVerDetalleCultivo = async (id: number): Promise<void> => {
-    try {
-      await obtenerDetalleCultivo(id);
-    } catch (err) {
-      console.error('Error obteniendo detalle:', err);
-    }
-  };
-
-  const handleRefresh = (): void => {
-    cargarDatosIniciales();
-  };
-
-  if (loading) {
-    return (
-      <Container size="xl" py="xl">
-        <Group justify="center" style={{ minHeight: 400 }}>
-          <Stack align="center" gap="md">
-            <Loader size="lg" />
-            <Text c="dimmed">Cargando dashboard...</Text>
-          </Stack>
-        </Group>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container size="xl" py="xl">
-        <Alert 
-          color="red" 
-          title="Error al cargar datos" 
-          icon={<IconAlertTriangle />}
-          withCloseButton
-          onClose={clearError}
-        >
-          {error}
-          <Button 
-            variant="light" 
-            size="xs" 
-            mt="md"
-            onClick={handleRefresh}
-          >
-            Reintentar
-          </Button>
-        </Alert>
-      </Container>
-    );
-  }
-
-  // Si tenemos resumen, usamos sus datos anidados
-  const stats = resumen?.estadisticasGenerales || estadisticasGenerales;
-  const cultivos = resumen?.cultivosActivos || cultivosActivos;
-  const alertasData = resumen?.alertasRecientes || alertas;
-  const actividades = resumen?.proximasActividades || proximasActividades;
-  const deficiencias = resumen?.estadisticasDeficiencias || estadisticasDeficiencias;
-  const tratamientos = resumen?.estadisticasTratamientos || estadisticasTratamientos;
-
+  const { loading, error, analisisList, OBTENER } = useAnalisisImagen();
+ 
+    
   return (
     <Container size="xl" py="xl">
-      <Group justify="space-between" mb="xl">
-        <Title order={1}>
-          Dashboard Agrícola de Cacao
-        </Title>
-        <Button 
-          leftSection={<IconRefresh size={16} />}
-          variant="light"
-          onClick={handleRefresh}
-          loading={loading}
-        >
-          Actualizar
-        </Button>
-      </Group>
+      <Stack gap="xl">
+        {/* Header */}
+        <div>
+          <Title order={1} mb="xs">Dashboard de Análisis de Deficiencias</Title>
+          <Text c="dimmed" size="lg">Monitoreo y análisis de cultivos de cacao</Text>
+        </div>
 
-      {/* Estadísticas Generales */}
-      {stats && (
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="lg" mb="xl">
-          <StatCard
-            title="Cultivos Activos"
-            value={stats.cultivosActivos}
-            icon={IconPlant}
-            color="green"
-            subtitle={`${stats.areaTotal} hectáreas`}
-          />
-          <StatCard
-            title="Análisis del Mes"
-            value={stats.analisisMesActual}
-            icon={IconChartBar}
-            color="blue"
-            subtitle={`${stats.totalAnalisis} total`}
-          />
-          <StatCard
-            title="Deficiencias"
-            value={stats.deficienciasDetectadas}
-            icon={IconAlertTriangle}
-            color="orange"
-            subtitle="Detectadas actualmente"
-          />
-          <StatCard
-            title="Costos Tratamientos"
-            value={`$${stats.costoTotalTratamientos.toFixed(2)}`}
-            icon={IconCurrencyDollar}
-            color="teal"
-            subtitle={`${stats.tratamientosActivos} activos`}
-          />
+        {/* KPIs */}
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Total Análisis</Text>
+                <Text size="xl" fw={700} mt="xs">{totalAnalisis}</Text>
+                <Text size="xs" c="teal" mt={4}>
+                  {analisisValidos} válidos
+                </Text>
+              </div>
+              <ThemeIcon size={60} radius="md" variant="light" color="blue">
+                <BarChart3 size={30} />
+              </ThemeIcon>
+            </Group>
+          </Card>
+
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Tasa de Éxito</Text>
+                <Text size="xl" fw={700} mt="xs">{tasaExito}%</Text>
+                <Progress value={parseFloat(tasaExito)} mt="xs" size="sm" color="teal" />
+              </div>
+              <ThemeIcon size={60} radius="md" variant="light" color="teal">
+                <CheckCircle size={30} />
+              </ThemeIcon>
+            </Group>
+          </Card>
+
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Detecciones</Text>
+                <Text size="xl" fw={700} mt="xs">{totalDetecciones}</Text>
+                <Text size="xs" c="orange" mt={4}>
+                  {chartDeficiencias.length} tipos únicos
+                </Text>
+              </div>
+              <ThemeIcon size={60} radius="md" variant="light" color="orange">
+                <Leaf size={30} />
+              </ThemeIcon>
+            </Group>
+          </Card>
+
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Confianza Promedio</Text>
+                <Text size="xl" fw={700} mt="xs">{promedioConfianza}%</Text>
+                <RingProgress
+                  size={50}
+                  thickness={4}
+                  sections={[{ value: parseFloat(promedioConfianza), color: 'violet' }]}
+                  mt="xs"
+                />
+              </div>
+              <ThemeIcon size={60} radius="md" variant="light" color="violet">
+                <TrendingUp size={30} />
+              </ThemeIcon>
+            </Group>
+          </Card>
         </SimpleGrid>
-      )}
 
-      <Grid gutter="lg">
-        {/* Cultivos Activos */}
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Title order={3} mb="md">
-              Cultivos Activos
-            </Title>
-            {cultivos && cultivos.length > 0 ? (
-              <Stack gap="md">
-                {cultivos.map((cultivo: CultivoResumenDTO) => (
-                  <CultivoCard 
-                    key={cultivo.id} 
-                    cultivo={cultivo}
-                    onVerDetalle={handleVerDetalleCultivo}
-                  />
-                ))}
-              </Stack>
-            ) : (
-              <Text c="dimmed" ta="center" py="xl">
-                No hay cultivos activos
-              </Text>
-            )}
-          </Card>
-        </Grid.Col>
+        {/* Tabs principales */}
+        <Tabs defaultValue="deficiencias" variant="pills">
+          <Tabs.List>
+            <Tabs.Tab value="deficiencias" leftSection={<Leaf size={16} />}>
+              Análisis de Deficiencias
+            </Tabs.Tab>
+            <Tabs.Tab value="sesiones" leftSection={<Clock size={16} />}>
+              Historial de Sesiones
+            </Tabs.Tab>
+          </Tabs.List>
 
-        {/* Alertas y Actividades */}
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Stack gap="lg">
-            {/* Alertas */}
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
-              <Group justify="space-between" mb="md">
-                <Title order={3}>Alertas Recientes</Title>
-                {alertasData && (
-                  <Badge color="red" variant="filled">
-                    {alertasData.filter((a: AlertaDTO) => !a.leida).length}
-                  </Badge>
-                )}
-              </Group>
-              {alertasData && alertasData.length > 0 ? (
-                <Stack gap="sm">
-                  {alertasData.slice(0, 5).map((alerta: AlertaDTO) => (
-                    <AlertCard key={alerta.id} alerta={alerta} />
-                  ))}
-                </Stack>
-              ) : (
-                <Text c="dimmed" ta="center" py="md">
-                  No hay alertas recientes
-                </Text>
-              )}
-            </Card>
+          {/* TAB: Análisis de Deficiencias */}
+          <Tabs.Panel value="deficiencias" pt="xl">
+            <Grid gutter="lg">
+              {/* Gráfico de barras - Deficiencias por tipo */}
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Paper shadow="xs" p="md" withBorder>
+                  <Title order={3} mb="md">Deficiencias Detectadas por Tipo</Title>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartDeficiencias}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="nombre" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="cantidad" fill="#4ecdc4" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Paper>
+              </Grid.Col>
 
-            {/* Próximas Actividades */}
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
-              <Title order={3} mb="md">
-                Próximas Actividades
-              </Title>
-              {actividades && actividades.length > 0 ? (
-                <Stack gap="sm">
-                  {actividades.map((actividad: any) => (
-                    <Card key={actividad.id} padding="md" withBorder>
-                      <Group justify="space-between" mb="xs">
-                        <Text size="sm" fw={600}>
-                          {actividad.nombreActividad}
-                        </Text>
-                        <Badge color={actividad.prioridad === 'ALTA' ? 'red' : 'blue'}>
-                          {actividad.prioridad}
-                        </Badge>
-                      </Group>
-                      <Text size="xs" c="dimmed" mb="xs">
-                        {actividad.descripcion}
+              {/* Gráfico de pie - Distribución */}
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Paper shadow="xs" p="md" withBorder>
+                  <Title order={3} mb="md">Distribución de Deficiencias</Title>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={chartDeficiencias}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={(p: any) => `${p.payload.nombre} ${(p.percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="cantidad"
+                      >
+                        {chartDeficiencias.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Paper>
+              </Grid.Col>
+
+              {/* Gráfico de alertas por día */}
+              <Grid.Col span={12}>
+                <Paper shadow="xs" p="md" withBorder>
+                  <Title order={3} mb="md">Alertas por Severidad (Últimos 7 días)</Title>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartAlertas}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="fecha" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="alta" stackId="a" fill="#ff6b6b" name="Alta" />
+                      <Bar dataKey="media" stackId="a" fill="#f9ca24" name="Media" />
+                      <Bar dataKey="baja" stackId="a" fill="#6c5ce7" name="Baja" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Paper>
+              </Grid.Col>
+
+           
+            </Grid>
+          </Tabs.Panel>
+
+          {/* TAB: Historial de Sesiones */}
+          <Tabs.Panel value="sesiones" pt="xl">
+            <Stack gap="lg">
+              {/* KPIs de sesiones */}
+              <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="lg">
+                <Card shadow="sm" padding="lg" radius="md" withBorder>
+                  <Group justify="space-between">
+                    <div>
+                      <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Tiempo Total</Text>
+                      <Text size="xl" fw={700} mt="xs">{totalTiempoSesion} min</Text>
+                      <Text size="xs" c="blue" mt={4}>
+                        {(totalTiempoSesion / 60).toFixed(1)} horas
                       </Text>
-                      <Group justify="space-between">
-                        <Group gap="xs">
-                          <IconCalendarEvent size={14} />
-                          <Text size="xs">
-                            {new Date(actividad.fechaProgramada).toLocaleDateString()}
-                          </Text>
-                        </Group>
-                        <Text size="xs" c="dimmed">
-                          ${actividad.costoReal != null ? actividad.costoReal.toFixed(2) : '0.00'}
-                        </Text>
-                      </Group>
-                      <Text size="xs" c="dimmed" mt="xs">
-                        Responsable: {actividad.responsable}
+                    </div>
+                    <ThemeIcon size={60} radius="md" variant="light" color="blue">
+                      <Clock size={30} />
+                    </ThemeIcon>
+                  </Group>
+                </Card>
+
+                <Card shadow="sm" padding="lg" radius="md" withBorder>
+                  <Group justify="space-between">
+                    <div>
+                      <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Promedio por Día</Text>
+                      <Text size="xl" fw={700} mt="xs">{promedioSesion} min</Text>
+                      <Text size="xs" c="teal" mt={4}>
+                        Últimos 10 días
                       </Text>
-                    </Card>
-                  ))}
-                </Stack>
-              ) : (
-                <Text c="dimmed" ta="center" py="md">
-                  No hay actividades programadas
-                </Text>
-              )}
-            </Card>
-          </Stack>
-        </Grid.Col>
+                    </div>
+                    <ThemeIcon size={60} radius="md" variant="light" color="teal">
+                      <Activity size={30} />
+                    </ThemeIcon>
+                  </Group>
+                </Card>
 
-        {/* Estadísticas de Deficiencias */}
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Title order={3} mb="md">
-              Estadísticas de Deficiencias
-            </Title>
-            {deficiencias ? (
-              <>
-                <Group justify="space-between" mb="lg">
-                  <Box>
-                    <Text size="sm" c="dimmed">Total Detectadas</Text>
-                    <Text size="xl" fw={700}>
-                      {deficiencias.totalDeficienciasDetectadas}
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text size="sm" c="dimmed">Confianza Promedio</Text>
-                    <Text size="xl" fw={700}>
-                      {deficiencias.promedioConfianza.toFixed(1)}%
-                    </Text>
-                  </Box>
-                </Group>
-
-                {deficiencias.deficienciasMasFrecuentes && deficiencias.deficienciasMasFrecuentes.length > 0 && (
-                  <>
-                    <Text size="sm" fw={600} mb="xs">
-                      Más Frecuentes
-                    </Text>
-                    <Stack gap="xs">
-                      {deficiencias.deficienciasMasFrecuentes.map((def: any, idx: number) => (
-                        <Paper key={idx} p="sm" withBorder>
-                          <Group justify="space-between">
-                            <Box>
-                              <Text size="sm" fw={500}>
-                                {def.nombreDeficiencia}
-                              </Text>
-                              <Text size="xs" c="dimmed">
-                                {def.nutrienteDeficiente}
-                              </Text>
-                            </Box>
-                            <Box ta="right">
-                              <Text size="sm" fw={600}>
-                                {def.cantidadDetecciones}
-                              </Text>
-                              <Text size="xs" c="dimmed">
-                                {def.porcentaje}%
-                              </Text>
-                            </Box>
-                          </Group>
-                        </Paper>
-                      ))}
-                    </Stack>
-                  </>
-                )}
-              </>
-            ) : (
-              <Text c="dimmed" ta="center" py="xl">
-                No hay estadísticas de deficiencias
-              </Text>
-            )}
-          </Card>
-        </Grid.Col>
-
-        {/* Estadísticas de Tratamientos */}
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Title order={3} mb="md">
-              Estadísticas de Tratamientos
-            </Title>
-            
-            {tratamientos ? (
-              <>
-                <SimpleGrid cols={3} spacing="md" mb="lg">
-                  <Box>
-                    <Text size="xs" c="dimmed" mb={4}>Total</Text>
-                    <Text size="lg" fw={700}>
-                      {tratamientos.totalTratamientos}
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text size="xs" c="dimmed" mb={4}>Completados</Text>
-                    <Group gap={4}>
-                      <IconCheck size={16} color="green" />
-                      <Text size="lg" fw={700}>
-                        {tratamientos.tratamientosCompletados}
+                <Card shadow="sm" padding="lg" radius="md" withBorder>
+                  <Group justify="space-between">
+                    <div>
+                      <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Total Sesiones</Text>
+                      <Text size="xl" fw={700} mt="xs">{totalSesiones}</Text>
+                      <Text size="xs" c="violet" mt={4}>
+                        {(totalSesiones / sessionHistoryData.length).toFixed(1)} por día
                       </Text>
-                    </Group>
-                  </Box>
-                  <Box>
-                    <Text size="xs" c="dimmed" mb={4}>Pendientes</Text>
-                    <Group gap={4}>
-                      <IconClock size={16} color="orange" />
-                      <Text size="lg" fw={700}>
-                        {tratamientos.tratamientosPendientes}
-                      </Text>
-                    </Group>
-                  </Box>
-                </SimpleGrid>
+                    </div>
+                    <ThemeIcon size={60} radius="md" variant="light" color="violet">
+                      <TrendingUp size={30} />
+                    </ThemeIcon>
+                  </Group>
+                </Card>
+              </SimpleGrid>
 
-                <Divider mb="md" />
-
+              {/* Gráfico de tiempo de sesión */}
+              <Paper shadow="xs" p="md" withBorder>
                 <Group justify="space-between" mb="md">
-                  <Text size="sm" fw={600}>Costo Total</Text>
-                  <Text size="xl" fw={700} c="teal">
-                    ${tratamientos.costoTotal.toFixed(2)}
-                  </Text>
+                  <Title order={3}>Historial de Tiempo en Sistema</Title>
+                  <Select
+                    value={selectedPeriod}
+                    onChange={(value) => {
+                      if (value) setSelectedPeriod(value);
+                    }}
+                    data={[
+                      { value: '7d', label: 'Últimos 7 días' },
+                      { value: '30d', label: 'Últimos 30 días' },
+                      { value: 'all', label: 'Todo el historial' }
+                    ]}
+                    style={{ width: 180 }}
+                  />
                 </Group>
+                <ResponsiveContainer width="100%" height={350}>
+                  <AreaChart data={sessionHistoryData}>
+                    <defs>
+                      <linearGradient id="colorDuracion" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#4ecdc4" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#4ecdc4" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="fecha" 
+                      tickFormatter={(fecha) => new Date(fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
+                    />
+                    <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <Paper p="sm" shadow="md" withBorder>
+                              <Text size="sm" fw={700}>{data.fecha}</Text>
+                              <Text size="xs" c="dimmed">Duración: {data.duracion} minutos</Text>
+                              <Text size="xs" c="dimmed">Sesiones: {data.sesiones}</Text>
+                              <Text size="xs" c="dimmed">Inicio: {data.horaInicio}</Text>
+                              <Text size="xs" c="dimmed">Fin: {data.horaFin}</Text>
+                            </Paper>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend />
+                    <Area 
+                      type="monotone" 
+                      dataKey="duracion" 
+                      stroke="#4ecdc4" 
+                      fillOpacity={1} 
+                      fill="url(#colorDuracion)"
+                      name="Duración (min)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
 
-                {tratamientos.tratamientosPorTipo && tratamientos.tratamientosPorTipo.length > 0 && (
-                  <>
-                    <Text size="sm" fw={600} mb="xs">
-                      Por Tipo de Tratamiento
-                    </Text>
-                    <Stack gap="xs">
-                      {tratamientos.tratamientosPorTipo.map((tipo: any, idx: number) => (
-                        <Paper key={idx} p="sm" withBorder>
-                          <Group justify="space-between">
-                            <Text size="sm" fw={500}>
-                              {tipo.tipoTratamiento}
-                            </Text>
-                            <Group gap="lg">
-                              <Text size="xs" c="dimmed">
-                                Cant: {tipo.cantidad}
-                              </Text>
-                              <Text size="sm" fw={600}>
-                                ${tipo.costoTotal.toFixed(2)}
-                              </Text>
-                            </Group>
-                          </Group>
-                        </Paper>
-                      ))}
-                    </Stack>
-                  </>
-                )}
-              </>
-            ) : (
-              <Text c="dimmed" ta="center" py="xl">
-                No hay estadísticas de tratamientos
-              </Text>
-            )}
-          </Card>
-        </Grid.Col>
-      </Grid>
+              {/* Gráfico de sesiones por día */}
+              <Paper shadow="xs" p="md" withBorder>
+                <Title order={3} mb="md">Número de Sesiones por Día</Title>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={sessionHistoryData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="fecha" 
+                      tickFormatter={(fecha) => new Date(fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
+                    />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="sesiones" fill="#6c5ce7" name="Sesiones" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Paper>
+
+              {/* Timeline de sesiones */}
+              <Paper shadow="xs" p="md" withBorder>
+                <Title order={3} mb="md">Actividad Reciente</Title>
+                <Timeline active={-1} bulletSize={24} lineWidth={2}>
+                  {sessionHistoryData.slice(0, 5).map((sesion, index) => (
+                    <Timeline.Item
+                      key={index}
+                      bullet={<Clock size={12} />}
+                      title={`${new Date(sesion.fecha).toLocaleDateString('es-ES', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}`}
+                    >
+                      <Text c="dimmed" size="sm">
+                        {sesion.sesiones} {sesion.sesiones === 1 ? 'sesión' : 'sesiones'} • {sesion.duracion} minutos
+                      </Text>
+                      <Text size="xs" c="dimmed" mt={4}>
+                        {sesion.horaInicio} - {sesion.horaFin}
+                      </Text>
+                    </Timeline.Item>
+                  ))}
+                </Timeline>
+              </Paper>
+
+              {/* Información adicional */}
+              <Alert
+                variant="light"
+                color="blue"
+                title="Información del Sistema"
+                icon={<Activity size={16} />}
+              >
+                El seguimiento de tiempo registra automáticamente cuando el usuario ingresa y sale del sistema.
+                Los datos se actualizan en tiempo real y se mantienen por 90 días.
+              </Alert>
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
+      </Stack>
     </Container>
   );
-};
+}

@@ -13,7 +13,7 @@ class GeminiService {
   }: GeminiRequest): Promise<string> {
 
     const apiKeys = await configService.GET();
-    apiKeys.geminiKey = '';
+    apiKeys.geminiKey = 'AIzaSyAMYkg4vJYWsfFjLSAYQRj9YUg5UWIDNys';
     
     if (!apiKeys.geminiKey) {
       throw new Error('API Key es requerida');

@@ -264,6 +264,7 @@ export interface PlanTratamientoResponse {
  */
 export interface GenerarPlanAnalisisRequest {
   analisisId?: number;
+  usuarioId?: string;
   planTratamiento: PlanTratamientoResponse;
 }
 
@@ -294,6 +295,7 @@ export interface ApiError {
 export interface PlanTratamientoNuevo {
   id: number;
   analisisId: number;
+  usuarioId: string;
   planTratamiento: {
     tratamiento: string;
     seguimiento: {

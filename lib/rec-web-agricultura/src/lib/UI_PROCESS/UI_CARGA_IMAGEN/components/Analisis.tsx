@@ -12,10 +12,12 @@ import { RecommendationsTab } from './tabs/RecommendationsTab';
 import { construirAnalisisDTO } from '../../../types/yolo';
 import { useCultivos } from '../../../UI_CULTIVO/hooks/useAgricultura';
 import { useAnalisisImagen } from '../hook/useAgriculturaMchl';
+import { ST_GET_USER_ID } from '../../../utils/utils';
 
 export function Analisis() {
   const [activeTab, setActiveTab] = useState<string | null>('upload');
   const [nombreCultivo, setNombreCultivo] = useState<string | null>(null);
+  const [sector, setSector] = useState<string | null>(null);
 
   // Custom hooks
   const {
@@ -104,13 +106,16 @@ export function Analisis() {
 
     for (const imagen of imagenesCompletadas) {
       if (!imagen.resultado) continue;
-
+      
+      const usuarioId = ST_GET_USER_ID();
       const analisisDTO = construirAnalisisDTO(
         imagen.resultado,
         imagen.file,
         imagen.base64,
         recomendacionesGlobal,
-        nombreCultivo
+        nombreCultivo,
+        sector,
+        usuarioId
       );
       await REGISTRAR(analisisDTO);
     }
@@ -195,6 +200,8 @@ export function Analisis() {
               listCultivos={listCultivos}
               nombreCultivo={nombreCultivo}
               setNombreCultivo={setNombreCultivo}
+              sector={sector}
+              setSector={setSector}
             />
           </Tabs.Panel>
         </Tabs>

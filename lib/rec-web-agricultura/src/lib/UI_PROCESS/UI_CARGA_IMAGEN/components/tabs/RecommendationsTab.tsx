@@ -13,6 +13,7 @@ import {
   Badge,
   Select,
   Loader,
+  TextInput,
 } from '@mantine/core';
 import { IconDeviceFloppy } from '@tabler/icons-react';
 import { RecomendacionesGemini} from '../../../../types/yolo';
@@ -25,6 +26,8 @@ interface RecommendationsTabProps {
   listCultivos: { value: string; label: string }[];
   nombreCultivo: string | null;
   setNombreCultivo: (value: string | null) => void;
+  sector: string | null;
+  setSector: (value: string | null) => void;
 }
 
 export const RecommendationsTab: React.FC<RecommendationsTabProps> = ({
@@ -35,6 +38,8 @@ export const RecommendationsTab: React.FC<RecommendationsTabProps> = ({
   listCultivos,
   nombreCultivo,
   setNombreCultivo,
+  sector,
+  setSector,
 }) => {
   return (
     <Paper shadow="sm" radius="lg" p="xl" style={{ background: 'white' }}>
@@ -86,6 +91,13 @@ export const RecommendationsTab: React.FC<RecommendationsTabProps> = ({
                   required
                   searchable
                   style={{ flex: 1 }}
+                />
+              </Group>
+              <Group>
+                <TextInput
+                  label="Ingrese Sector"
+                  placeholder="Sector Norte A-1"
+                  onChange={(event) => setSector(event.currentTarget.value)}
                 />
               </Group>
             </Card>

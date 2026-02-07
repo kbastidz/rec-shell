@@ -1,7 +1,8 @@
 export const environment = {
   production: false,
   api: {
-    baseUrl: 'http://localhost:8080/api/v1',
+    baseUrl: 'https://rec-leaf-scan-cacao.onrender.com/api/v1',
+    //'http://localhost:8080/api/v1',
   },
 
   ia: {
@@ -15,6 +16,7 @@ export const environment = {
     //apiKey: 'AIzaSyA3m56gu6RJJ9etf1HRiP3m9LK2XmIVjxA',
   },
   yolo : {
-    url: 'http://localhost:8000'
+    url: 'https://kbzo-cacao-yolo-api.hf.space'
+    //'http://localhost:8000'
   }
 };

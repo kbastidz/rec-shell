@@ -69,6 +69,11 @@ const cursosDisponibles = [
   { value: 'noveno', label: 'Noveno' },
 ];
 
+const materiaDefault: Materia = {
+  nombre: '',
+  trimestres: { t1: 0, t2: 0, t3: 0 },
+  promedioFinal: 0,
+};
 export  function HistoricoNotasAdmin() {
   const { estudiantes: estudiantesApi, loading, saveEstudiante } = useEstudiantes();
 

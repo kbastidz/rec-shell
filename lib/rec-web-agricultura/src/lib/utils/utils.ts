@@ -1,7 +1,6 @@
 import { EstadoActividad } from "../enums/Enums";
 import { Cultivo, AnalisisImagen, ParametroMonitoreo, AlertaMonitoreo, ResultadoDiagnostico, DeficienciaNutriente, PlanTratamiento } from "../types/model";
-import { ResultDataYOLO } from "../types/yolo";
-import { RecomendacionesGemini } from "../UI_PROCESS/UI_CARGA_IMAGEN/components/Analisis";
+import { RecomendacionesGemini, ResultDataYOLO } from "../types/yolo";
 
 
 // Para crear nuevos registros (sin IDs y campos auto-generados)
