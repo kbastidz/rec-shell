@@ -1,8 +1,9 @@
 export const environment = {
   production: false,
   api: {
-    baseUrl: 'https://rec-gateway.onrender.com/api/v1',
-    //'http://localhost:8080/api/v1',
+    baseUrl: 
+    //'https://rec-gateway.onrender.com/api/v1',
+    'http://localhost:8080/api/v1',
   },
 
   ia: {

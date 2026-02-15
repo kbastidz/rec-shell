@@ -61,12 +61,13 @@ const calcularPromedioMateria = (t1: number, t2: number, t3: number): number =>
 
 // ===== Configuración de materias =====
 const materiasConfig = [
-  { value: 'historia', label: 'Historia' },
+  { value: 'informatica', label: 'Informatica' },
 ];
 
 const cursosDisponibles = [
-  { value: 'octavo', label: 'Octavo' },
-  { value: 'noveno', label: 'Noveno' },
+  { value: '1 BGU', label: 'Primero Bachillerato' },
+  { value: '2 BGU', label: 'Segundo Bachillerato' },
+  { value: '3 BGU', label: 'Tercero Bachillerato' },
 ];
 
 const materiaDefault: Materia = {
@@ -350,8 +351,7 @@ export  function HistoricoNotasAdmin() {
                       {mat.label}
                     </Table.Th>
                   ))}
-                  <Table.Th>Acomp. Integral</Table.Th>
-                  <Table.Th>Anim. Lectura</Table.Th>
+                  
                   <Table.Th>Suma Total</Table.Th>
                   <Table.Th>Promedio Total</Table.Th>
                   <Table.Th>Supletorio</Table.Th>
@@ -385,7 +385,7 @@ export  function HistoricoNotasAdmin() {
 
                   return (
                     <Table.Tr key={est.id}>
-                      <Table.Td>
+                      <Table.Td w={110}>
                         <Badge color="cyan" variant="light">
                           {cursosDisponibles.find(c => c.value === est.curso)?.label || est.curso}
                         </Badge>
@@ -433,8 +433,7 @@ export  function HistoricoNotasAdmin() {
                           </React.Fragment>
                         );
                       })}
-                      <Table.Td>{est.acompanamientoIntegral || '-'}</Table.Td>
-                      <Table.Td>{est.animacionLectura || '-'}</Table.Td>
+                      
                       <Table.Td fw={700}>{sumaTotal}</Table.Td>
                       <Table.Td fw={700} style={{ color: getColorPromedio(promedioTotal) }}>
                         {promedioTotal}

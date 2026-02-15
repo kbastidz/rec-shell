@@ -1,4 +1,4 @@
-import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles } from '@tabler/icons-react';
+import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles, IconGlobe, IconFlag, IconMap, IconNews } from '@tabler/icons-react';
 import { Subject, SubjectsType } from '../UI_PROCESS/UI_JUEGOS/interface/interface';
 
 export const promptTemplate = `Actúa como un generador de bancos de preguntas en formato JSON. Tu única salida debe ser el código JSON, sin ninguna explicación, saludo, o texto adicional.
@@ -29,16 +29,16 @@ Contenido Específico: Genera un banco de preguntas que incluya cinco materias d
 
 Materias a incluir (con sus claves, nombres, iconos y colores):
 
-Matemáticas (clave: matematicas, nombre: "Matemáticas", ícono: IconBrain, color: blue).
-Ciencias Sociales (clave: sociales, nombre: "Ciencias Sociales", ícono: IconWorld, color: green).
-Inglés (clave: ingles, nombre: "Inglés", ícono: IconLanguage, color: red).
-Ciencias Naturales (clave: ciencias, nombre: "Ciencias Naturales", ícono: IconFlask, color: orange).
-Lengua (clave: lengua, nombre: "Lengua", ícono: IconCheck, color: purple).
+Historia Ecuador (clave: historia_ecuador, nombre: "Historia Ecuador", ícono: IconBrain, color: blue).
+Historia Universal (clave: historia_universal, nombre: "Historia Universal", ícono: IconWorld, color: green).
+Historia Latinoamericana (clave: historia_latinoamericana, nombre: "Historia Latinoamericana", ícono: IconGlobe, color: orange).
+Historia Contemporánea (clave: historia_contemporanea, nombre: "Historia Contemporánea", ícono: IconNews, color: red).
 
 Cantidad: Genera máximo 4 preguntas para cada una de las 5 materias.
 Dificultad: Varía la dificultad entre 1, 2 y 3 en las preguntas de cada materia.
 Respuestas: La respuesta correcta (índice 0-3) debe coincidir con el valor en correct.`;
 
+/*
 export const SUBJECTS: SubjectsType = {
   matematicas: {
     name: 'Matemáticas',
@@ -108,7 +108,62 @@ export const SUBJECTS: SubjectsType = {
       { q: 'What is the opposite of "hot"?', a: ['Cold', 'Warm', 'Cool', 'Mild'], correct: 0, difficulty: 2, explanation: '"Cold" (frío) es lo opuesto de "hot" (caliente)' }
     ]
   }
+};*/
+
+export const SUBJECTS: SubjectsType = {
+  historia_ecuador: {
+    name: 'Historia del Ecuador',
+    icon: IconFlag,
+    color: 'yellow',
+    questions: [
+      { q: '¿En qué año fue el Primer Grito de Independencia del Ecuador?', a: ['1809', '1810', '1822', '1830'], correct: 0, difficulty: 1, explanation: 'El Primer Grito de Independencia fue el 10 de agosto de 1809.' },
+      { q: '¿Quién fue líder de la Revolución Liberal?', a: ['Eloy Alfaro', 'Gabriel García Moreno', 'Juan José Flores', 'Antonio José de Sucre'], correct: 0, difficulty: 2, explanation: 'Eloy Alfaro fue el principal líder de la Revolución Liberal.' },
+      { q: '¿En qué año se fundó la República del Ecuador?', a: ['1830', '1822', '1809', '1845'], correct: 0, difficulty: 2, explanation: 'Ecuador se constituyó como República en 1830.' },
+      { q: '¿Qué batalla consolidó la independencia del Ecuador?', a: ['Batalla de Pichincha', 'Batalla de Tarqui', 'Batalla de Ayacucho', 'Batalla de Junín'], correct: 0, difficulty: 2, explanation: 'La Batalla de Pichincha en 1822 aseguró la independencia de Quito.' },
+      { q: '¿Quién fue Manuela Sáenz?', a: ['Heroína independentista', 'Presidenta del Ecuador', 'Escritora colonial', 'Virreina'], correct: 0, difficulty: 1, explanation: 'Manuela Sáenz fue una heroína de la independencia sudamericana.' }
+    ]
+  },
+
+  historia_universal: {
+    name: 'Historia Universal',
+    icon: IconGlobe,
+    color: 'blue',
+    questions: [
+      { q: '¿En qué año comenzó la Segunda Guerra Mundial?', a: ['1939', '1914', '1945', '1929'], correct: 0, difficulty: 1, explanation: 'La Segunda Guerra Mundial comenzó en 1939.' },
+      { q: '¿Qué civilización construyó las pirámides de Giza?', a: ['Egipcia', 'Romana', 'Griega', 'Maya'], correct: 0, difficulty: 1, explanation: 'Las pirámides fueron construidas por la civilización egipcia.' },
+      { q: '¿Quién fue Napoleón Bonaparte?', a: ['Emperador francés', 'Rey inglés', 'Zar ruso', 'Presidente estadounidense'], correct: 0, difficulty: 2, explanation: 'Napoleón fue emperador de Francia.' },
+      { q: '¿Qué evento marcó el inicio de la Edad Media?', a: ['Caída del Imperio Romano', 'Revolución Francesa', 'Descubrimiento de América', 'Primera Guerra Mundial'], correct: 0, difficulty: 2, explanation: 'La caída del Imperio Romano de Occidente en 476 marcó el inicio de la Edad Media.' },
+      { q: '¿Qué fue la Revolución Francesa?', a: ['Movimiento contra la monarquía', 'Guerra mundial', 'Reforma religiosa', 'Imperio expansionista'], correct: 0, difficulty: 2, explanation: 'Fue un movimiento que puso fin a la monarquía absoluta en Francia.' }
+    ]
+  },
+
+  historia_latinoamericana: {
+    name: 'Historia Latinoamericana',
+    icon: IconMap,
+    color: 'green',
+    questions: [
+      { q: '¿Quién lideró la independencia de gran parte de Sudamérica?', a: ['Simón Bolívar', 'Miguel Hidalgo', 'José Martí', 'Pancho Villa'], correct: 0, difficulty: 1, explanation: 'Simón Bolívar lideró procesos independentistas en varios países.' },
+      { q: '¿Qué país fue el primero en independizarse en América Latina?', a: ['Haití', 'México', 'Argentina', 'Chile'], correct: 0, difficulty: 2, explanation: 'Haití logró su independencia en 1804.' },
+      { q: '¿Qué fue la Doctrina Monroe?', a: ['Política de EE.UU. hacia América', 'Tratado colonial', 'Reforma religiosa', 'Alianza europea'], correct: 0, difficulty: 3, explanation: 'Fue una política estadounidense que rechazaba la intervención europea en América.' },
+      { q: '¿Quién fue José de San Martín?', a: ['Libertador de Argentina, Chile y Perú', 'Presidente de Brasil', 'Rey español', 'Virrey peruano'], correct: 0, difficulty: 2, explanation: 'San Martín fue uno de los principales libertadores del sur de América.' },
+      { q: '¿Qué fue la Revolución Mexicana?', a: ['Movimiento social y político', 'Guerra europea', 'Imperio colonial', 'Descubrimiento geográfico'], correct: 0, difficulty: 2, explanation: 'Fue un movimiento armado iniciado en 1910 contra la dictadura de Porfirio Díaz.' }
+    ]
+  },
+
+  historia_contemporanea: {
+    name: 'Historia Contemporánea',
+    icon: IconNews,
+    color: 'red',
+    questions: [
+      { q: '¿Qué fue la Guerra Fría?', a: ['Conflicto ideológico entre EE.UU. y URSS', 'Guerra civil europea', 'Revolución industrial', 'Imperio colonial'], correct: 0, difficulty: 1, explanation: 'Fue un enfrentamiento político e ideológico sin guerra directa entre EE.UU. y la URSS.' },
+      { q: '¿En qué año cayó el Muro de Berlín?', a: ['1989', '1991', '1975', '1961'], correct: 0, difficulty: 2, explanation: 'El Muro de Berlín cayó en 1989.' },
+      { q: '¿Qué organización reemplazó a la Sociedad de Naciones?', a: ['ONU', 'OTAN', 'UE', 'OEA'], correct: 0, difficulty: 2, explanation: 'La ONU fue creada después de la Segunda Guerra Mundial.' },
+      { q: '¿Qué evento marcó el inicio del siglo XXI en términos geopolíticos?', a: ['Atentados del 11 de septiembre', 'Caída del Muro', 'Primera Guerra Mundial', 'Revolución Francesa'], correct: 0, difficulty: 3, explanation: 'Los atentados del 11S en 2001 marcaron un cambio geopolítico global.' },
+      { q: '¿Qué es la globalización?', a: ['Interconexión mundial económica y cultural', 'Imperio colonial', 'Guerra fría', 'Sistema feudal'], correct: 0, difficulty: 1, explanation: 'Es el proceso de integración e interconexión entre países.' }
+    ]
+  }
 };
+
 
 export const promptTemplateRuleta = `
 Tu tarea es actuar como un **creador de contenido educativo viral** y generar un listado de actividades de aprendizaje innovadoras.
@@ -134,12 +189,12 @@ Debes fusionar el contenido académico de diferentes materias con el formato y e
 2.  \`puntos\`: Un valor numérico entero entre 3 y 5 (5 es el más complejo/impactante).
 
 **Temas a considerar para las materias (mínimo 5 materias):**
-* Ciencias Sociales/Historia
-* Economía/Finanzas
-* Programación/Tecnología
-* Música/Teoría Musical
-* Idiomas (Ej: Inglés)
-* Artes Visuales/Diseño
+* Democracia y Ciudadania
+* Derechos Humanos
+* Historia General
+* Historia Universal
+* Historia Latinoamericana
+* Historia Contemporanea
 
 **¡Ejemplo de Estilo de Actividad a Seguir!**
 \`texto\`: '📊 Carrusel de Instagram: Analiza 5 errores financieros comunes en universitarios. Cada slide debe ser un meme con un dato clave y el título 'No seas ese amigo''.
@@ -147,7 +202,7 @@ Debes fusionar el contenido académico de diferentes materias con el formato y e
 
 **INICIA LA RESPUESTA DIRECTAMENTE CON EL CARÁCTER DE APERTURA DEL JSON (\`[\`) Y NADA MÁS.**
 `;
-
+/*
 export const MATERIAS = [
   { 
     id: 1, 
@@ -222,9 +277,134 @@ export const MATERIAS = [
     ]
   },
 ];
+*/
+
+export const MATERIAS = [
+  { 
+    id: 1, 
+    nombre: 'Historia General', 
+    emoji: '📜', 
+    color: '#D4A574',
+    actividades: [
+      { texto: '🎥 Mini documental: Crea un video de 2 minutos explicando un acontecimiento histórico importante (Revolución Francesa, Independencias, etc.). Usa narración dramática y música épica.', puntos: 5 },
+      { texto: '📰 Noticia histórica: Presenta un hecho del pasado como si fuera una noticia de última hora. Incluye titulares llamativos y entrevistas ficticias.', puntos: 4 },
+      { texto: '🕰️ Línea del tiempo creativa: Diseña una línea del tiempo visual con los momentos clave de una civilización antigua.', puntos: 4 },
+      { texto: '👥 Debate histórico: Publica una pregunta polémica sobre un evento histórico y genera debate en comentarios con argumentos sólidos.', puntos: 3 },
+    ]
+  },
+  { 
+    id: 2, 
+    nombre: 'Historia Universal', 
+    emoji: '🌍', 
+    color: '#6C5CE7',
+    actividades: [
+      { texto: '🌎 Comparativa mundial: Crea un post comparando dos imperios (Romano vs. Mongol, por ejemplo) destacando diferencias y similitudes.', puntos: 4 },
+      { texto: '🎬 Personaje icónico: Graba un video interpretando a un personaje histórico mundial (Napoleón, Cleopatra, Gandhi) contando su historia en primera persona.', puntos: 5 },
+      { texto: '📚 Top 5 histórico: Publica un ranking de los 5 eventos más importantes de la historia mundial y justifica tu elección.', puntos: 4 },
+      { texto: '🧠 Trivia global: Crea un quiz interactivo con 5 preguntas sobre historia universal y reta a tus compañeros.', puntos: 3 },
+    ]
+  },
+  { 
+    id: 3, 
+    nombre: 'Historia Latinoamericana', 
+    emoji: '🌎', 
+    color: '#00B894',
+    actividades: [
+      { texto: '🎤 Héroe latino: Crea un video contando la historia de un líder latinoamericano (Bolívar, San Martín, Eloy Alfaro, etc.) destacando su impacto.', puntos: 5 },
+      { texto: '📜 Independencias: Diseña un carrusel explicando el proceso de independencia de un país latinoamericano.', puntos: 4 },
+      { texto: '🎭 Recreación histórica: Representa un momento clave de la historia latinoamericana (batalla, tratado, revolución).', puntos: 5 },
+      { texto: '📊 Impacto actual: Explica cómo un hecho histórico latinoamericano influye en la sociedad actual.', puntos: 4 },
+    ]
+  },
+  { 
+    id: 4, 
+    nombre: 'Historia Contemporánea', 
+    emoji: '📰', 
+    color: '#E17055',
+    actividades: [
+      { texto: '📺 Análisis actual: Explica un conflicto o evento contemporáneo (siglo XX o XXI) y sus causas históricas.', puntos: 5 },
+      { texto: '🎥 Antes vs Ahora: Crea un post comparando cómo era el mundo hace 50 años vs hoy (tecnología, política, sociedad).', puntos: 4 },
+      { texto: '🌐 Guerra Fría en 60s: Resume en un video de 60 segundos qué fue la Guerra Fría y por qué fue importante.', puntos: 4 },
+      { texto: '📱 Historia digital: Explica cómo las redes sociales han cambiado la forma en que vivimos la historia actual.', puntos: 3 },
+    ]
+  },
+  { 
+  id: 5, 
+  nombre: 'Democracia y Ciudadanía', 
+  emoji: '🏛️', 
+  color: '#1F618D',
+  actividades: [
+    { texto: '🗳️ Simulación electoral: Organiza una votación en clase sobre un tema interesante y explica cómo funciona el proceso democrático.', puntos: 5 },
+    { texto: '📜 ¿Qué es democracia?: Crea un video corto explicando qué significa vivir en un país democrático y menciona 3 características principales.', puntos: 4 },
+    { texto: '👥 Derechos y deberes: Diseña un carrusel mostrando 3 derechos y 3 deberes de los ciudadanos.', puntos: 4 },
+    { texto: '📰 Noticia política: Analiza una noticia nacional relacionada con participación ciudadana y explica su importancia.', puntos: 3 },
+  ]
+},
+{ 
+  id: 6, 
+  nombre: 'Derechos Humanos', 
+  emoji: '🌱', 
+  color: '#117A65',
+  actividades: [
+    { texto: '📖 Derechos fundamentales: Explica en un post qué son los derechos humanos y menciona 5 ejemplos con situaciones reales.', puntos: 4 },
+    { texto: '⚖️ Caso real: Investiga un caso donde se hayan vulnerado derechos humanos y explica qué ocurrió y cómo se resolvió.', puntos: 5 },
+    { texto: '🌍 Declaración Universal: Crea una infografía sencilla explicando qué es y por qué es importante.', puntos: 4 },
+    { texto: '🎥 Reflexión juvenil: Graba un video reflexionando sobre cómo los jóvenes pueden defender y promover los derechos humanos.', puntos: 3 },
+  ]
+}
+
+
+];
+
 
 export const promptTemplateBingo1 = "Genera un objeto JSON. El objeto debe contener las siguientes claves (materias): 'ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', y 'ARTES'. A cada clave asígnale un array que contenga 8 actividades de tarea o estudio relacionadas con esa materia. Las actividades deben ser variadas y adecuadas para un nivel de primaria o secundaria inicial. SOLO proporciona el objeto JSON, sin ninguna explicación ni texto adicional.";
 
+export const ACCIONES_BASE = {
+  HISTORIA: [
+    'Crea una línea de tiempo de la Independencia',
+    'Investiga el papel de Simón Bolívar',
+    'Analiza las causas de la Revolución Francesa',
+    'Compara el colonialismo español y portugués',
+    'Explica las consecuencias de la Revolución Industrial',
+    'Describe la vida cotidiana en el Ecuador colonial',
+    'Investiga la Batalla de Pichincha',
+    'Analiza el sistema de haciendas en el siglo XIX',
+  ],
+
+  HISTORIA_UNIVERSAL: [
+    'Analiza las causas de la Primera Guerra Mundial',
+    'Explica las consecuencias de la Segunda Guerra Mundial',
+    'Investiga el Imperio Romano',
+    'Describe la caída del Imperio Romano',
+    'Analiza la Guerra Fría',
+    'Investiga el Renacimiento',
+    'Explica la Revolución Rusa',
+    'Describe el feudalismo en la Edad Media'
+  ],
+
+  HISTORIA_LATINOAMERICANA: [
+    'Investiga la independencia de México',
+    'Analiza la independencia de Argentina',
+    'Compara los procesos independentistas en América Latina',
+    'Explica la Doctrina Monroe',
+    'Investiga las dictaduras en América Latina en el siglo XX',
+    'Describe el papel de José de San Martín',    
+    'Investiga qué fue la Ilustración',
+    'Explica el Primer Grito de Independencia del 10 de agosto de 1809',
+  ],
+
+  HISTORIA_CONTEMPORANEA: [
+    'Analiza la globalización',
+    'Investiga la creación de la ONU',
+    'Explica la caída del Muro de Berlín',
+    'Describe los avances tecnológicos del siglo XX',
+    'Investiga los movimientos sociales del siglo XXI',
+    'Escribe un diario desde la perspectiva de un patriota de 1820',
+    'Explica el proceso de formación del Estado ecuatoriano'
+  ]
+};
+
+/*
 export const ACCIONES_BASE = {
   ESPANOL: [
     'Escribe una mini historia',
@@ -277,16 +457,15 @@ export const ACCIONES_BASE = {
     'Baila una canción y descríbela'
   ]
 };
-
+*/
 export const promptTemplateBingo = `Genera un objeto JSON con actividades educativas para un bingo semanal escolar. 
     
     El formato debe ser:
     {
-      "ESPANOL": ["actividad 1", "actividad 2", ...],
-      "MATEMATICAS": ["actividad 1", "actividad 2", ...],
-      "CIENCIAS": ["actividad 1", "actividad 2", ...],
-      "SOCIALES": ["actividad 1", "actividad 2", ...],
-      "ARTES": ["actividad 1", "actividad 2", ...]
+      "HISTORIA": ["actividad 1", "actividad 2", ...],
+      "HISTORIA_UNIVERSAL": ["actividad 1", "actividad 2", ...],
+      "HISTORIA_LATINOAMERICANA": ["actividad 1", "actividad 2", ...],
+      "HISTORIA_CONTEMPORANEA": ["actividad 1", "actividad 2", ...]
     }
     
     Genera exactamente 5 actividades diferentes para cada materia. Las actividades deben ser:
@@ -297,8 +476,9 @@ export const promptTemplateBingo = `Genera un objeto JSON con actividades educat
     
     Responde SOLO con el objeto JSON, sin texto adicional.`;
 
-export const promptTemplateRaspa = `Genera la lista de 5 categorías de misiones educativas (Matemáticas, Lengua, Ciencias Sociales, Ciencias Naturales y Arte) con 3 misiones cada una. El output debe ser únicamente el objeto JSON, garantizando que los campos id de las categorías sean exactamente math, language, social, science, y art. La estructura debe usar: id de categoría (string), name, icon, color, y missions donde el campo id de la misión sea un valor numérico, junto con question, answer (string en minúsculas, sin tildes) y points (número), sin ningún texto, comentario o explicación adicional.`;
+export const promptTemplateRaspa = `Genera la lista de 5 categorías de misiones educativas (Historia General, Historia Universal, Historia Latinoamericana, Historia Contemporanea) con 3 misiones cada una. El output debe ser únicamente el objeto JSON, garantizando que los campos id de las categorías sean exactamente math, historia_ecuador, historia_universal, historia_latinoamericana, y historia_contemporanea. La estructura debe usar: id de categoría (string), name, icon, color, y missions donde el campo id de la misión sea un valor numérico, junto con question, answer (string en minúsculas, sin tildes) y points (número), sin ningún texto, comentario o explicación adicional.`;
 
+/*
 export const MATERIAS_DEFAULT : Subject[] = [
   { 
     id: 'math', 
@@ -355,7 +535,58 @@ export const MATERIAS_DEFAULT : Subject[] = [
       { id: 3, question: '¿Rojo + Amarillo = ? (naranja/verde)', answer: 'naranja', points: 15 }
     ]
   }
+];*/
+
+export const MATERIAS_DEFAULT: Subject[] = [
+  { 
+    id: 'historia_ecuador', 
+    name: 'Historia Ecuador', 
+    icon: '🏛️',
+    color: 'violet',
+    missions: [
+      { id: 1, question: '¿En qué año fue el Primer Grito de Independencia de Ecuador?', answer: '1809', points: 15 },
+      { id: 2, question: '¿Quién fue Manuela Cañizares?', answer: 'patriota', points: 15 },
+      { id: 3, question: '¿En qué año fue la Batalla de Pichincha?', answer: '1822', points: 20 }
+    ]
+  },
+
+  { 
+    id: 'historia_universal', 
+    name: 'Historia Universal', 
+    icon: '🌍',
+    color: 'blue',
+    missions: [
+      { id: 1, question: '¿En qué año comenzó la Primera Guerra Mundial?', answer: '1914', points: 15 },
+      { id: 2, question: '¿Qué imperio construyó el Coliseo Romano?', answer: 'romano', points: 10 },
+      { id: 3, question: '¿En qué país comenzó la Revolución Francesa?', answer: 'francia', points: 15 }
+    ]
+  },
+
+  { 
+    id: 'historia_latinoamericana', 
+    name: 'Historia Latinoamericana', 
+    icon: '🌎',
+    color: 'orange',
+    missions: [
+      { id: 1, question: '¿Quién lideró la independencia de Argentina?', answer: 'san martin', points: 15 },
+      { id: 2, question: '¿Qué país fue gobernado por Porfirio Díaz?', answer: 'mexico', points: 15 },
+      { id: 3, question: '¿Qué libertador participó en la independencia de varios países sudamericanos?', answer: 'bolivar', points: 20 }
+    ]
+  },
+
+  { 
+    id: 'historia_contemporanea', 
+    name: 'Historia Contemporánea', 
+    icon: '🕰️',
+    color: 'green',
+    missions: [
+      { id: 1, question: '¿En qué año cayó el Muro de Berlín?', answer: '1989', points: 20 },
+      { id: 2, question: '¿Qué organización se creó después de la Segunda Guerra Mundial para mantener la paz?', answer: 'onu', points: 15 },
+      { id: 3, question: '¿Qué conflicto enfrentó a Estados Unidos y la Unión Soviética sin guerra directa?', answer: 'guerra fria', points: 20 }
+    ]
+  }
 ];
+
 
 // Mock data basado en tu API response
 export const mockData = {

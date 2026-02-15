@@ -7,7 +7,7 @@ import { service } from '../services/gamificacion.service';
 const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   {
     cantidad: 10,
-    creado_en: "2025-10-28 21:38:07.5566",
+    creado_en: "2026-01-28 21:38:07.5566",
     usuario_id: 1,
     tipo_origen: "TRIVIA",
     descripcion: "Puntos obtenidos en Trivia Relámpago - 7 preguntas",
@@ -15,7 +15,7 @@ const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   },
   {
     cantidad: 4,
-    creado_en: "2025-10-28 22:13:42.933039",
+    creado_en: "2026-01-28 22:13:42.933039",
     usuario_id: 1,
     tipo_origen: "RULETA",
     descripcion: "Ruleta del Saber - Historia y Sociedad",
@@ -23,7 +23,7 @@ const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   },
   {
     cantidad: 15,
-    creado_en: "2025-10-29 10:20:15.123",
+    creado_en: "2026-01-29 10:20:15.123",
     usuario_id: 1,
     tipo_origen: "TRIVIA",
     descripcion: "Puntos obtenidos en Trivia Relámpago - 10 preguntas",
@@ -31,7 +31,7 @@ const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   },
   {
     cantidad: 8,
-    creado_en: "2025-10-29 14:30:22.456",
+    creado_en: "2026-01-29 14:30:22.456",
     usuario_id: 2,
     tipo_origen: "RULETA",
     descripcion: "Ruleta del Saber - Ciencias",
@@ -39,7 +39,7 @@ const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   },
   {
     cantidad: 12,
-    creado_en: "2025-10-30 09:15:33.789",
+    creado_en: "2026-01-30 09:15:33.789",
     usuario_id: 2,
     tipo_origen: "TRIVIA",
     descripcion: "Puntos obtenidos en Trivia Relámpago - 8 preguntas",
@@ -47,7 +47,7 @@ const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   },
   {
     cantidad: 6,
-    creado_en: "2025-10-30 16:45:11.234",
+    creado_en: "2026-01-30 16:45:11.234",
     usuario_id: 3,
     tipo_origen: "RULETA",
     descripcion: "Ruleta del Saber - Arte",
@@ -55,7 +55,7 @@ const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   },
   {
     cantidad: 20,
-    creado_en: "2025-10-31 11:22:44.567",
+    creado_en: "2026-01-31 11:22:44.567",
     usuario_id: 3,
     tipo_origen: "TRIVIA",
     descripcion: "Puntos obtenidos en Trivia Relámpago - 15 preguntas",
@@ -63,7 +63,7 @@ const MOCK_TRANSACCIONES: TransaccionPuntos[] = [
   },
   {
     cantidad: 5,
-    creado_en: "2025-10-31 18:30:55.891",
+    creado_en: "2026-01-31 18:30:55.891",
     usuario_id: 1,
     tipo_origen: "RULETA",
     descripcion: "Ruleta del Saber - Deportes",
@@ -119,7 +119,7 @@ interface UseTransaccionesPuntosReturn extends DatosGraficos {
 export const useTransaccionesPuntos = (
   options: UseTransaccionesPuntosOptions = {}
 ): UseTransaccionesPuntosReturn => {
-  
+  //mock para desarrollo
   const { 
     useMockData = false, 
     filtros, 

@@ -30,13 +30,21 @@ import { useTransaccionPuntos } from '../hooks/useGamificacion';
 import { ACCIONES_BASE, promptTemplateBingo } from '../../../utils/CONSTANTE';
 import { useGemini } from '@rec-shell/rec-web-shared';
 
+/*
 const MATERIAS = {
   ESPANOL: { nombre: 'Español', color: '#e74c3c', icon: '📚' },
   MATEMATICAS: { nombre: 'Matemáticas', color: '#3498db', icon: '🔢' },
   CIENCIAS: { nombre: 'Ciencias', color: '#2ecc71', icon: '🔬' },
   SOCIALES: { nombre: 'Sociales', color: '#f39c12', icon: '🌎' },
   ARTES: { nombre: 'Artes', color: '#9b59b6', icon: '🎨' }
+};*/
+const MATERIAS = {
+  HISTORIA: { nombre: 'Historia Ecuador', color: '#8e44ad', icon: '🏛️' },
+  HISTORIA_UNIVERSAL: { nombre: 'Historia Universal', color: '#3498db', icon: '🌍' },
+  HISTORIA_LATINOAMERICANA: { nombre: 'Historia Latinoamericana', color: '#e67e22', icon: '🌎' },
+  HISTORIA_CONTEMPORANEA: { nombre: 'Historia Contemporánea', color: '#2ecc71', icon: '🕰️' }
 };
+
 
 type MateriaKey = keyof typeof MATERIAS;
 
@@ -58,18 +66,25 @@ interface Notificacion {
   mensaje: string;
   color: string;
 }
-
+/*
 interface AccionesGeneradas {
   ESPANOL: string[];
   MATEMATICAS: string[];
   CIENCIAS: string[];
   SOCIALES: string[];
   ARTES: string[];
+}*/
+interface AccionesGeneradas {
+  HISTORIA: string[];
+  HISTORIA_UNIVERSAL: string[];
+  HISTORIA_LATINOAMERICANA: string[];
+  HISTORIA_CONTEMPORANEA: string[];
 }
-
 function generarTablero(acciones: AccionesGeneradas): Casilla[] {
   const tablero: Casilla[] = [];
-  const materiasKeys: MateriaKey[] = ['ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', 'ARTES'];
+  //const materiasKeys: MateriaKey[] = ['ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', 'ARTES'];
+  const materiasKeys: MateriaKey[] = ['HISTORIA', 'HISTORIA_UNIVERSAL', 'HISTORIA_LATINOAMERICANA', 'HISTORIA_CONTEMPORANEA'];
+
   
   for (let i = 0; i < 25; i++) {
     const materiaKey = materiasKeys[Math.floor(Math.random() * materiasKeys.length)];
@@ -192,12 +207,14 @@ export function Bingo() {
         const accionesIA = JSON.parse(textoRespuesta);
         
         // Validar que tenga las 5 materias
-        const materiasEsperadas = ['ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', 'ARTES'];
+        //const materiasEsperadas = ['ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', 'ARTES'];
+        const materiasEsperadas = ['HISTORIA','HISTORIA_UNIVERSAL','HISTORIA_LATINOAMERICANA','HISTORIA_CONTEMPORANEA'];
+
         const materiasValidas = materiasEsperadas.filter(m => 
           accionesIA[m] && Array.isArray(accionesIA[m]) && accionesIA[m].length > 0
         );
         
-        if (materiasValidas.length === 5) {
+        if (materiasValidas.length === 4) {
           console.log('✅ Actividades generadas correctamente:', accionesIA);
           setAccionesGeneradas(accionesIA);
           sessionStorage.setItem(`acciones_bingo_${usuarioId}`, JSON.stringify(accionesIA));
@@ -499,7 +516,7 @@ export function Bingo() {
                     
                     <List.Item icon={<IconStars size={20} />}>
                       <Text fw={500}>Tablero 5x5</Text>
-                      <Text size="sm" c="dimmed">25 casillas con 5 materias diferentes</Text>
+                      <Text size="sm" c="dimmed">25 casillas para la materia de Historia</Text>
                     </List.Item>
                     
                     <List.Item icon={<IconTrophy size={20} />}>

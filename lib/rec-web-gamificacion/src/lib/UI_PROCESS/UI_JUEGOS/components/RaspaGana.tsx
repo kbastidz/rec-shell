@@ -20,13 +20,42 @@ const rewardTypes: RewardType[] = [
 ];
 
 // Insignias por materia
+/*
 const badges: Record<string, string[]> = {
   math: ['🧮 Calculador', '🎯 Preciso', '⚡ Rápido', '🧠 Genio'],
   language: ['📖 Lector', '✍️ Escritor', '🗣️ Orador', '📝 Poeta'],
   social: ['🗺️ Explorador', '🏛️ Historiador', '🌍 Viajero', '📚 Sabio'],
   science: ['🔭 Científico', '🧪 Químico', '🌱 Biólogo', '⚗️ Investigador'],
   art: ['🖌️ Artista', '🎭 Creativo', '🌈 Colorista', '✨ Maestro']
+};*/
+const badges: Record<string, string[]> = {
+  math: ['🧮 Calculador', '🎯 Preciso', '⚡ Rápido', '🧠 Genio'],
+  historia_ecuador: [
+    '🏛️ Patriota',
+    '📜 Cronista Quiteño',
+    '⚔️ Héroe de Pichincha',
+    '🇪🇨 Guardián de la Historia'
+  ],
+  historia_universal: [
+    '🌍 Ciudadano del Mundo',
+    '🏺 Experto Antiguo',
+    '⚔️ Estratega Imperial',
+    '📚 Maestro del Tiempo'
+  ],
+  historia_latinoamericana: [
+    '🌎 Libertador',
+    '🗺️ Explorador Latino',
+    '🔥 Revolucionario',
+    '📖 Historiador Regional'
+  ],
+  historia_contemporanea: [
+    '🕰️ Analista Moderno',
+    '🧱 Testigo del Cambio',
+    '🌐 Observador Global',
+    '🏙️ Investigador Actual'
+  ]
 };
+
 
 const ICON_MAP: Record<string, string> = {
   icon_math: "📗",
@@ -292,7 +321,8 @@ export  function RaspaGana() {
     
     const points = Math.floor(Math.random() * (selectedRarity.maxPoints - selectedRarity.minPoints + 1)) + selectedRarity.minPoints;
     
-    const badgePool = badges[subjectId] || badges.math;
+    //const badgePool = badges[subjectId] || badges.math;
+    const badgePool = badges[subjectId] || [];
     const badge = selectedRarity.type === 'epic' && Math.random() > 0.5 
       ? badgePool[Math.floor(Math.random() * badgePool.length)]
       : null;
@@ -636,7 +666,8 @@ useEffect(() => {
                       <Stack gap="md">
                         <Group justify="space-between">
                           <Group gap="xs">
-                            <Text size="30px">{ICON_MAP[subject.icon] ?? "📚"}</Text>
+                            {/*<Text size="30px">{ICON_MAP[subject.icon] ?? "📚"}</Text>*/}
+                            <Text size="30px">{subject.icon}</Text>
                             <div>
                               <Text fw={600}>{subject.name}</Text>
                               <Text size="xs" c="dimmed">

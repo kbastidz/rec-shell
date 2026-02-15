@@ -145,7 +145,7 @@ export const PREGUNTAS = {
 };
 
 export const PROMP_MAPA_CONECPTUAL = (inputText: string) => `Genera un mapa conceptual educativo sobre el tema: "${inputText}". Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin explicaciones) con esta estructura exacta: { "mainTopic": "Tema principal", "concepts": [ { "name": "Concepto 1", "description": "Descripción breve", "relatedTo": [1, 2] }, { "name": "Concepto 2", "description": "Descripción breve", "relatedTo": [] } ] } Genera entre 6 y 9 conceptos clave relacionados con el tema. El campo "relatedTo" debe contener índices (números) de otros conceptos relacionados en el array "concepts".`;
-
+/*
 export const GENERADOR_MAPA = {
   mainTopic: 'Historia del Uso de Internet',
   concepts: [
@@ -196,6 +196,60 @@ export const GENERADOR_MAPA = {
       description:
         'El uso masivo de internet plantea retos como la privacidad de datos, la ciberseguridad, la desinformación (fake news), la brecha digital y el impacto en la salud mental.',
       relatedTo: [5, 6],
+    },
+  ],
+};
+*/
+export const GENERADOR_MAPA = {
+  mainTopic: 'Técnicas de Computación Moderna',
+  concepts: [
+    {
+      name: 'Computación en la Nube (Cloud Computing)',
+      description:
+        'Modelo de prestación de servicios tecnológicos a través de internet que permite acceder a almacenamiento, procesamiento y software bajo demanda sin necesidad de infraestructura local, facilitando la escalabilidad y reducción de costos.',
+      relatedTo: [1, 2, 5, 6],
+    },
+    {
+      name: 'Inteligencia Artificial y Machine Learning',
+      description:
+        'Conjunto de técnicas que permiten a las máquinas aprender de datos, reconocer patrones y tomar decisiones automatizadas. Incluye aprendizaje supervisado, no supervisado y profundo (Deep Learning).',
+      relatedTo: [0, 3, 4, 7],
+    },
+    {
+      name: 'Big Data y Analítica Avanzada',
+      description:
+        'Procesamiento y análisis de grandes volúmenes de datos estructurados y no estructurados para obtener información valiosa que apoye la toma de decisiones estratégicas.',
+      relatedTo: [0, 1, 6],
+    },
+    {
+      name: 'Computación Cuántica',
+      description:
+        'Paradigma emergente basado en los principios de la mecánica cuántica que utiliza qubits para realizar cálculos complejos a velocidades potencialmente superiores a las computadoras tradicionales.',
+      relatedTo: [1, 7],
+    },
+    {
+      name: 'Internet de las Cosas (IoT)',
+      description:
+        'Interconexión de dispositivos físicos mediante internet que recopilan y comparten datos en tiempo real, permitiendo automatización y monitoreo inteligente en hogares, industrias y ciudades.',
+      relatedTo: [1, 5, 6],
+    },
+    {
+      name: 'Ciberseguridad Moderna',
+      description:
+        'Conjunto de prácticas y tecnologías diseñadas para proteger sistemas, redes y datos frente a amenazas digitales como malware, ataques de phishing y ransomware.',
+      relatedTo: [0, 4, 7],
+    },
+    {
+      name: 'Edge Computing',
+      description:
+        'Procesamiento de datos cerca de la fuente donde se generan, reduciendo la latencia y el consumo de ancho de banda, especialmente útil en aplicaciones IoT y tiempo real.',
+      relatedTo: [0, 2, 4],
+    },
+    {
+      name: 'Automatización y DevOps',
+      description:
+        'Metodologías y herramientas que integran desarrollo y operaciones para automatizar procesos de despliegue, integración continua y entrega continua (CI/CD), mejorando la eficiencia del desarrollo de software.',
+      relatedTo: [1, 5],
     },
   ],
 };

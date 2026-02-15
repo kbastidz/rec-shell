@@ -432,9 +432,10 @@ export function GeneradorAdmin() {
               <Divider />
 
               <Group align="flex-end" gap="md">
+                
                 <NumberInput
                   label="Número de preguntas"
-                  description="¿Cuántas preguntas deseas generar?"
+                  description={`¿Cuántas preguntas deseas generar? Mínimo: ${PROMPT_LIMITS.MIN_QUESTIONS} | Máximo: ${PROMPT_LIMITS.MAX_QUESTIONS}`}
                   placeholder="Ingresa un número"
                   min={PROMPT_LIMITS.MIN_QUESTIONS}
                   max={PROMPT_LIMITS.MAX_QUESTIONS}

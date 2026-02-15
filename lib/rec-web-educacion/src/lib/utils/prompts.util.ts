@@ -60,7 +60,7 @@ export const GENERATION_CONFIGS = {
 
 export const PROMPT_LIMITS = {
   MIN_QUESTIONS: 1,
-  MAX_QUESTIONS: 50,
+  MAX_QUESTIONS: 40,
   DEFAULT_QUESTIONS: 10,
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB en bytes
 } as const;

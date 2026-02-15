@@ -258,21 +258,7 @@ export const DashboardUser = () => {
             </Text>
           </Card>
 
-          {/* Total Gastado */}
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Group justify="space-between" mb="xs">
-              <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
-                Total Gastado
-              </Text>
-              <TrendingDown size={20} color="#ff6b6b" />
-            </Group>
-            <Text size="xl" fw={700} c="red">
-              -{metricas.totalGastado.toLocaleString()}
-            </Text>
-            <Text size="xs" c="dimmed" mt="xs">
-              Puntos utilizados
-            </Text>
-          </Card>
+         
 
           {/* Racha Actual */}
           <Card shadow="sm" padding="lg" radius="md" withBorder>

@@ -36,7 +36,7 @@ export interface DataType {
 }
 
 export function RecomendacionesAdmin() {
-  const [inputText, setInputText] = useState('historia nacional');
+  const [inputText, setInputText] = useState('Técnicas de computación moderna');
   const [showResponse, setShowResponse] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showConceptMapModal, setShowConceptMapModal] = useState(false);
@@ -559,7 +559,7 @@ export function RecomendacionesAdmin() {
               </div>
             </div>
             <div className="text-sm text-gray-600 font-semibold">
-              Historico
+              Informático
             </div>
           </div>
         </div>

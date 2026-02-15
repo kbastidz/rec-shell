@@ -128,7 +128,7 @@ export const DashboardAdminM2: React.FC = () => {
 
   const graficos = [
     {
-      titulo: "1. Distribución de Puntos por Tipo",
+      titulo: "Distribución de Puntos por Tipo",
       icono: <Award className="w-5 h-5" />,
       componente: (
         <ResponsiveContainer width="100%" height={300}>
@@ -154,7 +154,7 @@ export const DashboardAdminM2: React.FC = () => {
           </PieChart>
         </ResponsiveContainer>
       )
-    },
+    },/*
     {
       titulo: "2. Evolución Temporal de Puntos",
       icono: <TrendingUp className="w-5 h-5" />,
@@ -170,9 +170,9 @@ export const DashboardAdminM2: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       )
-    },
+    },*/
     {
-      titulo: "3. Puntos por Período del Día",
+      titulo: "Puntos por Período del Día",
       icono: <Calendar className="w-5 h-5" />,
       componente: (
         <ResponsiveContainer width="100%" height={300}>
@@ -188,7 +188,7 @@ export const DashboardAdminM2: React.FC = () => {
       )
     },
     {
-      titulo: "4. Ranking de Usuarios Top",
+      titulo: "Ranking de Usuarios Top",
       icono: <Users className="w-5 h-5" />,
       componente: (
         <ResponsiveContainer width="100%" height={300}>
@@ -203,7 +203,7 @@ export const DashboardAdminM2: React.FC = () => {
         </ResponsiveContainer>
       )
     },
-    {
+    /*{
       titulo: "5. TRIVIA: Precisión vs Puntos",
       icono: <Zap className="w-5 h-5" />,
       componente: (
@@ -218,9 +218,9 @@ export const DashboardAdminM2: React.FC = () => {
           </ScatterChart>
         </ResponsiveContainer>
       )
-    },
+    },*/
     {
-      titulo: "6. Frecuencia de Transacciones por Tipo",
+      titulo: "Frecuencia de Transacciones por Tipo",
       icono: <Activity className="w-5 h-5" />,
       componente: (
         <ResponsiveContainer width="100%" height={300}>
@@ -236,7 +236,7 @@ export const DashboardAdminM2: React.FC = () => {
       )
     },
     {
-      titulo: "7. Distribución de Cantidad de Puntos",
+      titulo: " Distribución de Cantidad de Puntos",
       icono: <BarChart3 className="w-5 h-5" />,
       componente: (
         <ResponsiveContainer width="100%" height={300}>
@@ -258,12 +258,12 @@ export const DashboardAdminM2: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-slate-800 mb-2">
-            Dashboard de Transacciones de Puntos
+            Dashboard de Actividades
           </h1>
           <p className="text-slate-600">Análisis completo de actividad y rendimiento</p>
           {useMockData && (
             <span className="inline-block mt-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
-              Modo Demo - Datos de prueba
+              Dashboard de Actividades
             </span>
           )}
         </div>
@@ -282,7 +282,7 @@ export const DashboardAdminM2: React.FC = () => {
             >
               {grafico.icono}
               <span className="text-xs font-semibold text-center">
-                Gráfico {idx + 1}
+                {grafico.titulo} 
               </span>
             </button>
           ))}
