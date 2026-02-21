@@ -3,6 +3,7 @@ import { Box } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { SignUpForm } from './SignUpForm';
 import { ConfirmSignUpForm } from './ConfirmSignUpForm';
+import { SignUpFormUnion } from '../../unionUsersRol/SignUpFormUnion';
 
 interface SignUpFlowProps {
   onNavigate?: (tabKey: string) => void;
@@ -45,7 +46,9 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({ onNavigate }) => {
   return (
     <Box>
       {currentStep === 'signup' && (
-        <SignUpForm 
+        //v2 de Registro de usuario
+        <SignUpFormUnion
+        //<SignUpForm 
           onSuccess={handleSignUpSuccess} 
           onNavigateToUsers={handleNavigateToUsers}
         />

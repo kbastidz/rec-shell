@@ -18,15 +18,10 @@ export interface Estudiante {
   apellidos: string;
   nombres: string;
   curso: string;
+  ciclo: string;
   materias: {
-    /*lenguaExtranjera: Materia;
-    educacionFisica: Materia;
-    educacionCulturalArtistica: Materia;
-    estudiosSociales: Materia;
-    cienciasNaturales: Materia;
-    matematica: Materia;
-    lenguaLiteratura: Materia;*/
-    historia: Materia;
+    //lenguaExtranjera: Materia;
+    informatica: Materia;
   };
   acompanamientoIntegral: number;
   animacionLectura: number;

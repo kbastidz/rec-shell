@@ -1,114 +1,62 @@
-import { IconBrain, IconBook, IconFlask, IconWorld, IconLanguage, IconTrophy, IconClock, IconCheck, IconX, IconSparkles, IconGlobe, IconFlag, IconMap, IconNews } from '@tabler/icons-react';
+import {  IconFlag, IconMountain, IconTree, IconBeach, IconAnchor } from '@tabler/icons-react';
 import { Subject, SubjectsType } from '../UI_PROCESS/UI_JUEGOS/interface/interface';
 
-export const promptTemplate = `Actúa como un generador de bancos de preguntas en formato JSON. Tu única salida debe ser el código JSON, sin ninguna explicación, saludo, o texto adicional.
+export const promptTemplate = `Eres un generador de JSON. Responde ÚNICAMENTE con JSON válido, sin texto adicional, sin bloques de código, sin markdown.
 
-Requerimiento: Genera un único objeto JSON que contenga un banco de preguntas para 5 materias, siguiendo exactamente la siguiente estructura.
+Genera exactamente este JSON con 5 materias y 4 preguntas cada una. Sé conciso en los textos para no exceder el límite de tokens.
 
-Estructura del Objeto JSON (¡Sigue esta estructura al pie de la letra!):
+Reglas estrictas:
+- Solo JSON, nada más
+- Preguntas cortas (máximo 15 palabras)
+- Opciones cortas (máximo 5 palabras cada una)
+- Explicaciones cortas (máximo 12 palabras)
+- 4 preguntas por materia, ni más ni menos
 
 {
-  "clave_materia": {
-    "name": "Nombre de la Materia",
-    "icon": "NombreIcono",
-    "color": "color_css",
-    "questions": [
-      {
-        "q": "Texto de la pregunta.",
-        "a": ["Opción 1", "Opción 2", "Opción 3", "Opción 4"],
-        "correct": 0,
-        "difficulty": 1,
-        "explanation": "Explicación breve de la respuesta."
-      }
-    ]
+  "historia_ecuador": {
+    "name": "Historia del Ecuador",
+    "icon": "IconFlag",
+    "color": "yellow",
+    "questions": [...]
+  },
+  "historia_andina": {
+    "name": "Historia Andina del Ecuador",
+    "icon": "IconMountain",
+    "color": "green",
+    "questions": [...]
+  },
+  "historia_costera": {
+    "name": "Historia Costeña del Ecuador",
+    "icon": "IconSunset",
+    "color": "blue",
+    "questions": [...]
+  },
+  "historia_amazonica": {
+    "name": "Historia Amazónica del Ecuador",
+    "icon": "IconTree",
+    "color": "teal",
+    "questions": [...]
+  },
+  "historia_insular": {
+    "name": "Historia Insular y Galápagos",
+    "icon": "IconAnchor",
+    "color": "orange",
+    "questions": [...]
   }
-  // Incluye el resto de las materias aquí...
 }
 
-Contenido Específico: Genera un banco de preguntas que incluya cinco materias diferentes, con un límite estricto de 4 preguntas para cada una.
+Cada pregunta debe seguir exactamente esta estructura:
+{
+  "q": "Pregunta corta aquí.",
+  "a": ["Opción1", "Opción2", "Opción3", "Opción4"],
+  "correct": 0,
+  "difficulty": 1,
+  "explanation": "Explicación breve."
+}
 
-Materias a incluir (con sus claves, nombres, iconos y colores):
+La respuesta correcta siempre va en el índice 0 del array "a", y "correct" siempre es 0.
+Varía difficulty entre 1, 2 y 3.`
 
-Historia Ecuador (clave: historia_ecuador, nombre: "Historia Ecuador", ícono: IconBrain, color: blue).
-Historia Universal (clave: historia_universal, nombre: "Historia Universal", ícono: IconWorld, color: green).
-Historia Latinoamericana (clave: historia_latinoamericana, nombre: "Historia Latinoamericana", ícono: IconGlobe, color: orange).
-Historia Contemporánea (clave: historia_contemporanea, nombre: "Historia Contemporánea", ícono: IconNews, color: red).
-
-Cantidad: Genera máximo 4 preguntas para cada una de las 5 materias.
-Dificultad: Varía la dificultad entre 1, 2 y 3 en las preguntas de cada materia.
-Respuestas: La respuesta correcta (índice 0-3) debe coincidir con el valor en correct.`;
-
-/*
-export const SUBJECTS: SubjectsType = {
-  matematicas: {
-    name: 'Matemáticas',
-    icon: IconBrain,
-    color: 'blue',
-    questions: [
-      { q: '¿Cuánto es 15 × 8?', a: ['120', '125', '115', '130'], correct: 0, difficulty: 1, explanation: '15 × 8 = 120' },
-      { q: '¿Cuál es el perímetro de un cuadrado con lado de 7cm?', a: ['28cm', '49cm', '14cm', '21cm'], correct: 0, difficulty: 2, explanation: 'Perímetro = 4 × lado = 4 × 7 = 28cm' },
-      { q: 'Si x + 12 = 20, ¿cuánto vale x?', a: ['8', '32', '12', '10'], correct: 0, difficulty: 1, explanation: 'x = 20 - 12 = 8' },
-      { q: '¿Cuánto es 2³ + 3²?', a: ['17', '15', '19', '13'], correct: 0, difficulty: 2, explanation: '2³ = 8, 3² = 9, entonces 8 + 9 = 17' },
-      { q: '¿Cuál es el área de un círculo con radio 5? (usa π ≈ 3.14)', a: ['78.5', '31.4', '15.7', '157'], correct: 0, difficulty: 3, explanation: 'Área = π × r² = 3.14 × 25 = 78.5' },
-      { q: '¿Cuántos grados tiene un triángulo?', a: ['180°', '360°', '90°', '270°'], correct: 0, difficulty: 1, explanation: 'La suma de ángulos internos de un triángulo siempre es 180°' },
-      { q: '¿Qué fracción es equivalente a 0.75?', a: ['3/4', '2/3', '4/5', '1/2'], correct: 0, difficulty: 2, explanation: '0.75 = 75/100 = 3/4' }
-    ]
-  },
-  lengua: {
-    name: 'Lengua',
-    icon: IconBook,
-    color: 'grape',
-    questions: [
-      { q: '¿Cuál es el sustantivo en "El gato negro duerme"?', a: ['gato', 'negro', 'duerme', 'el'], correct: 0, difficulty: 1, explanation: 'El sustantivo es la palabra que nombra al ser u objeto: "gato"' },
-      { q: '¿Qué tipo de palabra es "rápidamente"?', a: ['Adverbio', 'Adjetivo', 'Verbo', 'Sustantivo'], correct: 0, difficulty: 2, explanation: 'Los adverbios terminados en -mente modifican al verbo' },
-      { q: '¿Cuántas sílabas tiene "murciélago"?', a: ['4', '3', '5', '6'], correct: 0, difficulty: 1, explanation: 'mur-cié-la-go = 4 sílabas' },
-      { q: '¿Cuál es el sinónimo de "feliz"?', a: ['Contento', 'Triste', 'Enojado', 'Cansado'], correct: 0, difficulty: 1, explanation: 'Sinónimos son palabras con significado similar' },
-      { q: '¿Qué signo va en: "Hola __ cómo estás"?', a: [',', '.', ';', ':'], correct: 0, difficulty: 2, explanation: 'La coma separa frases cortas en una oración' },
-      { q: '¿Qué es una metáfora?', a: ['Comparación implícita', 'Exageración', 'Repetición', 'Pregunta retórica'], correct: 0, difficulty: 3, explanation: 'La metáfora compara sin usar "como": "tus ojos son estrellas"' }
-    ]
-  },
-  ciencias: {
-    name: 'Ciencias',
-    icon: IconFlask,
-    color: 'green',
-    questions: [
-      { q: '¿Qué gas respiramos principalmente?', a: ['Oxígeno', 'Hidrógeno', 'Nitrógeno', 'CO₂'], correct: 0, difficulty: 1, explanation: 'Inhalamos oxígeno (O₂) necesario para vivir' },
-      { q: '¿Cuántos planetas hay en el Sistema Solar?', a: ['8', '9', '7', '10'], correct: 0, difficulty: 1, explanation: 'Mercurio, Venus, Tierra, Marte, Júpiter, Saturno, Urano, Neptuno' },
-      { q: '¿Qué órgano bombea la sangre?', a: ['Corazón', 'Pulmón', 'Hígado', 'Riñón'], correct: 0, difficulty: 1, explanation: 'El corazón bombea sangre a todo el cuerpo' },
-      { q: '¿Cuál es la fórmula del agua?', a: ['H₂O', 'CO₂', 'O₂', 'H₂'], correct: 0, difficulty: 2, explanation: 'Dos átomos de hidrógeno y uno de oxígeno' },
-      { q: '¿Qué tipo de animal es la ballena?', a: ['Mamífero', 'Pez', 'Reptil', 'Anfibio'], correct: 0, difficulty: 2, explanation: 'Las ballenas son mamíferos marinos que respiran aire' },
-      { q: '¿Qué produce la fotosíntesis?', a: ['Oxígeno', 'CO₂', 'Nitrógeno', 'Metano'], correct: 0, difficulty: 2, explanation: 'Las plantas producen oxígeno durante la fotosíntesis' },
-      { q: '¿A qué velocidad viaja la luz?', a: ['300,000 km/s', '150,000 km/s', '500,000 km/s', '100,000 km/s'], correct: 0, difficulty: 3, explanation: 'La luz viaja a aprox. 300,000 kilómetros por segundo' }
-    ]
-  },
-  sociales: {
-    name: 'Sociales',
-    icon: IconWorld,
-    color: 'orange',
-    questions: [
-      { q: '¿Cuál es la capital de Francia?', a: ['París', 'Londres', 'Roma', 'Madrid'], correct: 0, difficulty: 1, explanation: 'París es la capital y ciudad más grande de Francia' },
-      { q: '¿En qué continente está Egipto?', a: ['África', 'Asia', 'Europa', 'América'], correct: 0, difficulty: 1, explanation: 'Egipto está en el noreste de África' },
-      { q: '¿Quién descubrió América?', a: ['Cristóbal Colón', 'Marco Polo', 'Magallanes', 'Vasco da Gama'], correct: 0, difficulty: 1, explanation: 'Colón llegó a América en 1492' },
-      { q: '¿Cuántos continentes hay?', a: ['7', '5', '6', '8'], correct: 0, difficulty: 2, explanation: 'América, Europa, África, Asia, Oceanía, Antártida, divididos en N y S América' },
-      { q: '¿Qué océano está entre América y Europa?', a: ['Atlántico', 'Pacífico', 'Índico', 'Ártico'], correct: 0, difficulty: 2, explanation: 'El Océano Atlántico separa estos dos continentes' },
-      { q: '¿En qué año cayó el Muro de Berlín?', a: ['1989', '1991', '1985', '1979'], correct: 0, difficulty: 3, explanation: 'El Muro de Berlín cayó el 9 de noviembre de 1989' }
-    ]
-  },
-  ingles: {
-    name: 'Inglés',
-    icon: IconLanguage,
-    color: 'red',
-    questions: [
-      { q: '¿Cómo se dice "libro" en inglés?', a: ['Book', 'Look', 'Cook', 'Hook'], correct: 0, difficulty: 1, explanation: '"Book" significa libro en inglés' },
-      { q: '¿Qué significa "cat"?', a: ['Gato', 'Perro', 'Pájaro', 'Ratón'], correct: 0, difficulty: 1, explanation: '"Cat" es gato en español' },
-      { q: '¿Cuál es el plural de "child"?', a: ['Children', 'Childs', 'Childes', 'Childen'], correct: 0, difficulty: 2, explanation: '"Child" (niño) tiene un plural irregular: "children"' },
-      { q: '¿Qué significa "I am hungry"?', a: ['Tengo hambre', 'Estoy feliz', 'Tengo sueño', 'Estoy cansado'], correct: 0, difficulty: 1, explanation: '"Hungry" significa hambriento/a' },
-      { q: '¿Cómo se dice "buenos días" en inglés?', a: ['Good morning', 'Good night', 'Good afternoon', 'Good evening'], correct: 0, difficulty: 1, explanation: '"Good morning" se usa para saludar en la mañana' },
-      { q: '¿Cuál es el pasado de "go"?', a: ['Went', 'Goed', 'Gone', 'Goes'], correct: 0, difficulty: 2, explanation: '"Go" (ir) tiene pasado irregular: "went"' },
-      { q: 'What is the opposite of "hot"?', a: ['Cold', 'Warm', 'Cool', 'Mild'], correct: 0, difficulty: 2, explanation: '"Cold" (frío) es lo opuesto de "hot" (caliente)' }
-    ]
-  }
-};*/
 
 export const SUBJECTS: SubjectsType = {
   historia_ecuador: {
@@ -124,46 +72,58 @@ export const SUBJECTS: SubjectsType = {
     ]
   },
 
-  historia_universal: {
-    name: 'Historia Universal',
-    icon: IconGlobe,
-    color: 'blue',
-    questions: [
-      { q: '¿En qué año comenzó la Segunda Guerra Mundial?', a: ['1939', '1914', '1945', '1929'], correct: 0, difficulty: 1, explanation: 'La Segunda Guerra Mundial comenzó en 1939.' },
-      { q: '¿Qué civilización construyó las pirámides de Giza?', a: ['Egipcia', 'Romana', 'Griega', 'Maya'], correct: 0, difficulty: 1, explanation: 'Las pirámides fueron construidas por la civilización egipcia.' },
-      { q: '¿Quién fue Napoleón Bonaparte?', a: ['Emperador francés', 'Rey inglés', 'Zar ruso', 'Presidente estadounidense'], correct: 0, difficulty: 2, explanation: 'Napoleón fue emperador de Francia.' },
-      { q: '¿Qué evento marcó el inicio de la Edad Media?', a: ['Caída del Imperio Romano', 'Revolución Francesa', 'Descubrimiento de América', 'Primera Guerra Mundial'], correct: 0, difficulty: 2, explanation: 'La caída del Imperio Romano de Occidente en 476 marcó el inicio de la Edad Media.' },
-      { q: '¿Qué fue la Revolución Francesa?', a: ['Movimiento contra la monarquía', 'Guerra mundial', 'Reforma religiosa', 'Imperio expansionista'], correct: 0, difficulty: 2, explanation: 'Fue un movimiento que puso fin a la monarquía absoluta en Francia.' }
-    ]
-  },
-
-  historia_latinoamericana: {
-    name: 'Historia Latinoamericana',
-    icon: IconMap,
+  historia_andina: {
+    name: 'Historia Andina del Ecuador',
+    icon: IconMountain,
     color: 'green',
     questions: [
-      { q: '¿Quién lideró la independencia de gran parte de Sudamérica?', a: ['Simón Bolívar', 'Miguel Hidalgo', 'José Martí', 'Pancho Villa'], correct: 0, difficulty: 1, explanation: 'Simón Bolívar lideró procesos independentistas en varios países.' },
-      { q: '¿Qué país fue el primero en independizarse en América Latina?', a: ['Haití', 'México', 'Argentina', 'Chile'], correct: 0, difficulty: 2, explanation: 'Haití logró su independencia en 1804.' },
-      { q: '¿Qué fue la Doctrina Monroe?', a: ['Política de EE.UU. hacia América', 'Tratado colonial', 'Reforma religiosa', 'Alianza europea'], correct: 0, difficulty: 3, explanation: 'Fue una política estadounidense que rechazaba la intervención europea en América.' },
-      { q: '¿Quién fue José de San Martín?', a: ['Libertador de Argentina, Chile y Perú', 'Presidente de Brasil', 'Rey español', 'Virrey peruano'], correct: 0, difficulty: 2, explanation: 'San Martín fue uno de los principales libertadores del sur de América.' },
-      { q: '¿Qué fue la Revolución Mexicana?', a: ['Movimiento social y político', 'Guerra europea', 'Imperio colonial', 'Descubrimiento geográfico'], correct: 0, difficulty: 2, explanation: 'Fue un movimiento armado iniciado en 1910 contra la dictadura de Porfirio Díaz.' }
+      { q: '¿Qué cultura prehispánica habitó principalmente la Sierra ecuatoriana?', a: ['Caras o Quitus', 'Valdivia', 'Manteña', 'Huancavilca'], correct: 0, difficulty: 2, explanation: 'Los Quitus habitaron la región andina antes de la llegada inca.' },
+      { q: '¿Cuándo fue incorporado el territorio ecuatoriano al Imperio Inca?', a: ['Siglo XV', 'Siglo XII', 'Siglo XVI', 'Siglo XIII'], correct: 0, difficulty: 3, explanation: 'El Tahuantinsuyo incorporó estos territorios en el siglo XV bajo Túpac Yupanqui.' },
+      { q: '¿Quién fue Rumiñahui?', a: ['General inca que resistió la conquista española', 'Rey de los Shyris', 'Conquistador español', 'Primer presidente del Ecuador'], correct: 0, difficulty: 2, explanation: 'Rumiñahui fue el guerrero inca que defendió Quito ante la conquista.' },
+      { q: '¿Qué ciudad serrana fue declarada Patrimonio de la Humanidad por la UNESCO en 1978?', a: ['Quito', 'Cuenca', 'Riobamba', 'Loja'], correct: 0, difficulty: 1, explanation: 'Quito fue una de las primeras ciudades declaradas Patrimonio de la Humanidad.' },
+      { q: '¿Qué cultura construyó los famosos "tolas" o montículos en la Sierra norte?', a: ['Cara', 'Valdivia', 'Chorrera', 'Cañari'], correct: 0, difficulty: 3, explanation: 'La cultura Cara construyó montículos ceremoniales llamados tolas.' }
     ]
   },
 
-  historia_contemporanea: {
-    name: 'Historia Contemporánea',
-    icon: IconNews,
-    color: 'red',
+  historia_costera: {
+    name: 'Historia Costeña del Ecuador',
+    icon: IconBeach,
+    color: 'blue',
     questions: [
-      { q: '¿Qué fue la Guerra Fría?', a: ['Conflicto ideológico entre EE.UU. y URSS', 'Guerra civil europea', 'Revolución industrial', 'Imperio colonial'], correct: 0, difficulty: 1, explanation: 'Fue un enfrentamiento político e ideológico sin guerra directa entre EE.UU. y la URSS.' },
-      { q: '¿En qué año cayó el Muro de Berlín?', a: ['1989', '1991', '1975', '1961'], correct: 0, difficulty: 2, explanation: 'El Muro de Berlín cayó en 1989.' },
-      { q: '¿Qué organización reemplazó a la Sociedad de Naciones?', a: ['ONU', 'OTAN', 'UE', 'OEA'], correct: 0, difficulty: 2, explanation: 'La ONU fue creada después de la Segunda Guerra Mundial.' },
-      { q: '¿Qué evento marcó el inicio del siglo XXI en términos geopolíticos?', a: ['Atentados del 11 de septiembre', 'Caída del Muro', 'Primera Guerra Mundial', 'Revolución Francesa'], correct: 0, difficulty: 3, explanation: 'Los atentados del 11S en 2001 marcaron un cambio geopolítico global.' },
-      { q: '¿Qué es la globalización?', a: ['Interconexión mundial económica y cultural', 'Imperio colonial', 'Guerra fría', 'Sistema feudal'], correct: 0, difficulty: 1, explanation: 'Es el proceso de integración e interconexión entre países.' }
+      { q: '¿Qué cultura es considerada la más antigua de América por su cerámica?', a: ['Valdivia', 'Manteña', 'Huancavilca', 'Chorrera'], correct: 0, difficulty: 2, explanation: 'La cultura Valdivia (3500 a.C.) produjo la cerámica más antigua conocida de América.' },
+      { q: '¿Qué ciudad costera fue capital de la Audiencia de Quito en asuntos comerciales?', a: ['Guayaquil', 'Manta', 'Esmeraldas', 'Salinas'], correct: 0, difficulty: 2, explanation: 'Guayaquil fue el principal puerto y centro comercial de la Audiencia.' },
+      { q: '¿En qué año se fundó Guayaquil?', a: ['1538', '1492', '1600', '1822'], correct: 0, difficulty: 2, explanation: 'Guayaquil fue fundada en 1538 por Francisco de Orellana.' },
+      { q: '¿Qué cultura costera era famosa por su navegación y comercio marítimo?', a: ['Manteña', 'Valdivia', 'Machalilla', 'Chorrera'], correct: 0, difficulty: 3, explanation: 'Los manteños eran grandes navegantes y comerciantes del Pacífico.' },
+      { q: '¿Dónde se llevó a cabo la Entrevista de Guayaquil en 1822?', a: ['Guayaquil', 'Quito', 'Lima', 'Bogotá'], correct: 0, difficulty: 1, explanation: 'Bolívar y San Martín se reunieron en Guayaquil en julio de 1822.' }
+    ]
+  },
+
+  historia_amazonica: {
+    name: 'Historia Amazónica del Ecuador',
+    icon: IconTree,
+    color: 'emerald',
+    questions: [
+      { q: '¿Quién fue el primer europeo en recorrer el río Amazonas desde Ecuador?', a: ['Francisco de Orellana', 'Gonzalo Pizarro', 'Hernán Cortés', 'Sebastián de Belalcázar'], correct: 0, difficulty: 2, explanation: 'Francisco de Orellana navegó el Amazonas en 1542 partiendo desde Quito.' },
+      { q: '¿En qué año Ecuador perdió gran parte de su territorio amazónico con el Protocolo de Río de Janeiro?', a: ['1942', '1830', '1904', '1998'], correct: 0, difficulty: 3, explanation: 'El Protocolo de Río de Janeiro de 1942 estableció los límites con Perú.' },
+      { q: '¿Qué pueblo indígena amazónico es conocido por su resistencia al contacto exterior?', a: ['Tagaeri', 'Shuar', 'Achuar', 'Siona'], correct: 0, difficulty: 2, explanation: 'Los Tagaeri son un grupo en aislamiento voluntario en la Amazonía ecuatoriana.' },
+      { q: '¿Qué provincia amazónica es la más grande del Ecuador?', a: ['Pastaza', 'Morona Santiago', 'Napo', 'Orellana'], correct: 0, difficulty: 2, explanation: 'Pastaza es la provincia más extensa del país.' },
+      { q: '¿Qué pueblo amazónico fue conocido históricamente como los "jíbaros"?', a: ['Shuar', 'Quichua', 'Cofán', 'Waorani'], correct: 0, difficulty: 2, explanation: 'Los Shuar fueron llamados "jíbaros" por los colonizadores españoles.' }
+    ]
+  },
+
+  historia_insular: {
+    name: 'Historia Insular y Galápagos',
+    icon: IconAnchor,
+    color: 'orange',
+    questions: [
+      { q: '¿En qué año fueron descubiertas las Islas Galápagos?', a: ['1535', '1492', '1600', '1820'], correct: 0, difficulty: 2, explanation: 'El obispo Tomás de Berlanga descubrió las Galápagos accidentalmente en 1535.' },
+      { q: '¿Quién visitó Galápagos y desarrolló su teoría de la evolución?', a: ['Charles Darwin', 'Alexander von Humboldt', 'Isaac Newton', 'Louis Pasteur'], correct: 0, difficulty: 1, explanation: 'Darwin visitó las islas en 1835 y sus observaciones inspiraron la teoría de la evolución.' },
+      { q: '¿Cuándo pasaron las Galápagos a ser parte del Ecuador?', a: ['1832', '1822', '1830', '1845'], correct: 0, difficulty: 3, explanation: 'Ecuador anexó las Islas Galápagos en 1832, dos años después de su fundación.' },
+      { q: '¿Qué organización declaró a Galápagos Patrimonio Natural de la Humanidad?', a: ['UNESCO', 'ONU', 'OEA', 'WWF'], correct: 0, difficulty: 1, explanation: 'La UNESCO declaró a Galápagos Patrimonio Natural de la Humanidad en 1978.' },
+      { q: '¿Qué animal es símbolo emblemático de las Islas Galápagos?', a: ['Tortuga gigante', 'Iguana marina', 'Pingüino de Galápagos', 'Lobo marino'], correct: 0, difficulty: 1, explanation: 'La tortuga gigante es el animal más icónico y representativo de las islas.' }
     ]
   }
 };
-
 
 export const promptTemplateRuleta = `
 Tu tarea es actuar como un **creador de contenido educativo viral** y generar un listado de actividades de aprendizaje innovadoras.
@@ -188,17 +148,17 @@ Debes fusionar el contenido académico de diferentes materias con el formato y e
 1.  \`texto\`: La descripción de la actividad. Debe especificar claramente el tipo de red social/formato, la materia aplicada, ser creativo, motivacional y orientado a la viralidad.
 2.  \`puntos\`: Un valor numérico entero entre 3 y 5 (5 es el más complejo/impactante).
 
-**Temas a considerar para las materias (mínimo 5 materias):**
-* Democracia y Ciudadania
-* Derechos Humanos
-* Historia General
-* Historia Universal
-* Historia Latinoamericana
-* Historia Contemporanea
+**Temas a considerar para las materias (exactamente 6 materias en este orden):**
+* Historia del Ecuador (emoji: 🇪🇨, enfocado en independencia, Revolución Liberal, personajes como Eloy Alfaro y Manuela Sáenz)
+* Historia Andina del Ecuador (emoji: 🏔️, enfocado en culturas Quitu-Cara, Cañari, Rumiñahui, Imperio Inca en Ecuador)
+* Historia Costeña del Ecuador (emoji: 🌅, enfocado en cultura Valdivia, fundación de Guayaquil, cultura Manteña, Entrevista de Guayaquil)
+* Historia Amazónica del Ecuador (emoji: 🌿, enfocado en Francisco de Orellana, pueblos Shuar y Waorani, Protocolo de Río de Janeiro)
+* Historia Insular y Galápagos (emoji: 🐢, enfocado en descubrimiento de las islas, Darwin, anexión al Ecuador, Patrimonio UNESCO)
+* Democracia y Ciudadanía (emoji: 🏛️, enfocado en participación ciudadana, derechos, deberes y procesos electorales en Ecuador)
 
 **¡Ejemplo de Estilo de Actividad a Seguir!**
-\`texto\`: '📊 Carrusel de Instagram: Analiza 5 errores financieros comunes en universitarios. Cada slide debe ser un meme con un dato clave y el título 'No seas ese amigo''.
-\`puntos\`: 4
+\`texto\`: '🎥 TikTok histórico: Graba un video de 60 segundos interpretando a Eloy Alfaro explicando por qué lideró la Revolución Liberal. Usa un fondo épico y música dramática.'
+\`puntos\`: 5
 
 **INICIA LA RESPUESTA DIRECTAMENTE CON EL CARÁCTER DE APERTURA DEL JSON (\`[\`) Y NADA MÁS.**
 `;
@@ -278,84 +238,80 @@ export const MATERIAS = [
   },
 ];
 */
-
 export const MATERIAS = [
   { 
     id: 1, 
-    nombre: 'Historia General', 
-    emoji: '📜', 
+    nombre: 'Historia del Ecuador', 
+    emoji: '🇪🇨', 
     color: '#D4A574',
     actividades: [
-      { texto: '🎥 Mini documental: Crea un video de 2 minutos explicando un acontecimiento histórico importante (Revolución Francesa, Independencias, etc.). Usa narración dramática y música épica.', puntos: 5 },
-      { texto: '📰 Noticia histórica: Presenta un hecho del pasado como si fuera una noticia de última hora. Incluye titulares llamativos y entrevistas ficticias.', puntos: 4 },
-      { texto: '🕰️ Línea del tiempo creativa: Diseña una línea del tiempo visual con los momentos clave de una civilización antigua.', puntos: 4 },
-      { texto: '👥 Debate histórico: Publica una pregunta polémica sobre un evento histórico y genera debate en comentarios con argumentos sólidos.', puntos: 3 },
+      { texto: '🎥 Mini documental: Crea un video de 2 minutos explicando un acontecimiento clave de la historia ecuatoriana (Independencia, Revolución Liberal, etc.). Usa narración dramática y música épica.', puntos: 5 },
+      { texto: '📰 Noticia histórica: Presenta el Primer Grito de Independencia del 10 de agosto de 1809 como si fuera una noticia de última hora. Incluye titulares llamativos y entrevistas ficticias.', puntos: 4 },
+      { texto: '🕰️ Línea del tiempo creativa: Diseña una línea del tiempo visual con los momentos clave desde la colonia hasta la fundación de la República del Ecuador en 1830.', puntos: 4 },
+      { texto: '👥 Debate histórico: ¿Fue Eloy Alfaro el presidente más importante del Ecuador? Publica tu argumento y genera debate en comentarios con evidencia histórica.', puntos: 3 },
     ]
   },
   { 
     id: 2, 
-    nombre: 'Historia Universal', 
-    emoji: '🌍', 
+    nombre: 'Historia Andina del Ecuador', 
+    emoji: '🏔️', 
     color: '#6C5CE7',
     actividades: [
-      { texto: '🌎 Comparativa mundial: Crea un post comparando dos imperios (Romano vs. Mongol, por ejemplo) destacando diferencias y similitudes.', puntos: 4 },
-      { texto: '🎬 Personaje icónico: Graba un video interpretando a un personaje histórico mundial (Napoleón, Cleopatra, Gandhi) contando su historia en primera persona.', puntos: 5 },
-      { texto: '📚 Top 5 histórico: Publica un ranking de los 5 eventos más importantes de la historia mundial y justifica tu elección.', puntos: 4 },
-      { texto: '🧠 Trivia global: Crea un quiz interactivo con 5 preguntas sobre historia universal y reta a tus compañeros.', puntos: 3 },
+      { texto: '🌎 Culturas serranas: Crea un post comparando la cultura Quitu-Cara con la cultura Cañari, destacando diferencias y similitudes en su organización social.', puntos: 4 },
+      { texto: '🎬 Personaje andino: Graba un video interpretando a Rumiñahui contando su resistencia ante la conquista española en primera persona.', puntos: 5 },
+      { texto: '📚 Top 5 andino: Publica un ranking de los 5 eventos más importantes de la historia andina ecuatoriana y justifica tu elección.', puntos: 4 },
+      { texto: '🧠 Trivia serrana: Crea un quiz interactivo con 5 preguntas sobre las culturas prehispánicas de la Sierra ecuatoriana y reta a tus compañeros.', puntos: 3 },
     ]
   },
   { 
     id: 3, 
-    nombre: 'Historia Latinoamericana', 
-    emoji: '🌎', 
+    nombre: 'Historia Costeña del Ecuador', 
+    emoji: '🌅', 
     color: '#00B894',
     actividades: [
-      { texto: '🎤 Héroe latino: Crea un video contando la historia de un líder latinoamericano (Bolívar, San Martín, Eloy Alfaro, etc.) destacando su impacto.', puntos: 5 },
-      { texto: '📜 Independencias: Diseña un carrusel explicando el proceso de independencia de un país latinoamericano.', puntos: 4 },
-      { texto: '🎭 Recreación histórica: Representa un momento clave de la historia latinoamericana (batalla, tratado, revolución).', puntos: 5 },
-      { texto: '📊 Impacto actual: Explica cómo un hecho histórico latinoamericano influye en la sociedad actual.', puntos: 4 },
+      { texto: '🎤 Cultura costera: Crea un video contando la historia de la cultura Valdivia, considerada la más antigua de América por su cerámica.', puntos: 5 },
+      { texto: '📜 Fundación de Guayaquil: Diseña un carrusel explicando la fundación de Guayaquil en 1538 y su importancia como puerto principal de la Audiencia de Quito.', puntos: 4 },
+      { texto: '🎭 Entrevista histórica: Representa la Entrevista de Guayaquil de 1822 entre Bolívar y San Martín y explica su trascendencia para América del Sur.', puntos: 5 },
+      { texto: '📊 Impacto actual: Explica cómo la cultura Manteña y su tradición marítima influyó en la identidad costeña ecuatoriana actual.', puntos: 4 },
     ]
   },
   { 
     id: 4, 
-    nombre: 'Historia Contemporánea', 
-    emoji: '📰', 
+    nombre: 'Historia Amazónica del Ecuador', 
+    emoji: '🌿', 
     color: '#E17055',
     actividades: [
-      { texto: '📺 Análisis actual: Explica un conflicto o evento contemporáneo (siglo XX o XXI) y sus causas históricas.', puntos: 5 },
-      { texto: '🎥 Antes vs Ahora: Crea un post comparando cómo era el mundo hace 50 años vs hoy (tecnología, política, sociedad).', puntos: 4 },
-      { texto: '🌐 Guerra Fría en 60s: Resume en un video de 60 segundos qué fue la Guerra Fría y por qué fue importante.', puntos: 4 },
-      { texto: '📱 Historia digital: Explica cómo las redes sociales han cambiado la forma en que vivimos la historia actual.', puntos: 3 },
+      { texto: '📺 Orellana y el Amazonas: Explica en un video el recorrido de Francisco de Orellana en 1542 navegando el río Amazonas desde territorio ecuatoriano.', puntos: 5 },
+      { texto: '🎥 Pueblos amazónicos: Crea un post presentando a los pueblos indígenas de la Amazonía ecuatoriana (Shuar, Waorani, Tagaeri) y su historia de resistencia.', puntos: 4 },
+      { texto: '🌐 Protocolo de Río: Resume en un video de 60 segundos qué fue el Protocolo de Río de Janeiro de 1942 y cómo afectó al territorio amazónico ecuatoriano.', puntos: 4 },
+      { texto: '📱 Amazonía hoy: Explica cómo los conflictos históricos por el territorio amazónico siguen afectando a las comunidades indígenas en la actualidad.', puntos: 3 },
     ]
   },
   { 
-  id: 5, 
-  nombre: 'Democracia y Ciudadanía', 
-  emoji: '🏛️', 
-  color: '#1F618D',
-  actividades: [
-    { texto: '🗳️ Simulación electoral: Organiza una votación en clase sobre un tema interesante y explica cómo funciona el proceso democrático.', puntos: 5 },
-    { texto: '📜 ¿Qué es democracia?: Crea un video corto explicando qué significa vivir en un país democrático y menciona 3 características principales.', puntos: 4 },
-    { texto: '👥 Derechos y deberes: Diseña un carrusel mostrando 3 derechos y 3 deberes de los ciudadanos.', puntos: 4 },
-    { texto: '📰 Noticia política: Analiza una noticia nacional relacionada con participación ciudadana y explica su importancia.', puntos: 3 },
-  ]
-},
-{ 
-  id: 6, 
-  nombre: 'Derechos Humanos', 
-  emoji: '🌱', 
-  color: '#117A65',
-  actividades: [
-    { texto: '📖 Derechos fundamentales: Explica en un post qué son los derechos humanos y menciona 5 ejemplos con situaciones reales.', puntos: 4 },
-    { texto: '⚖️ Caso real: Investiga un caso donde se hayan vulnerado derechos humanos y explica qué ocurrió y cómo se resolvió.', puntos: 5 },
-    { texto: '🌍 Declaración Universal: Crea una infografía sencilla explicando qué es y por qué es importante.', puntos: 4 },
-    { texto: '🎥 Reflexión juvenil: Graba un video reflexionando sobre cómo los jóvenes pueden defender y promover los derechos humanos.', puntos: 3 },
-  ]
-}
-
-
+    id: 5, 
+    nombre: 'Historia Insular y Galápagos', 
+    emoji: '🐢', 
+    color: '#1F618D',
+    actividades: [
+      { texto: '🗺️ Descubrimiento de Galápagos: Crea un video explicando cómo el obispo Tomás de Berlanga descubrió accidentalmente las islas en 1535 y qué encontró.', puntos: 5 },
+      { texto: '🔬 Darwin en Galápagos: Diseña un carrusel explicando qué observó Charles Darwin en las islas en 1835 y cómo eso inspiró la teoría de la evolución.', puntos: 4 },
+      { texto: '🏝️ Anexión al Ecuador: Explica en un post por qué Ecuador anexó las Galápagos en 1832 y qué importancia estratégica tienen las islas para el país.', puntos: 4 },
+      { texto: '📰 Patrimonio mundial: Analiza por qué la UNESCO declaró a Galápagos Patrimonio Natural de la Humanidad en 1978 y qué desafíos enfrenta hoy su conservación.', puntos: 3 },
+    ]
+  },
+  { 
+    id: 6, 
+    nombre: 'Democracia y Ciudadanía', 
+    emoji: '🏛️', 
+    color: '#117A65',
+    actividades: [
+      { texto: '🗳️ Simulación electoral: Organiza una votación en clase sobre un tema interesante y explica cómo funciona el proceso democrático.', puntos: 5 },
+      { texto: '📜 ¿Qué es democracia?: Crea un video corto explicando qué significa vivir en un país democrático y menciona 3 características principales.', puntos: 4 },
+      { texto: '👥 Derechos y deberes: Diseña un carrusel mostrando 3 derechos y 3 deberes de los ciudadanos ecuatorianos.', puntos: 4 },
+      { texto: '📰 Noticia política: Analiza una noticia nacional relacionada con participación ciudadana en Ecuador y explica su importancia.', puntos: 3 },
+    ]
+  },
 ];
-
 
 export const promptTemplateBingo1 = "Genera un objeto JSON. El objeto debe contener las siguientes claves (materias): 'ESPANOL', 'MATEMATICAS', 'CIENCIAS', 'SOCIALES', y 'ARTES'. A cada clave asígnale un array que contenga 8 actividades de tarea o estudio relacionadas con esa materia. Las actividades deben ser variadas y adecuadas para un nivel de primaria o secundaria inicial. SOLO proporciona el objeto JSON, sin ninguna explicación ni texto adicional.";
 

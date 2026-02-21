@@ -23,6 +23,7 @@ export class UsersService extends InvokeApi {
   async POST(userData: UserData): Promise<SignUpResponse> {
     try {
       const result = await this.post<SignUpResponse>('/auth/signup', userData, {}, false);
+      console.log(result);
       return result;
     } catch (error) {
       return handleError(error, 'creating user', 'Error al crear usuario');

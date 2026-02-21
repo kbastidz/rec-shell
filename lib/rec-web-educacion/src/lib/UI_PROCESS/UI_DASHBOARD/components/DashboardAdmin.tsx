@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Grid, Loader, Center, Title, Text, Alert, Paper } from '@mantine/core';
+import { Container, Grid, Loader, Center, Title, Text, Alert, Paper, Select } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 import { StatsGrid } from './StatsGrid';
@@ -17,12 +17,18 @@ export function DashboardAdminM3() {
 
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [distribucion, setDistribucion] = useState<any>(null);
+  const [cicloSeleccionado, setCicloSeleccionado] = useState<string>('2025-2026');
+
+  // Lista de ciclos disponibles
+  const ciclosDisponibles = [
+    { value: '2025-2026', label: '2025-2026' }
+  ];
 
   useEffect(() => {
     const loadData = async () => {
       const [generalData, distribucionData] = await Promise.all([
-        getDashboardGeneral(),
-        getDistribucionNiveles()
+        getDashboardGeneral(cicloSeleccionado),
+        getDistribucionNiveles(cicloSeleccionado)
       ]);
 
       if (generalData) {
@@ -35,7 +41,7 @@ export function DashboardAdminM3() {
     };
 
     loadData();
-  }, [getDashboardGeneral, getDistribucionNiveles]);
+  }, [getDashboardGeneral, getDistribucionNiveles, cicloSeleccionado]);
 
   if (loading && !dashboardData) {
     return (
@@ -65,9 +71,23 @@ export function DashboardAdminM3() {
 
   return (
     <Container size="xl" py="xl">
-      <Title order={1} mb="xl" ta="center">
-        Dashboard del Docente
-      </Title>
+      <Grid align="center" mb="xl">
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <Title order={1} ta="center">
+            Dashboard del Docente
+          </Title>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          <Select
+            label="Ciclo Escolar"
+            placeholder="Seleccione un ciclo"
+            value={cicloSeleccionado}
+            onChange={(value) => setCicloSeleccionado(value || '2025-2026')}
+            data={ciclosDisponibles}
+            clearable={false}
+          />
+        </Grid.Col>
+      </Grid>
       
       <StatsGrid data={dashboardData} />
       

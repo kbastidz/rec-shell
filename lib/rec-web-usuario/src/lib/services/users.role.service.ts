@@ -20,4 +20,8 @@ export class UserRoleService {
   async DELETE(userId: number, roleId: number): Promise<void> {
     await apiClient.delete<ApiResponse<unknown>>(`/admin/users/${userId}/roles/${roleId}`);
   }
+
+  async PUT(userId: number, roleId: number): Promise<void> {
+    await apiClient.put<ApiResponse<unknown>>(`/admin/users/${userId}/roles/${roleId}`);
+  }
 }

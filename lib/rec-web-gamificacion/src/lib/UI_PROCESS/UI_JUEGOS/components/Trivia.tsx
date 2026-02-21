@@ -66,7 +66,6 @@ export function Trivia() {
     console.log('🚀 Iniciando generación de preguntas con Gemini...');
     setGameStarted(true);
     setIsLoadingQuestions(true);
-    console.log("Ingreso");
     generateText(promptTemplate);
   };
 

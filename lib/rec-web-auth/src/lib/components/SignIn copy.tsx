@@ -226,15 +226,23 @@ export const SignIn: React.FC<SignInProps> = ({
           </div>
         </div>
 
-        {/* Panel Derecho - Info Cards */}
+        <div className="w-1/2 h-full flex flex-col">    
+              <div className="space-y-6 max-w-lg">
+<ImageCarousel />
+              </div>
+  
+</div>
+
+        {/* Panel Derecho - Info Cards 
         <div className="w-1/2 px-8  h-full flex flex-col justify-center overflow-y-auto">          
            <div className="space-y-6 max-w-lg">
              {/*<SecurityRecommendationCard />
              <SupportCard />
-             <ImageCarousel />*/}
-             
+             <ImageCarousel />}
+             <ImageCarousel />
            </div>
         </div>
+        */}
       </div>
 
       {/* Footer mejorado */}

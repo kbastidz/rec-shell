@@ -98,7 +98,7 @@ export function Ruleta() {
         const lastDate = new Date(lastSpin);
         const today = new Date();
         if (lastDate.toDateString() === today.toDateString()) {
-          setYaGiro(true);
+          //setYaGiro(true);
         }
       }
       
@@ -157,7 +157,7 @@ export function Ruleta() {
       
       setResultado(resultadoFinal);
       setGirando(false);
-      setYaGiro(true);
+      //setYaGiro(true);
 
       // Crear transacción de puntos en la base de datos
       try {

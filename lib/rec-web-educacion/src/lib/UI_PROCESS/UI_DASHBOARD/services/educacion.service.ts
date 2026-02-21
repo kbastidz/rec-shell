@@ -5,23 +5,33 @@ const API_URL = `/educacion/dashboard`;
 
 export class ConexionService extends InvokeApi {
 
-  async GET_DASHBOARD_GENERAL(): Promise<DashboardGeneralDTO> {
-    const response = await this.get<DashboardGeneralDTO>(`${API_URL}/general`);
+  async GET_DASHBOARD_GENERAL(ciclo?: string): Promise<DashboardGeneralDTO> {
+    const url = ciclo ? `${API_URL}/general?ciclo=${ciclo}` : `${API_URL}/general`;
+    const response = await this.get<DashboardGeneralDTO>(url);
     return response;
   }
 
-  async GET_METRICAS_ESTUDIANTE(id: number): Promise<EstudianteMetricasDTO> {
-    const response = await this.get<EstudianteMetricasDTO>(`${API_URL}/estudiantes/${id}/metricas`);
+  async GET_METRICAS_ESTUDIANTE(id: number, ciclo?: string): Promise<EstudianteMetricasDTO> {
+    const url = ciclo 
+      ? `${API_URL}/estudiantes/${id}/metricas?ciclo=${ciclo}` 
+      : `${API_URL}/estudiantes/${id}/metricas`;
+    const response = await this.get<EstudianteMetricasDTO>(url);
     return response;
   }
 
-  async GET_DETALLE_ESTUDIANTE(id: number): Promise<EstudianteDetalleDTO> {
-    const response = await this.get<EstudianteDetalleDTO>(`${API_URL}/estudiantes/${id}/detalle`);
+  async GET_DETALLE_ESTUDIANTE(id: number, ciclo?: string): Promise<EstudianteDetalleDTO> {
+    const url = ciclo 
+      ? `${API_URL}/estudiantes/${id}/detalle?ciclo=${ciclo}` 
+      : `${API_URL}/estudiantes/${id}/detalle`;
+    const response = await this.get<EstudianteDetalleDTO>(url);
     return response;
   }
 
-  async POST_EVOLUCION_ESTUDIANTE(id: number, rango: RangoFechasRequest): Promise<EvolucionDTO> {
-    const response = await this.post<EvolucionDTO>(`${API_URL}/estudiantes/${id}/evolucion`, rango);
+  async POST_EVOLUCION_ESTUDIANTE(id: number, rango: RangoFechasRequest, ciclo?: string): Promise<EvolucionDTO> {
+    const url = ciclo 
+      ? `${API_URL}/estudiantes/${id}/evolucion?ciclo=${ciclo}` 
+      : `${API_URL}/estudiantes/${id}/evolucion`;
+    const response = await this.post<EvolucionDTO>(url, rango);
     return response;
   }
 
@@ -30,8 +40,12 @@ export class ConexionService extends InvokeApi {
     return response;
   }
 
-  async GET_COMPARATIVA(criterio = 'PROMEDIO_GENERAL'): Promise<ComparativaEstudiantesDTO> {
-    const response = await this.get<ComparativaEstudiantesDTO>(`${API_URL}/comparativa?criterio=${criterio}`);
+  async GET_COMPARATIVA(criterio = 'PROMEDIO_GENERAL', ciclo?: string): Promise<ComparativaEstudiantesDTO> {
+    const params = new URLSearchParams({ criterio });
+    if (ciclo) {
+      params.append('ciclo', ciclo);
+    }
+    const response = await this.get<ComparativaEstudiantesDTO>(`${API_URL}/comparativa?${params.toString()}`);
     return response;
   }
 
@@ -40,24 +54,36 @@ export class ConexionService extends InvokeApi {
     return response;
   }
 
-  async GET_ESTADISTICAS_MATERIAS(): Promise<MateriaEstadisticasDTO[]> {
-    const response = await this.get<MateriaEstadisticasDTO[]>(`${API_URL}/materias/estadisticas`);
+  async GET_ESTADISTICAS_MATERIAS(ciclo?: string): Promise<MateriaEstadisticasDTO[]> {
+    const url = ciclo 
+      ? `${API_URL}/materias/estadisticas?ciclo=${ciclo}` 
+      : `${API_URL}/materias/estadisticas`;
+    const response = await this.get<MateriaEstadisticasDTO[]>(url);
     return response;
   }
 
-  async GET_TOP_ESTUDIANTES(limite = 10): Promise<EstudianteMetricasDTO[]> {
-    const response = await this.get<EstudianteMetricasDTO[]>(`${API_URL}/estudiantes/top?limite=${limite}`);
+  async GET_TOP_ESTUDIANTES(limite = 10, ciclo?: string): Promise<EstudianteMetricasDTO[]> {
+    const params = new URLSearchParams({ limite: limite.toString() });
+    if (ciclo) {
+      params.append('ciclo', ciclo);
+    }
+    const response = await this.get<EstudianteMetricasDTO[]>(`${API_URL}/estudiantes/top?${params.toString()}`);
     return response;
   }
 
-  async GET_ESTUDIANTES_RIESGO(): Promise<EstudianteMetricasDTO[]> {
-    const response = await this.get<EstudianteMetricasDTO[]>(`${API_URL}/estudiantes/riesgo`);
+  async GET_ESTUDIANTES_RIESGO(ciclo?: string): Promise<EstudianteMetricasDTO[]> {
+    const url = ciclo 
+      ? `${API_URL}/estudiantes/riesgo?ciclo=${ciclo}` 
+      : `${API_URL}/estudiantes/riesgo`;
+    const response = await this.get<EstudianteMetricasDTO[]>(url);
     return response;
   }
 
- 
-  async GET_DISTRIBUCION_NIVELES(): Promise<Record<string, number>> {
-    const response = await this.get<Record<string, number>>(`${API_URL}/estadisticas/distribucion`);
+  async GET_DISTRIBUCION_NIVELES(ciclo?: string): Promise<Record<string, number>> {
+    const url = ciclo 
+      ? `${API_URL}/estadisticas/distribucion?ciclo=${ciclo}` 
+      : `${API_URL}/estadisticas/distribucion`;
+    const response = await this.get<Record<string, number>>(url);
     return response;
   }
 }

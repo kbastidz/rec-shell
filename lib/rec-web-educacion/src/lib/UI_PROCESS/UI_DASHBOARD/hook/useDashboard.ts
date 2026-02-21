@@ -109,14 +109,14 @@ export const useDashboard = () => {
     }
   };
 
-  const getDashboardGeneral = useCallback(async (): Promise<DashboardGeneralDTO | null> => {
+  const getDashboardGeneral = useCallback(async (ciclo?: string): Promise<DashboardGeneralDTO | null> => {
     return executeCall(
-      () => service.GET_DASHBOARD_GENERAL(),
+      () => service.GET_DASHBOARD_GENERAL(ciclo),
       mockDashboardGeneral
     );
   }, []);
 
-  const getMetricasEstudiante = useCallback(async (id: number): Promise<EstudianteMetricasDTO | null> => {
+  const getMetricasEstudiante = useCallback(async (id: number, ciclo?: string): Promise<EstudianteMetricasDTO | null> => {
     const mockData: EstudianteMetricasDTO = {
       id: 1,
       nombreCompleto: "García López María",
@@ -131,12 +131,12 @@ export const useDashboard = () => {
     };
 
     return executeCall(
-      () => service.GET_METRICAS_ESTUDIANTE(id),
+      () => service.GET_METRICAS_ESTUDIANTE(id, ciclo),
       mockData
     );
   }, []);
 
-  const getDetalleEstudiante = useCallback(async (id: number): Promise<EstudianteDetalleDTO | null> => {
+  const getDetalleEstudiante = useCallback(async (id: number, ciclo?: string): Promise<EstudianteDetalleDTO | null> => {
     const mockData: EstudianteDetalleDTO = {
       id: 1,
       nombreCompleto: "García López María",
@@ -190,14 +190,15 @@ export const useDashboard = () => {
     };
 
     return executeCall(
-      () => service.GET_DETALLE_ESTUDIANTE(id),
+      () => service.GET_DETALLE_ESTUDIANTE(id, ciclo),
       mockData
     );
   }, []);
 
   const getEvolucionEstudiante = useCallback(async (
     id: number,
-    rango: RangoFechasRequest
+    rango: RangoFechasRequest,
+    ciclo?: string
   ): Promise<EvolucionDTO | null> => {
     const mockData: EvolucionDTO = {
       evolucionTrimestral: [
@@ -212,7 +213,7 @@ export const useDashboard = () => {
     };
 
     return executeCall(
-      () => service.POST_EVOLUCION_ESTUDIANTE(id, rango),
+      () => service.POST_EVOLUCION_ESTUDIANTE(id, rango, ciclo),
       mockData
     );
   }, []);
@@ -250,7 +251,8 @@ export const useDashboard = () => {
   }, []);
 
   const getComparativa = useCallback(async (
-    criterio = 'PROMEDIO_GENERAL'
+    criterio = 'PROMEDIO_GENERAL',
+    ciclo?: string
   ): Promise<ComparativaEstudiantesDTO | null> => {
     const mockData: ComparativaEstudiantesDTO = {
       estudiantes: [
@@ -265,7 +267,7 @@ export const useDashboard = () => {
     };
 
     return executeCall(
-      () => service.GET_COMPARATIVA(criterio),
+      () => service.GET_COMPARATIVA(criterio, ciclo),
       mockData
     );
   }, []);
@@ -294,7 +296,7 @@ export const useDashboard = () => {
     );
   }, []);
 
-  const getEstadisticasMaterias = useCallback(async (): Promise<MateriaEstadisticasDTO[] | null> => {
+  const getEstadisticasMaterias = useCallback(async (ciclo?: string): Promise<MateriaEstadisticasDTO[] | null> => {
     const mockData: MateriaEstadisticasDTO[] = [
       {
         materiaId: 1,
@@ -310,12 +312,12 @@ export const useDashboard = () => {
     ];
 
     return executeCall(
-      () => service.GET_ESTADISTICAS_MATERIAS(),
+      () => service.GET_ESTADISTICAS_MATERIAS(ciclo),
       mockData
     );
   }, []);
 
-  const getTopEstudiantes = useCallback(async (limite = 10): Promise<EstudianteMetricasDTO[] | null> => {
+  const getTopEstudiantes = useCallback(async (limite = 10, ciclo?: string): Promise<EstudianteMetricasDTO[] | null> => {
     const mockData: EstudianteMetricasDTO[] = [
       {
         id: 1,
@@ -332,12 +334,12 @@ export const useDashboard = () => {
     ];
 
     return executeCall(
-      () => service.GET_TOP_ESTUDIANTES(limite),
+      () => service.GET_TOP_ESTUDIANTES(limite, ciclo),
       mockData
     );
   }, []);
 
-  const getEstudiantesRiesgo = useCallback(async (): Promise<EstudianteMetricasDTO[] | null> => {
+  const getEstudiantesRiesgo = useCallback(async (ciclo?: string): Promise<EstudianteMetricasDTO[] | null> => {
     const mockData: EstudianteMetricasDTO[] = [
       {
         id: 45,
@@ -354,16 +356,14 @@ export const useDashboard = () => {
     ];
 
     return executeCall(
-      () => service.GET_ESTUDIANTES_RIESGO(),
+      () => service.GET_ESTUDIANTES_RIESGO(ciclo),
       mockData
     );
   }, []);
 
-
-
-  const getDistribucionNiveles = useCallback(async (): Promise<Record<string, number> | null> => {
+  const getDistribucionNiveles = useCallback(async (ciclo?: string): Promise<Record<string, number> | null> => {
     return executeCall(
-      () => service.GET_DISTRIBUCION_NIVELES(),
+      () => service.GET_DISTRIBUCION_NIVELES(ciclo),
       mockDistribucionNiveles
     );
   }, []);

@@ -51,6 +51,19 @@ export const useRoleManagement = () => {
     }
   }, [fetchUserRoles]);
 
+  const updateAssingRole = useCallback(async (userId: number, roleId: number) => {
+    try {
+      setAssigningRole(true);
+      await service.PUT(userId, roleId);      
+      await fetchUserRoles(userId);
+    } catch (error) {
+      console.log('Error assigning role:', error);
+      throw error;
+    } finally {
+      setAssigningRole(false);
+    }
+  }, [fetchUserRoles]);
+
   const removeRole = useCallback(async (userId: number, roleId: number) => {
     try {
       setRemovingRole(roleId);
@@ -74,5 +87,6 @@ export const useRoleManagement = () => {
     fetchAvailableRoles,
     assignRole,
     removeRole,
+    updateAssingRole
   };
 };

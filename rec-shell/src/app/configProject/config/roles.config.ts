@@ -7,7 +7,7 @@ export const ROLES_CONFIG: Record<string, RoleConfig> = {
     name: 'Administrador',
     hasAdminPanel: true,
     //allowedProjects: ['agricultura', 'gamificacion', 'educacion'],
-    allowedProjects: [ 'educacion'],
+    allowedProjects: [ 'gamificacion'],
     isGlobalRole: true
   },
   USER: {

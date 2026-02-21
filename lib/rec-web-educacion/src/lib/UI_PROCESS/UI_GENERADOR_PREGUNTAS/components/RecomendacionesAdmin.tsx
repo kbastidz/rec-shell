@@ -23,6 +23,7 @@ import {
   PROMP_MAPA_CONECPTUAL,
 } from '../../../utils/CONSTANTE';
 import { YoutubeVideo } from '../interfaces/interface';
+import PlanTecnologia from './PlanTecnologia';
 
 export interface Concept {
   name: string;
@@ -51,6 +52,7 @@ export function RecomendacionesAdmin() {
   const [isLoadingConcepts, setIsLoadingConcepts] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [showPlanModal, setShowPlanModal] = useState(false);
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -227,7 +229,6 @@ export function RecomendacionesAdmin() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          
           <p className="text-2xl md:text-3xl text-white font-semibold drop-shadow">
             ¿Hola, Qué te gustaría aprender hoy?
           </p>
@@ -328,18 +329,44 @@ export function RecomendacionesAdmin() {
                 <h3 className="text-3xl font-bold text-white mb-2">Videos</h3>
                 <h4 className="text-3xl font-bold text-white">Recomendados</h4>
               </div>
-            <div className="bg-yellow-300 rounded-2xl w-16 h-16 flex items-center justify-center text-4xl">
-              <span role="img" aria-label="candado">
-                🌐
-              </span>
-            </div>
+              <div className="bg-yellow-300 rounded-2xl w-16 h-16 flex items-center justify-center text-4xl">
+                <span role="img" aria-label="candado">
+                  🌐
+                </span>
+              </div>
             </div>
 
-            
             <div className="flex justify-center mt-8">
               <div className="text-8xl">
                 <span role="img" aria-label="candado">
                   🎬
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Plan Anual Card */}
+          <div
+            onClick={() => setShowPlanModal(true)}
+            className="bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-3xl p-8 shadow-xl cursor-pointer hover:scale-105 transition transform md:col-span-2"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-3xl font-bold text-white mb-2">
+                  Plan Anual
+                </h3>
+                <h4 className="text-3xl font-bold text-white">Tecnología</h4>
+              </div>
+              <div className="bg-yellow-300 rounded-2xl w-16 h-16 flex items-center justify-center text-4xl">
+                <span role="img" aria-label="candado">
+                  📋
+                </span>
+              </div>
+            </div>
+            <div className="flex justify-center mt-4">
+              <div className="text-8xl">
+                <span role="img" aria-label="candado">
+                  📚
                 </span>
               </div>
             </div>
@@ -526,7 +553,40 @@ export function RecomendacionesAdmin() {
           </div>
         )}
 
-        {/* Progress Section */}
+        {/* Plan Anual Modal */}
+        {showPlanModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-end justify-center z-50 p-4 animate-fade-in pt-20">
+            <div className="bg-white rounded-3xl w-full max-w-5xl h-[90vh] overflow-hidden shadow-2xl relative flex flex-col">
+              {/* Header del modal */}
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-5 flex items-center justify-between shrink-0">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <span role="img" aria-label="candado">
+                    📚
+                  </span>
+                  Plan Anual de Tecnología
+                </h2>
+                <button
+                  onClick={() => setShowPlanModal(false)}
+                  className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition"
+                >
+                  <X size={24} className="text-white" />
+                </button>
+              </div>
+
+              {/* Contenido scrolleable */}
+              <div className="overflow-y-auto flex-1">
+                <PlanTecnologia
+                  onSelectTema={(tema) => {
+                    setInputText(tema); // escribe en la cajita
+                    setShowPlanModal(false); // cierra el modal
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Progress Section 
         <div className="bg-white rounded-3xl p-6 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -563,6 +623,7 @@ export function RecomendacionesAdmin() {
             </div>
           </div>
         </div>
+        */}
       </div>
 
       <style>

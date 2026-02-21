@@ -55,18 +55,8 @@ export function StudentsTable({ title, students, type, itemsPerPage = 3 }: Stude
       <Table.Td>
         <Text fz="sm">{student.promedioGeneral.toFixed(1)}</Text>
       </Table.Td>
-      <Table.Td>
-        <Text fz="sm">{student.promedioEvaluaciones.toFixed(1)}%</Text>
-      </Table.Td>
-      <Table.Td>
-        <Text fz="sm">{student.totalEvaluacionesRealizadas}</Text>
-      </Table.Td>
-      <Table.Td>
-        <Text fz="sm">{student.acompaniamientoIntegral.toFixed(1)}</Text>
-      </Table.Td>
-      <Table.Td>
-        <Text fz="sm">{student.animacionLectura.toFixed(1)}</Text>
-      </Table.Td>
+     
+     
       <Table.Td>
         <Badge color={getEstadoColor(student.estadoGeneral)} variant="light">
           {student.estadoGeneral.replace('_', ' ')}
@@ -93,10 +83,8 @@ export function StudentsTable({ title, students, type, itemsPerPage = 3 }: Stude
               <Table.Tr>
                 <Table.Th>Estudiante</Table.Th>
                 <Table.Th>Promedio</Table.Th>
-                <Table.Th>Evaluaciones %</Table.Th>
-                <Table.Th>Total Eval.</Table.Th>
-                <Table.Th>Acompañamiento</Table.Th>
-                <Table.Th>Lectura</Table.Th>
+                
+                
                 <Table.Th>Estado</Table.Th>
               </Table.Tr>
             </Table.Thead>
